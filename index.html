@@ -458,14 +458,32 @@ nav button.active .ndot{display:block}
       <div id="acct-modal-calc" style="font-size:11px;color:var(--text2);margin-top:3px"></div>
     </div>
     <div style="display:flex;border-bottom:.5px solid var(--border)">
-      <div id="acct-modal-sum" style="flex:1;padding:12px 16px;text-align:center;border-right:.5px solid var(--border)">
+      <div style="flex:1;padding:12px 16px;text-align:center;border-right:.5px solid var(--border)">
         <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:2px">ENTRADAS</div>
         <div id="acct-modal-inc" style="font-size:16px;font-weight:700;color:var(--green)">$0</div>
       </div>
       <div style="flex:1;padding:12px 16px;text-align:center">
-        <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:2px">SALIDAS</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:2px">SALIDAS (tu parte)</div>
         <div id="acct-modal-exp" style="font-size:16px;font-weight:700;color:var(--red)">$0</div>
       </div>
+    </div>
+    <!-- Conciliador bancario -->
+    <div style="margin:12px 16px;background:var(--bg3);border-radius:12px;padding:12px;border:.5px solid var(--border2)">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Conciliador bancario</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text2)">Débitos reales de la cuenta</span>
+        <span id="acct-real-debits" style="font-size:12px;font-weight:700;color:var(--red)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text2)">Tu parte registrada</span>
+        <span id="acct-my-part" style="font-size:12px;font-weight:700;color:var(--text)">$0</span>
+      </div>
+      <div style="height:.5px;background:var(--border);margin:8px 0"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:var(--text2)">Adelantado por ti</span>
+        <span id="acct-adelanto" style="font-size:14px;font-weight:800;color:var(--amber)">$0</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">Pagos que hiciste por otros y aún no te han reembolsado</div>
     </div>
     <div class="txwrap" id="acct-modal-list" style="padding-bottom:20px"></div>
   </div>
@@ -569,13 +587,38 @@ function openAcctModal(acctId){
   });
   document.getElementById('acct-modal-inc').textContent=fmt(totalInc);
   document.getElementById('acct-modal-exp').textContent=fmt(totalExp);
-  // Show if stored saldo matches calculated
-  var calcSaldo=totalInc-totalExp;
-  var storedSaldo=acct.balance||0;
-  var diff=storedSaldo-calcSaldo;
   var calcEl=document.getElementById('acct-modal-calc');
   calcEl.textContent='Calculado desde '+related.length+' movimientos';
   calcEl.style.color='var(--text3)';
+
+  // Conciliador: find shared expenses paid from this account (full amount debited)
+  // but only David's part registered in app
+  var realDebits=0; // total actually debited from account
+  var myPart=0;     // only David's share registered in app
+  var adelanto=0;   // difference = amount paid on behalf of others
+
+  // Find shared expense originals that were paid from this account
+  txs.forEach(function(t){
+    if(t.linkedFrom&&t.accountId===acctId&&t.mode==='tracking'&&t.type==='Expenses'){
+      // Find the parent shared expense
+      var parent=null;for(var i=0;i<txs.length;i++){if(txs[i].id===t.linkedFrom){parent=txs[i];break;}}
+      if(parent&&parent.charge==='Los dos'){
+        realDebits+=parent.amount; // full amount left account
+        myPart+=t.amount;          // only half registered as mine
+        adelanto+=(parent.amount-t.amount); // other half = adelanto
+      }
+    }
+    // Also count personal expenses paid from this account
+    if(!t.linkedFrom&&t.mode==='tracking'&&t.type==='Expenses'&&t.accountId===acctId){
+      realDebits+=t.amount;
+      myPart+=t.amount;
+    }
+  });
+  // Add incomes to real flow (they come in full)
+  document.getElementById('acct-real-debits').textContent=fmt(realDebits);
+  document.getElementById('acct-my-part').textContent=fmt(myPart);
+  document.getElementById('acct-adelanto').textContent=fmt(adelanto);
+  document.getElementById('acct-adelanto').style.color=adelanto>0?'var(--amber)':'var(--green)';
 
   var list=document.getElementById('acct-modal-list');
   while(list.firstChild)list.removeChild(list.firstChild);
