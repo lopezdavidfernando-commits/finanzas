@@ -211,7 +211,7 @@ nav button.active .ndot{display:block}
 </div>
 
 <div class="page" id="page-tracking">
-  <div class="topbar"><h1>Mis gastos</h1><p>Solo tus movimientos</p></div>
+  <div class="topbar"><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
   <div class="mbar">
     <button class="mbtn" onclick="cm(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <span class="mlbl" id="t-mbar"></span>
@@ -222,7 +222,7 @@ nav button.active .ndot{display:block}
 </div>
 
 <div class="page" id="page-expenses">
-  <div class="topbar"><h1>Compartido</h1><p>David · Lina · Otro</p></div>
+  <div class="topbar"><h1>Pendiente</h1><p>Gastos compartidos por saldar</p></div>
   <div class="mbar">
     <button class="mbtn" onclick="cm(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <span class="mlbl" id="e-mbar"></span>
@@ -355,8 +355,8 @@ nav button.active .ndot{display:block}
 
 <nav>
   <button class="active" id="nav-dash" onclick="showPage('dash')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio<div class="ndot"></div></button>
-  <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>Gastos<div class="ndot"></div></button>
-  <button id="nav-expenses" onclick="showPage('expenses')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Compartido<div class="ndot"></div></button>
+  <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>Movimientos<div class="ndot"></div></button>
+  <button id="nav-expenses" onclick="showPage('expenses')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pendiente<div class="ndot"></div></button>
   <button id="nav-budget" onclick="showPage('budget')"><svg viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>Presup.<div class="ndot"></div></button>
   <button id="nav-summary" onclick="showPage('summary')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resumen<div class="ndot"></div></button>
   <button id="nav-settings" onclick="showPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes<div class="ndot"></div></button>
@@ -366,17 +366,22 @@ nav button.active .ndot{display:block}
   <div class="msh">
     <div class="mhnd"></div>
     <div class="mhdr"><h2 id="tx-ttl">Nuevo movimiento</h2><button class="xbtn" onclick="closeM('m-tx')">✕</button></div>
-    <div class="mtabs"><div class="mtab active" id="mt-tr" onclick="setMTab('tracking')">Mis gastos</div><div class="mtab" id="mt-ex" onclick="setMTab('expenses')">Compartido</div></div>
+    <div class="mtabs">
+      <div class="mtab active" id="mt-inc" onclick="setMTab('income')">Ingreso</div>
+      <div class="mtab" id="mt-gasto" onclick="setMTab('gasto')">Gasto</div>
+      <div class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</div>
+    </div>
     <div class="mbody">
-      <div class="seg"><button class="active" id="sg-g" onclick="setTT('Expenses')">Gasto</button><button id="sg-i" onclick="setTT('Income')">Ingreso</button></div>
+
       <div class="fg"><label>Descripción</label><input id="f-d" type="text" placeholder="Ej: Mercado Plaza" autocomplete="off" list="desc-list"><datalist id="desc-list"></datalist></div>
       <div class="fgrow">
         <div class="fg"><label>Monto (COP)</label><input id="f-m" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
         <div class="fg"><label>Fecha</label><input id="f-dt" type="date"></div>
       </div>
       <div class="fg"><label>Categoría</label><select id="f-c"></select></div>
-      <div id="tf-tr"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
-      <div id="tf-ex" style="display:none">
+      <div id="tf-income-ac" style="display:none"><div class="fg"><label>Cuenta donde entra</label><select id="f-ac-inc"></select></div></div>
+      <div id="tf-gasto"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
+      <div id="tf-shared" style="display:none">
         <div class="fgrow">
           <div class="fg"><label>A cargo de</label><select id="f-ch"><option>David</option><option>Lina</option><option>Los dos</option><option>Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
@@ -385,7 +390,9 @@ nav button.active .ndot{display:block}
         <div class="fg" id="payacc-row" style="display:none"><label>De donde salio el dinero?</label><select id="f-payacc"></select></div>
       </div>
       <button class="btnp" onclick="saveTx()">Guardar</button>
-      <button class="btng" id="delbtn" style="display:none" onclick="delTx()">Eliminar movimiento</button>
+      <div id="delbtn-wrap" style="display:none;margin-top:12px;padding:12px 0 0;border-top:.5px solid var(--border)">
+        <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()">🗑 Eliminar movimiento</button>
+      </div>
     </div>
   </div>
 </div>
@@ -416,6 +423,51 @@ nav button.active .ndot{display:block}
       <div class="fg"><label>Client ID</label><input id="drive-cid" type="text" placeholder="123456789-abc.apps.googleusercontent.com"></div>
       <button class="btnp" onclick="saveDriveCid()">Conectar Drive</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRM DELETE -->
+<div class="mback" id="m-confirm" style="align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
+    <div style="padding:20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:10px">🗑️</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px" id="confirm-title">Eliminar movimiento</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5" id="confirm-desc">Esta accion no se puede deshacer (pero puedes revertir desde el historial).</div>
+    </div>
+    <div style="display:flex;border-top:.5px solid var(--border)">
+      <button onclick="closeM('m-confirm')" style="flex:1;padding:14px;border:none;border-right:.5px solid var(--border);background:none;color:var(--text2);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button id="confirm-ok-btn" style="flex:1;padding:14px;border:none;background:none;color:var(--red);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ACCOUNT DETAIL -->
+<div class="mback" id="m-acct">
+  <div class="msh" style="max-height:92vh">
+    <div class="mhnd"></div>
+    <div class="mhdr">
+      <h2 id="acct-modal-title">Bancolombia</h2>
+      <button class="xbtn" onclick="closeM('m-acct')">✕</button>
+    </div>
+    <div style="padding:14px 20px;border-bottom:.5px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <div style="font-size:11px;color:var(--text2);font-weight:600">SALDO ACTUAL</div>
+
+      </div>
+      <div id="acct-modal-balance" style="font-size:28px;font-weight:800;letter-spacing:-1px"></div>
+      <div id="acct-modal-calc" style="font-size:11px;color:var(--text2);margin-top:3px"></div>
+    </div>
+    <div style="display:flex;border-bottom:.5px solid var(--border)">
+      <div id="acct-modal-sum" style="flex:1;padding:12px 16px;text-align:center;border-right:.5px solid var(--border)">
+        <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:2px">ENTRADAS</div>
+        <div id="acct-modal-inc" style="font-size:16px;font-weight:700;color:var(--green)">$0</div>
+      </div>
+      <div style="flex:1;padding:12px 16px;text-align:center">
+        <div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:2px">SALIDAS</div>
+        <div id="acct-modal-exp" style="font-size:16px;font-weight:700;color:var(--red)">$0</div>
+      </div>
+    </div>
+    <div class="txwrap" id="acct-modal-list" style="padding-bottom:20px"></div>
   </div>
 </div>
 
@@ -452,7 +504,7 @@ function pushHistory(label){
 function revertHistory(hid){
   var idx=-1;for(var i=0;i<changeHistory.length;i++){if(changeHistory[i].id===hid){idx=i;break;}}
   if(idx<0)return;
-  if(!confirm('Revertir a este punto? Se perderan los cambios mas recientes que este.'))return;
+  showConfirm('Revertir cambio','Se perderan los cambios realizados despues de este punto.',function(){
   var snap=changeHistory[idx].snap;
   txs=JSON.parse(JSON.stringify(snap.txs));
   accts=JSON.parse(JSON.stringify(snap.accts));
@@ -462,9 +514,107 @@ function revertHistory(hid){
   changeHistory=changeHistory.slice(idx+1);
   ls.s('hist7',changeHistory);
   renderAll();syncDrive();
+  });
 }
 
 var histExpanded=false;
+function showConfirm(title,desc,onOk){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-desc').textContent=desc;
+  var btn=document.getElementById('confirm-ok-btn');
+  var newBtn=btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn,btn);
+  newBtn.addEventListener('click',function(){closeM('m-confirm');onOk();});
+  document.getElementById('m-confirm').classList.add('open');
+}
+
+var currentAcctId=null;
+
+function recalcAcctBalance(){
+  var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===currentAcctId){acct=accts[i];break;}}
+  if(!acct)return;
+  var calc=0;
+  txs.forEach(function(t){
+    if(t.accountId===currentAcctId&&t.mode==='tracking'){
+      var affects=(t.type==='Income'||(t.type==='Expenses'&&t.status==='Paid'));
+      if(affects)calc+=t.type==='Income'?t.amount:-t.amount;
+    }
+  });
+  acct.balance=calc;
+  ls.s('ac7',accts);
+  document.getElementById('acct-modal-balance').textContent=fmt(calc);
+  document.getElementById('acct-modal-calc').textContent='Saldo recalculado desde movimientos';
+  document.getElementById('acct-modal-calc').style.color='var(--green)';
+  renderAll();
+  // re-open to refresh
+  openAcctModal(currentAcctId);
+}
+
+function openAcctModal(acctId){
+  currentAcctId=acctId;
+  var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===acctId){acct=accts[i];break;}}
+  if(!acct)return;
+  document.getElementById('acct-modal-title').textContent=acct.icon+' '+acct.name;
+  document.getElementById('acct-modal-balance').textContent=fmt(acct.balance||0);
+
+  // Get all txs affecting this account
+  var related=txs.filter(function(t){
+    return t.accountId===acctId&&t.mode==='tracking';
+  }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+
+  var totalInc=0,totalExp=0;
+  related.forEach(function(t){
+    if(t.type==='Income')totalInc+=t.amount;
+    else totalExp+=t.amount;
+  });
+  document.getElementById('acct-modal-inc').textContent=fmt(totalInc);
+  document.getElementById('acct-modal-exp').textContent=fmt(totalExp);
+  // Show if stored saldo matches calculated
+  var calcSaldo=totalInc-totalExp;
+  var storedSaldo=acct.balance||0;
+  var diff=storedSaldo-calcSaldo;
+  var calcEl=document.getElementById('acct-modal-calc');
+  calcEl.textContent='Calculado desde '+related.length+' movimientos';
+  calcEl.style.color='var(--text3)';
+
+  var list=document.getElementById('acct-modal-list');
+  while(list.firstChild)list.removeChild(list.firstChild);
+
+  if(!related.length){
+    list.appendChild(el('div',{cls:'empty'},[
+      el('div',{cls:'ei',txt:'🏦'}),
+      el('p',{txt:'Sin movimientos en esta cuenta'})
+    ]));
+  } else {
+    // Group by date
+    var grp={};
+    related.forEach(function(t){
+      var d=new Date(t.date+'T00:00:00');
+      var k=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      if(!grp[k])grp[k]=[];grp[k].push(t);
+    });
+    Object.keys(grp).forEach(function(d){
+      list.appendChild(el('div',{cls:'txdh',txt:d}));
+      grp[d].forEach(function(t){
+        var isInc=t.type==='Income';
+        var row=el('div',{cls:'tx',click:function(){closeM('m-acct');openTx(t.id);}});
+        row.appendChild(el('div',{cls:'tico',txt:cIcon(t.category)}));
+        var inf=el('div',{cls:'tinf'});
+        inf.appendChild(el('div',{cls:'td',txt:t.description}));
+        var meta=el('div',{cls:'tm',txt:t.category||'Sin categoria'});
+        if(t.isShared)meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido',style:'margin-left:4px'}));
+        if(t.status==='Paid')meta.appendChild(el('span',{cls:'badge paid',txt:'Pagado',style:'margin-left:4px'}));
+        inf.appendChild(meta);
+        row.appendChild(inf);
+        var amtCol=isInc?'var(--green)':'var(--red)';
+        row.appendChild(el('div',{cls:'ta',txt:(isInc?'+':'−')+fmt(t.amount),style:'color:'+amtCol}));
+        list.appendChild(row);
+      });
+    });
+  }
+  document.getElementById('m-acct').classList.add('open');
+}
+
 function renderHistory(){
   var wrap=clr('s-hist-wrap');if(!wrap)return;
   if(!changeHistory.length){
@@ -548,7 +698,7 @@ function showPage(p){
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
-  document.getElementById('fab').style.display=['settings','budget','summary'].indexOf(p)>=0?'none':'flex';
+  document.getElementById('fab').style.display=['dash','tracking'].indexOf(p)>=0?'flex':'none';
   renderAll();
 }
 
@@ -562,7 +712,26 @@ function setSumMode(m){
   renderSummary();
 }
 
+function recalcAllBalances(){
+  accts.forEach(function(acct){
+    var calc=0;
+    txs.forEach(function(t){
+      if(t.accountId===acct.id&&t.mode==='tracking'){
+        // Personal expenses (mode=tracking) always affect balance
+        // Linked shared expenses also affect balance (they are copies of paid shared)
+        var isPersonalExpense=(t.type==='Expenses'&&!t.linkedFrom);
+        var isPaidExpense=(t.type==='Expenses'&&(t.status==='Paid'||!t.status||t.linkedFrom));
+        var affects=(t.type==='Income'||isPaidExpense);
+        if(affects)calc+=t.type==='Income'?t.amount:-t.amount;
+      }
+    });
+    acct.balance=calc;
+  });
+  ls.s('ac7',accts);
+}
+
 function renderAll(){
+  recalcAllBalances();
   var lbl=mLbl();
   ['d','t','e','b'].forEach(function(p){var e=document.getElementById(p+'-mbar');if(e)e.textContent=lbl;});
   var dl=document.getElementById('d-mlbl');if(dl)dl.textContent=lbl;
@@ -590,11 +759,12 @@ function renderDash(){
   // Accounts
   var ac=clr('d-accts');
   accts.forEach(function(a){
-    ac.appendChild(el('div',{cls:'apill'},[
-      el('div',{cls:'ai',txt:a.icon}),
-      el('div',{cls:'an',txt:a.name}),
-      el('div',{cls:'av'+(blurred?' blur':''),txt:fmt(a.balance||0)})
-    ]));
+    var pill=el('div',{cls:'apill',style:'cursor:pointer'});
+    pill.appendChild(el('div',{cls:'ai',txt:a.icon}));
+    pill.appendChild(el('div',{cls:'an',txt:a.name}));
+    pill.appendChild(el('div',{cls:'av'+(blurred?' blur':''),txt:fmt(a.balance||0)}));
+    pill.addEventListener('click',(function(aid){return function(){openAcctModal(aid);};})(a.id));
+    ac.appendChild(pill);
   });
 
   // Vertical bars
@@ -643,9 +813,9 @@ function makeTxEl(t){
   meta.textContent=(t.category||'Sin categoria')+(t.account?' · '+t.account:'');
   if(t.mode==='expenses'){
     if(t.charge==='Los dos'||t.charge==='Otro'){var b=el('span',{cls:'badge sh',txt:t.charge});meta.appendChild(b);}
-    if(t.status==='Unpaid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:'Pendiente'}));}
-    else if(t.status==='DavidPaidLinaPending'){meta.appendChild(el('span',{cls:'badge unpaid',txt:'Lina debe a David'}));}
-    else if(t.status==='LinaPaidDavidPending'){meta.appendChild(el('span',{cls:'badge unpaid',txt:'David debe a Lina'}));}
+    var statusLabels={'Unpaid':'Pendiente','DavidPaidLinaPending':'David pago - Lina pendiente','LinaPaidDavidPending':'Lina pago - David pendiente','Paid':'Pagado'};
+    var stLabel=statusLabels[t.status]||t.status;
+    if(t.status&&t.status!=='Paid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:stLabel}));}
   }
   if(t.isShared){meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido'}));}
   inf.appendChild(meta);
@@ -685,7 +855,7 @@ function renderTracking(){
 }
 
 function renderExpenses(){
-  var all=mTxs(txs).filter(function(t){return t.mode==='expenses';});
+  var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
   var dav=0,lin=0,otr=0,tot=0,srcEfe=0,srcCred=0,srcDeb=0;
   all.forEach(function(t){
     var bDav=0,bLin=0,bOtr=0;
@@ -723,14 +893,52 @@ function renderExpenses(){
     ec.appendChild(chip);
   });
   var filtered=curFiltExp==='all'?all:all.filter(function(t){
-    if(curFiltExp==='Los dos')return t.charge==='Los dos';
-    if(curFiltExp==='Otro')return t.charge==='Otro';
-    return t.charge===curFiltExp||t.charge==='Los dos';
+    if(curFiltExp==='Los dos') return t.charge==='Los dos';
+    if(curFiltExp==='Otro') return t.charge==='Otro';
+    if(curFiltExp==='David'){
+      // David owes: status is Unpaid, or LinaPaidDavidPending
+      // David already paid: status is Paid or DavidPaidLinaPending -> hide from David filter
+      if(t.charge==='David') return t.status==='Unpaid'||!t.status;
+      if(t.charge==='Los dos') return t.status==='Unpaid'||t.status==='LinaPaidDavidPending'||!t.status;
+      return false;
+    }
+    if(curFiltExp==='Lina'){
+      // Lina owes: status is Unpaid, or DavidPaidLinaPending
+      // Lina already paid: status is Paid or LinaPaidDavidPending -> hide from Lina filter
+      if(t.charge==='Lina') return t.status==='Unpaid'||!t.status;
+      if(t.charge==='Los dos') return t.status==='Unpaid'||t.status==='DavidPaidLinaPending'||!t.status;
+      return false;
+    }
+    return t.charge===curFiltExp;
   });
   var srt=filtered.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var el2=clr('e-list');
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
-  srt.forEach(function(t){el2.appendChild(makeTxEl(t));});
+  srt.forEach(function(t){
+    var row=makeTxEl(t);
+    // If filtered by person, replace amount with their share + show total below
+    if(curFiltExp==='David'||curFiltExp==='Lina'){
+      var isLosDos=(t.charge==='Los dos');
+      var share=isLosDos?t.amount/2:t.amount;
+      var amtEl=row.querySelector('.ta');
+      if(amtEl){
+        var shareDiv=document.createElement('div');
+        shareDiv.style.cssText='text-align:right';
+        var shareAmt=document.createElement('div');
+        shareAmt.className='ta exp';
+        shareAmt.textContent='−'+fmt(share);
+        shareDiv.appendChild(shareAmt);
+        if(isLosDos){
+          var totalTxt=document.createElement('div');
+          totalTxt.style.cssText='font-size:10px;color:var(--text3);margin-top:1px';
+          totalTxt.textContent='Total: '+fmt(t.amount);
+          shareDiv.appendChild(totalTxt);
+        }
+        row.replaceChild(shareDiv,amtEl);
+      }
+    }
+    el2.appendChild(row);
+  });
 }
 
 function renderBudget(){
@@ -1025,11 +1233,12 @@ function renderSettings(){
   renderHistory();
   var ag=clr('s-ag');
   accts.forEach(function(a){
-    ag.appendChild(el('div',{cls:'abig'},[
-      el('div',{cls:'abi',txt:a.icon}),
-      el('div',{cls:'abn',txt:a.name}),
-      el('div',{cls:'abv'+(blurred?' blur':''),txt:fmt(a.balance||0)})
-    ]));
+    var card=el('div',{cls:'abig',style:'cursor:pointer'});
+    card.appendChild(el('div',{cls:'abi',txt:a.icon}));
+    card.appendChild(el('div',{cls:'abn',txt:a.name}));
+    card.appendChild(el('div',{cls:'abv'+(blurred?' blur':''),txt:fmt(a.balance||0)}));
+    card.addEventListener('click',(function(aid){return function(){openAcctModal(aid);};})(a.id));
+    ag.appendChild(card);
   });
 
   function makeList(wrapId,items,type,addLabel){
@@ -1077,10 +1286,8 @@ function populateDescList(){
 }
 
 function populateAcSel(){
-  var s=document.getElementById('f-ac');
-  var s2=document.getElementById('f-payacc');
-  [s,s2].forEach(function(sel){
-    if(!sel)return;
+  ['f-ac','f-ac-inc','f-payacc'].forEach(function(id){
+    var sel=document.getElementById(id);if(!sel)return;
     while(sel.firstChild)sel.removeChild(sel.firstChild);
     accts.forEach(function(a){
       var opt=document.createElement('option');opt.value=a.id;opt.textContent=a.icon+' '+a.name;sel.appendChild(opt);
@@ -1091,7 +1298,7 @@ function populateAcSel(){
 function populateCatSel(){
   var s=document.getElementById('f-c');if(!s)return;
   while(s.firstChild)s.removeChild(s.firstChild);
-  var list=txType==='Income'?cats.income:cats.expenses.concat(cats.savings);
+  var list=(mTab==='income')?cats.income:cats.expenses.concat(cats.savings);
   list.forEach(function(c){
     var opt=document.createElement('option');opt.value=c.name;opt.textContent=c.icon+' '+c.name;s.appendChild(opt);
   });
@@ -1099,19 +1306,17 @@ function populateCatSel(){
 
 function setMTab(t){
   mTab=t;
-  document.getElementById('mt-tr').classList.toggle('active',t==='tracking');
-  document.getElementById('mt-ex').classList.toggle('active',t==='expenses');
-  document.getElementById('tf-tr').style.display=t==='tracking'?'block':'none';
-  document.getElementById('tf-ex').style.display=t==='expenses'?'block':'none';
+  document.getElementById('mt-inc').classList.toggle('active',t==='income');
+  document.getElementById('mt-gasto').classList.toggle('active',t==='gasto');
+  document.getElementById('mt-shared').classList.toggle('active',t==='shared');
+  document.getElementById('tf-income-ac').style.display=(t==='income')?'block':'none';
+  document.getElementById('tf-gasto').style.display=(t==='gasto')?'block':'none';
+  document.getElementById('tf-shared').style.display=(t==='shared')?'block':'none';
+  if(t==='income')txType='Income';else txType='Expenses';
   populateCatSel();
 }
 
-function setTT(t){
-  txType=t;
-  document.getElementById('sg-g').classList.toggle('active',t==='Expenses');
-  document.getElementById('sg-i').classList.toggle('active',t==='Income');
-  populateCatSel();
-}
+function setTT(t){txType=t;populateCatSel();}
 
 function updatePayAccVis(){
   var stEl=document.getElementById('f-st');if(!stEl)return;
@@ -1133,23 +1338,35 @@ function openTx(id){
     var t=null;for(var i=0;i<txs.length;i++){if(txs[i].id===id){t=txs[i];break;}}
     if(!t)return;
     document.getElementById('tx-ttl').textContent='Editar movimiento';
-    document.getElementById('delbtn').style.display='block';
-    setMTab(t.mode);setTT(t.type);
+    document.getElementById('delbtn-wrap').style.display='block';
+    // If this is a linked tracking tx (copy of shared), open the parent shared tx
+    if(t.linkedFrom){
+      var parent=null;for(var i=0;i<txs.length;i++){if(txs[i].id===t.linkedFrom){parent=txs[i];break;}}
+      if(parent){closeM('m-tx');openTx(parent.id);return;}
+    }
+    var openTab;
+    if(t.mode==='expenses') openTab='shared';
+    else if(t.type==='Income') openTab='income';
+    else openTab='gasto';
+    setMTab(openTab);
     document.getElementById('f-d').value=t.description;
     document.getElementById('f-m').value=t.amount.toLocaleString('es-CO');
     document.getElementById('f-dt').value=t.date;
     setTimeout(function(){document.getElementById('f-c').value=t.category;},10);
-    if(t.mode==='tracking')document.getElementById('f-ac').value=t.accountId||accts[0].id;
+    if(t.mode==='tracking'){
+      if(t.type==='Income')document.getElementById('f-ac-inc').value=t.accountId||accts[0].id;
+      else document.getElementById('f-ac').value=t.accountId||accts[0].id;
+    }
     else{document.getElementById('f-ch').value=t.charge||'Los dos';document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;updatePayAccVis();}
   } else {
     document.getElementById('tx-ttl').textContent='Nuevo movimiento';
-    document.getElementById('delbtn').style.display='none';
+    document.getElementById('delbtn-wrap').style.display='none';
     document.getElementById('f-d').value='';document.getElementById('f-m').value='';
     document.getElementById('f-dt').value=new Date().toISOString().split('T')[0];
     var ap=document.querySelector('.page.active');
-    setMTab(ap&&ap.id==='page-expenses'?'expenses':'tracking');setTT('Expenses');
+    setMTab(ap&&ap.id==='page-expenses'?'shared':'gasto');
     document.getElementById('f-st').value='Paid';
-    if(accts[0])document.getElementById('f-payacc').value=accts[0].id;
+    if(accts[0]){document.getElementById('f-payacc').value=accts[0].id;document.getElementById('f-ac-inc').value=accts[0].id;}
     updatePayAccVis();
   }
   document.getElementById('m-tx').classList.add('open');
@@ -1159,19 +1376,20 @@ function removeLinkedTx(linkedId){
   if(!linkedId)return;
   var idx=-1;for(var i=0;i<txs.length;i++){if(txs[i].id===linkedId){idx=i;break;}}
   if(idx>=0){
-    var lt=txs[idx];
-    var a=null;for(var j=0;j<accts.length;j++){if(accts[j].id===lt.accountId){a=accts[j];break;}}
-    if(a){a.balance+=lt.amount;ls.s('ac7',accts);}
     txs.splice(idx,1);
+    // Balance recalculated automatically via recalcAllBalances()
   }
 }
-function createLinkedTx(t,payAccId,shareAmount){
+function createLinkedTx(t,payAccId,shareAmount,existingId){
   var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===payAccId){acct=accts[i];break;}}
   var isShared=(t.charge==='Los dos');
-  var lt={id:uid(),mode:'tracking',type:'Expenses',description:isShared?(t.description+' (compartido)'):t.description,amount:shareAmount,date:t.date,category:t.category,account:acct?acct.name:'',accountId:payAccId,linkedFrom:t.id,isShared:isShared,charge:null,source:null,status:null,linkedTxId:null,payAccountId:null};
-  txs.unshift(lt);
-  if(acct){acct.balance-=shareAmount;ls.s('ac7',accts);}
-  return lt.id;
+  var cleanDesc=t.description.replace(/ \(compartido\)/g,'');
+  var ltId=existingId||uid();
+  var lt={id:ltId,mode:'tracking',type:'Expenses',description:isShared?(cleanDesc+' (compartido)'):cleanDesc,amount:shareAmount,date:t.date,category:t.category,account:acct?acct.name:'',accountId:payAccId,linkedFrom:t.id,isShared:isShared,charge:null,source:null,status:null,linkedTxId:null,payAccountId:null};
+  var found=false;
+  for(var i=0;i<txs.length;i++){if(txs[i].id===ltId){txs[i]=lt;found=true;break;}}
+  if(!found)txs.unshift(lt);
+  return ltId;
 }
 
 function saveTx(){
@@ -1181,23 +1399,27 @@ function saveTx(){
   var cat=document.getElementById('f-c').value;
   if(!desc||!amount||!date){alert('Completa descripcion, monto y fecha');return;}
   pushHistory((editId?'Editar movimiento: ':'Nuevo movimiento: ')+desc);
-  var aId=document.getElementById('f-ac').value;
+  var aId=(mTab==='income')?document.getElementById('f-ac-inc').value:document.getElementById('f-ac').value;
   var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===aId){acct=accts[i];break;}}
   var old=null;
   if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){old=txs[i];break;}}}
-  var t={id:editId||uid(),mode:mTab,type:txType,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null};
-  if(mTab==='tracking'&&acct){
-    if(old&&old.mode==='tracking'){var oa=null;for(var i=0;i<accts.length;i++){if(accts[i].id===old.accountId){oa=accts[i];break;}}if(oa)oa.balance+=old.type==='Income'?-old.amount:old.amount;}
-    acct.balance+=txType==='Income'?amount:-amount;ls.s('ac7',accts);
-  }
-  if(mTab==='expenses'){
+  // Map mTab to mode/type
+  var txMode=(mTab==='shared')?'expenses':'tracking';
+  var txTypeResolved=(mTab==='income')?'Income':'Expenses';
+  var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false};
+  // Balance is recalculated automatically in renderAll via recalcAllBalances()
+  if(txMode==='expenses'){
+    // Always remove old linked tx first to avoid duplicates
     if(old&&old.linkedTxId)removeLinkedTx(old.linkedTxId);
     var payerIsDavid=(t.status==='Paid'||t.status==='DavidPaidLinaPending');
-    if(payerIsDavid&&(t.charge==='David'||t.charge==='Los dos')){
+    var chargeVal=document.getElementById('f-ch')?document.getElementById('f-ch').value:'';
+    if(payerIsDavid&&(chargeVal==='David'||chargeVal==='Los dos')){
       var payAccId=document.getElementById('f-payacc').value;
-      var shareAmount=(t.charge==='Los dos')?(t.amount/2):t.amount;
+      var shareAmount=(chargeVal==='Los dos')?(t.amount/2):t.amount;
       t.payAccountId=payAccId;
-      t.linkedTxId=createLinkedTx(t,payAccId,shareAmount);
+      // Pass existing linkedTxId so it updates instead of creating duplicate
+      var existingLinkedId=(old&&old.linkedTxId)||null;
+      t.linkedTxId=createLinkedTx(t,payAccId,shareAmount,existingLinkedId);
     }
   }
   if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
@@ -1205,13 +1427,20 @@ function saveTx(){
 }
 
 function delTx(){
-  if(!confirm('Eliminar este movimiento?'))return;
+  showConfirm('Eliminar movimiento','Esta accion no se puede deshacer (puedes revertir desde el historial de cambios).',function(){
   var t=null;for(var i=0;i<txs.length;i++){if(txs[i].id===editId){t=txs[i];break;}}
   pushHistory('Eliminar movimiento: '+(t?t.description:''));
-  if(t&&t.mode==='tracking'){var a=null;for(var i=0;i<accts.length;i++){if(accts[i].id===t.accountId){a=accts[i];break;}}if(a){a.balance+=t.type==='Income'?-t.amount:t.amount;ls.s('ac7',accts);}}
+  // Balance recalculated automatically via recalcAllBalances()
   if(t&&t.mode==='expenses'&&t.linkedTxId){removeLinkedTx(t.linkedTxId);}
+  // If this is a linked tracking tx, also remove the reference in parent
+  if(t&&t.linkedFrom){
+    for(var i=0;i<txs.length;i++){
+      if(txs[i].id===t.linkedFrom){txs[i].linkedTxId=null;txs[i].payAccountId=null;break;}
+    }
+  }
   txs=txs.filter(function(x){return x.id!==editId;});
   ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
+  });
 }
 
 function openCfg(type,id){
@@ -1249,11 +1478,12 @@ function saveCfg(){
 }
 
 function delCfg(type,id){
-  if(!confirm('Eliminar?'))return;
+  showConfirm('Eliminar elemento','Se eliminara de la lista. Puedes revertirlo desde el historial.',function(){
   pushHistory('Eliminar '+(type==='account'?'cuenta':'categoria'));
   if(type==='account')accts=accts.filter(function(a){return a.id!==id;});
   else{var k=type.replace('cat-','');cats[k]=cats[k].filter(function(c){return c.id!==id;});}
   ls.s(type==='account'?'ac7':'ca7',type==='account'?accts:cats);renderAll();syncDrive();
+  });
 }
 
 function exportData(){
@@ -1265,7 +1495,7 @@ function importData(e){
   var file=e.target.files[0];if(!file)return;
   var r=new FileReader();
   r.onload=function(ev){
-    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');if(!confirm('Restaurar datos?'))return;txs=d.txs;accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();alert('Datos restaurados');}catch(err){alert('Error: '+err.message);}
+    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=d.txs;accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
   };r.readAsText(file);
 }
 
