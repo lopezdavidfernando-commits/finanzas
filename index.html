@@ -250,8 +250,25 @@ nav button.active .ndot{display:block}
     <button class="mbtn" onclick="cm(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
   </div>
   <div class="bpsect">💰 Ingresos</div><div id="b-inc"></div>
+  <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ingresos</span>
+    <span id="b-inc-total-val" style="font-size:15px;font-weight:700;color:var(--green)">$0</span>
+  </div>
   <div class="bpsect">💸 Gastos</div><div id="b-exp"></div>
+  <div id="b-exp-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:700;color:var(--text2)">Total gastos</span>
+    <span id="b-exp-total-val" style="font-size:15px;font-weight:700;color:var(--red)">$0</span>
+  </div>
   <div class="bpsect">🏦 Ahorro</div><div id="b-sav"></div>
+  <div id="b-sav-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ahorro</span>
+    <span id="b-sav-total-val" style="font-size:15px;font-weight:700;color:var(--blue)">$0</span>
+  </div>
+  <div id="b-balance-card" style="margin:4px 20px 12px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);padding:16px">
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Balance del mes (Ingresos − Gastos − Ahorro)</div>
+    <div id="b-balance-val" style="font-size:28px;font-weight:800;letter-spacing:-1px">$0</div>
+    <div id="b-balance-sub" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
+  </div>
   <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
   <div class="bpsect" style="margin-top:8px">📊 Disponible acumulado por rubro</div>
   <div id="b-avail-wrap" style="padding:0 20px 24px"></div>
@@ -721,7 +738,7 @@ function renderBudget(){
   function mkRows(id,list){
     var wrap=clr(id);if(!wrap)return;
     list.forEach(function(c){
-      var inp=el('input',{cls:'bpinp',type:'text',id:'bi_'+c.id,placeholder:'0',inputmode:'numeric',oninput:'formatMoneyInput(this)'});
+      var inp=el('input',{cls:'bpinp',type:'text',id:'bi_'+c.id,placeholder:'0',inputmode:'numeric',oninput:'formatMoneyInput(this);updateBudgetTotals()'});
       inp.value=b[c.name]?b[c.name].toLocaleString('es-CO'):'';
       wrap.appendChild(el('div',{cls:'bprow'},[
         el('div',{cls:'bpico',txt:c.icon}),
@@ -731,7 +748,33 @@ function renderBudget(){
     });
   }
   mkRows('b-inc',cats.income);mkRows('b-exp',cats.expenses);mkRows('b-sav',cats.savings);
+  updateBudgetTotals();
   renderDisponible();
+}
+
+function updateBudgetTotals(){
+  var totInc=0,totExp=0,totSav=0;
+  cats.income.forEach(function(c){var inp=document.getElementById('bi_'+c.id);if(inp)totInc+=rawNum(inp);});
+  cats.expenses.forEach(function(c){var inp=document.getElementById('bi_'+c.id);if(inp)totExp+=rawNum(inp);});
+  cats.savings.forEach(function(c){var inp=document.getElementById('bi_'+c.id);if(inp)totSav+=rawNum(inp);});
+  var iv=document.getElementById('b-inc-total-val');if(iv)iv.textContent=fmt(totInc);
+  var ev=document.getElementById('b-exp-total-val');if(ev)ev.textContent=fmt(totExp);
+  var sv=document.getElementById('b-sav-total-val');if(sv)sv.textContent=fmt(totSav);
+  var balance=totInc-totExp-totSav;
+  var bv=document.getElementById('b-balance-val');
+  var bs=document.getElementById('b-balance-sub');
+  var bc=document.getElementById('b-balance-card');
+  if(bv){
+    bv.textContent=(balance<0?'−':'')+fmt(Math.abs(balance));
+    bv.style.color=balance===0?'var(--green)':balance>0?'var(--green)':'var(--red)';
+  }
+  if(bs){
+    bs.textContent=balance===0?'Perfecto — presupuesto cuadrado':balance>0?fmt(balance)+' sin asignar':fmt(Math.abs(balance))+' por encima de los ingresos';
+  }
+  if(bc){
+    bc.style.borderColor=balance===0?'var(--green)':balance>0?'var(--border)':'var(--red)';
+    bc.style.background=balance===0?'var(--green-bg)':balance<0?'var(--red-bg)':'var(--bg2)';
+  }
 }
 
 function renderDisponible(){
