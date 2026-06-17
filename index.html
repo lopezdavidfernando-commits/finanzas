@@ -252,7 +252,9 @@ nav button.active .ndot{display:block}
   <div class="bpsect">💰 Ingresos</div><div id="b-inc"></div>
   <div class="bpsect">💸 Gastos</div><div id="b-exp"></div>
   <div class="bpsect">🏦 Ahorro</div><div id="b-sav"></div>
-  <div style="padding:10px 20px 24px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
+  <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
+  <div class="bpsect" style="margin-top:8px">📊 Disponible acumulado por rubro</div>
+  <div id="b-avail-wrap" style="padding:0 20px 24px"></div>
 </div>
 
 <div class="page" id="page-summary">
@@ -729,6 +731,97 @@ function renderBudget(){
     });
   }
   mkRows('b-inc',cats.income);mkRows('b-exp',cats.expenses);mkRows('b-sav',cats.savings);
+  renderDisponible();
+}
+
+function renderDisponible(){
+  var wrap=document.getElementById('b-avail-wrap');if(!wrap)return;
+  while(wrap.firstChild)wrap.removeChild(wrap.firstChild);
+
+  // Compute per-category: sum all budgets up to curY/curM minus all tracked expenses up to curY/curM
+  var allCats=cats.expenses.concat(cats.savings);
+  var rows=[];
+  var grandBudg=0,grandExp=0;
+
+  allCats.forEach(function(cat){
+    var totalBudg=0,totalExp=0;
+    // Sum budgets from all months up to and including current month
+    Object.keys(budgets).forEach(function(mk){
+      var parts=mk.split('-');
+      var y=parseInt(parts[0]),m=parseInt(parts[1])-1;
+      if(y<curY||(y===curY&&m<=curM)){
+        totalBudg+=(budgets[mk][cat.name]||0);
+      }
+    });
+    // Sum real expenses from tracking up to current month
+    txs.forEach(function(t){
+      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name){
+        var d=new Date(t.date+'T00:00:00');
+        var y=d.getFullYear(),m=d.getMonth();
+        if(y<curY||(y===curY&&m<=curM)){
+          totalExp+=t.amount;
+        }
+      }
+    });
+    if(totalBudg>0||totalExp>0){
+      rows.push({cat:cat,budg:totalBudg,exp:totalExp,avail:totalBudg-totalExp});
+      grandBudg+=totalBudg;grandExp+=totalExp;
+    }
+  });
+
+  if(!rows.length){
+    var empty=el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'📊'}),el('p',{txt:'Agrega un presupuesto para ver el disponible'})]);
+    wrap.appendChild(empty);return;
+  }
+
+  // Sort: biggest deficit first, then biggest surplus
+  rows.sort(function(a,b){return a.avail-b.avail;});
+
+  rows.forEach(function(r){
+    var pct=r.budg>0?Math.min(100,Math.round((r.exp/r.budg)*100)):100;
+    var isOver=r.avail<0;
+    var barCol=isOver?'var(--red)':pct>80?'var(--amber)':'var(--lime)';
+    var availCol=isOver?'var(--red)':pct>80?'var(--amber)':'var(--green)';
+
+    // Bar fill
+    var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
+    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+pct+'%;background:'+barCol+';transition:width .5s'});
+    barBg.appendChild(barFill);
+
+    // Numbers row
+    var numRow=el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-top:3px'});
+    numRow.appendChild(el('span',{txt:'Gastado: '+fmt(r.exp),style:'font-size:10px;color:var(--text2)'}));
+    numRow.appendChild(el('span',{txt:'Presup: '+fmt(r.budg),style:'font-size:10px;color:var(--text2)'}));
+
+    // Available badge
+    var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
+    availBadge.appendChild(el('span',{txt:isOver?'Excedido':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
+    availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
+    if(isOver)availBadge.appendChild(el('span',{txt:'▲ por encima',style:'font-size:10px;color:var(--red)'}));
+
+    var card=el('div',{style:'background:var(--bg2);border-radius:12px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
+    card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
+      el('span',{txt:r.cat.icon,style:'font-size:16px'}),
+      el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
+      el('span',{txt:pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
+    ]));
+    card.appendChild(barBg);
+    card.appendChild(numRow);
+    card.appendChild(availBadge);
+    wrap.appendChild(card);
+  });
+
+  // Grand total card
+  var grandAvail=grandBudg-grandExp;
+  var isOverAll=grandAvail<0;
+  var totalCard=el('div',{style:'background:var(--lime);border-radius:12px;padding:14px;margin-bottom:8px'});
+  var t1=el('div',{style:'font-size:10px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px',txt:'Total disponible acumulado'});
+  var t2=el('div',{style:'font-size:28px;font-weight:800;color:'+(isOverAll?'#dc2626':'#0d0d0d')+';letter-spacing:-1px',txt:(isOverAll?'−':'')+fmt(Math.abs(grandAvail))});
+  var t3=el('div',{style:'display:flex;gap:16px;margin-top:8px'});
+  t3.appendChild(el('div',{},[el('div',{txt:'Presupuestado',style:'font-size:10px;color:rgba(0,0,0,.5);font-weight:600'}),el('div',{txt:fmt(grandBudg),style:'font-size:13px;font-weight:700;color:#0d0d0d'})]));
+  t3.appendChild(el('div',{},[el('div',{txt:'Gastado',style:'font-size:10px;color:rgba(0,0,0,.5);font-weight:600'}),el('div',{txt:fmt(grandExp),style:'font-size:13px;font-weight:700;color:#0d0d0d'})]));
+  totalCard.appendChild(t1);totalCard.appendChild(t2);totalCard.appendChild(t3);
+  wrap.insertBefore(totalCard,wrap.firstChild);
 }
 
 function saveBudget(){
