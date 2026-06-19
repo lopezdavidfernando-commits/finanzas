@@ -369,7 +369,7 @@ nav button.active .ndot{display:block}
     <div class="mtabs">
       <div class="mtab active" id="mt-inc" onclick="setMTab('income')">Ingreso</div>
       <div class="mtab" id="mt-gasto" onclick="setMTab('gasto')">Gasto</div>
-      <div class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</div>
+      <div class="mtab" id="mt-shared" onclick="setMTab('shared')">Pendiente</div>
     </div>
     <div class="mbody">
 
@@ -383,7 +383,7 @@ nav button.active .ndot{display:block}
       <div id="tf-gasto"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
       <div id="tf-shared" style="display:none">
         <div class="fgrow">
-          <div class="fg"><label>A cargo de</label><select id="f-ch"><option>David</option><option>Lina</option><option>Los dos</option><option>Otro</option></select></div>
+          <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option>David</option><option>Lina</option><option>Los dos</option><option>Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
         <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
@@ -741,7 +741,7 @@ function showPage(p){
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
-  document.getElementById('fab').style.display=['dash','tracking'].indexOf(p)>=0?'flex':'none';
+  document.getElementById('fab').style.display=['dash','tracking','expenses'].indexOf(p)>=0?'flex':'none';
   renderAll();
 }
 
@@ -900,6 +900,7 @@ function renderTracking(){
 function renderExpenses(){
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
   var dav=0,lin=0,otr=0,tot=0,srcEfe=0,srcCred=0,srcDeb=0;
+  var srcEfeDav=0,srcEfeLin=0,srcCredDav=0,srcCredLin=0,srcDebDav=0,srcDebLin=0;
   all.forEach(function(t){
     var bDav=0,bLin=0,bOtr=0;
     if(t.charge==='David')bDav=t.amount;
@@ -912,19 +913,32 @@ function renderExpenses(){
     dav+=bDav;lin+=bLin;otr+=bOtr;
     var pending=bDav+bLin+bOtr;
     tot+=pending;
-    if(t.source==='Efectivo')srcEfe+=pending;else if(t.source==='Tarjeta crédito')srcCred+=pending;else if(t.source==='Tarjeta débito')srcDeb+=pending;
+    if(t.source==='Efectivo'){srcEfe+=pending;srcEfeDav+=bDav;srcEfeLin+=bLin;}
+    else if(t.source==='Tarjeta crédito'){srcCred+=pending;srcCredDav+=bDav;srcCredLin+=bLin;}
+    else if(t.source==='Tarjeta débito'){srcDeb+=pending;srcDebDav+=bDav;srcDebLin+=bLin;}
   });
   document.getElementById('e-dav').textContent=fmt(dav);
   document.getElementById('e-lin').textContent=fmt(lin);
   document.getElementById('e-otr').textContent=fmt(otr);
   document.getElementById('e-tot').textContent=fmt(tot);
   var srcWrap=clr('e-source-body');
-  [['💵','Efectivo',srcEfe],['💳','Tarjeta crédito',srcCred],['🏦','Tarjeta débito',srcDeb]].forEach(function(d){
-    srcWrap.appendChild(el('div',{cls:'bprow',style:'margin:0 0 5px'},[
-      el('div',{cls:'bpico',txt:d[0]}),
-      el('div',{cls:'bpnm',txt:d[1]}),
-      el('div',{txt:fmt(d[2]),style:'font-size:13px;font-weight:600'})
-    ]));
+  [
+    ['💵','Efectivo',srcEfe,srcEfeDav,srcEfeLin],
+    ['💳','Tarjeta crédito',srcCred,srcCredDav,srcCredLin],
+    ['🏦','Tarjeta débito',srcDeb,srcDebDav,srcDebLin]
+  ].forEach(function(d){
+    var row=el('div',{cls:'bprow',style:'margin:0 0 5px;align-items:flex-start;padding-top:10px;padding-bottom:10px'});
+    row.appendChild(el('div',{cls:'bpico',txt:d[0]}));
+    var nameWrap=el('div',{cls:'bpnm'},[
+      el('div',{txt:d[1]}),
+      el('div',{style:'display:flex;gap:10px;margin-top:3px'},[
+        el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}),
+        el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'})
+      ])
+    ]);
+    row.appendChild(nameWrap);
+    row.appendChild(el('div',{txt:fmt(d[2]),style:'font-size:14px;font-weight:700'}));
+    srcWrap.appendChild(row);
   });
   var ec=clr('e-chips');
   [['Todos','all'],['David','David'],['Lina','Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
@@ -1361,6 +1375,29 @@ function setMTab(t){
 
 function setTT(t){txType=t;populateCatSel();}
 
+function updateStatusOptions(){
+  var chSel=document.getElementById('f-ch');if(!chSel)return;
+  var charge=chSel.value;
+  var stSel=document.getElementById('f-st');if(!stSel)return;
+  var currentVal=stSel.value;
+  while(stSel.firstChild)stSel.removeChild(stSel.firstChild);
+  function addOpt(val,label){var o=document.createElement('option');o.value=val;o.textContent=label;stSel.appendChild(o);}
+  if(charge==='Los dos'){
+    addOpt('Paid','Pagado');
+    addOpt('Unpaid','Pendiente');
+    addOpt('DavidPaidLinaPending','David pago - Lina pendiente');
+    addOpt('LinaPaidDavidPending','Lina pago - David pendiente');
+  } else {
+    addOpt('Unpaid','Pendiente');
+    addOpt('Paid','Pagado');
+  }
+  // Restore previous value if still valid, otherwise default to first option
+  var stillValid=false;
+  for(var i=0;i<stSel.options.length;i++){if(stSel.options[i].value===currentVal){stillValid=true;break;}}
+  stSel.value=stillValid?currentVal:stSel.options[0].value;
+  updatePayAccVis();
+}
+
 function updatePayAccVis(){
   var stEl=document.getElementById('f-st');if(!stEl)return;
   var st=stEl.value;
@@ -1400,15 +1437,18 @@ function openTx(id){
       if(t.type==='Income')document.getElementById('f-ac-inc').value=t.accountId||accts[0].id;
       else document.getElementById('f-ac').value=t.accountId||accts[0].id;
     }
-    else{document.getElementById('f-ch').value=t.charge||'Los dos';document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;updatePayAccVis();}
+    else{document.getElementById('f-ch').value=t.charge||'Los dos';updateStatusOptions();document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;updatePayAccVis();}
   } else {
     document.getElementById('tx-ttl').textContent='Nuevo movimiento';
     document.getElementById('delbtn-wrap').style.display='none';
     document.getElementById('f-d').value='';document.getElementById('f-m').value='';
     document.getElementById('f-dt').value=new Date().toISOString().split('T')[0];
     var ap=document.querySelector('.page.active');
-    setMTab(ap&&ap.id==='page-expenses'?'shared':'gasto');
-    document.getElementById('f-st').value='Paid';
+    var defaultTab=ap&&ap.id==='page-expenses'?'shared':'gasto';
+    setMTab(defaultTab);
+    document.getElementById('f-ch').value='David';
+    updateStatusOptions();
+    document.getElementById('f-st').value=(defaultTab==='shared')?'Unpaid':'Paid';
     if(accts[0]){document.getElementById('f-payacc').value=accts[0].id;document.getElementById('f-ac-inc').value=accts[0].id;}
     updatePayAccVis();
   }
