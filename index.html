@@ -1948,101 +1948,69 @@ function importData(e){
 
 function handleDrive(){if(driveCid&&driveToken)syncDrive();else{document.getElementById('drive-cid').value=driveCid||'';document.getElementById('m-drive').classList.add('open');}}
 function saveDriveCid(){var c=document.getElementById('drive-cid').value.trim();if(!c){alert('Pega tu Client ID');return;}driveCid=c;ls.s('dc7',c);closeM('m-drive');initGAuth();}
+function isMobile(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.innerWidth<768;
+}
+
 function initGAuth(){
-  // Use PKCE authorization code flow (complies with Google OAuth policies)
-  var state=Math.random().toString(36).slice(2);
-  var verifier=generateCodeVerifier();
-  ls.s('oauth_verifier',verifier);
-  ls.s('oauth_state',state);
-  generateCodeChallenge(verifier).then(function(challenge){
+  if(!document.getElementById('gsi-script')){
+    var s=document.createElement('script');
+    s.id='gsi-script';
+    s.src='https://accounts.google.com/gsi/client';
+    s.async=true;
+    s.onload=function(){startGAuth();};
+    document.head.appendChild(s);
+  } else {
+    startGAuth();
+  }
+}
+
+function startGAuth(){
+  if(!window.google){setTimeout(startGAuth,500);return;}
+  if(isMobile()){
+    // Mobile: use popup token client
+    var tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:driveCid,
+      scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
+      callback:function(resp){
+        if(resp.error){driveSt='er';updateDriveUI();return;}
+        driveToken=resp.access_token;
+        ls.s('dt7',driveToken);
+        driveSt='sy';updateDriveUI();syncDrive();
+      }
+    });
+    tokenClient.requestAccessToken({prompt:'consent'});
+  } else {
+    // Desktop: use redirect flow
+    var state=Math.random().toString(36).slice(2);
+    ls.s('oauth_state',state);
     var params=new URLSearchParams({
       client_id:driveCid,
       redirect_uri:window.location.origin+window.location.pathname,
-      response_type:'code',
+      response_type:'token',
       scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
       state:state,
-      code_challenge:challenge,
-      code_challenge_method:'S256',
-      access_type:'offline',
-      prompt:'consent'
+      include_granted_scopes:'true'
     });
     window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
-  });
-}
-
-function startGAuth(){initGAuth();}
-
-function generateCodeVerifier(){
-  var arr=new Uint8Array(32);
-  window.crypto.getRandomValues(arr);
-  return btoa(String.fromCharCode.apply(null,arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-
-function generateCodeChallenge(verifier){
-  return window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)).then(function(buf){
-    return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  });
-}
-
-async function exchangeCodeForToken(code){
-  // Exchange auth code for token via Google token endpoint
-  // Note: requires a backend for client_secret - use implicit workaround
-  // Since we can't store client_secret in frontend, use token endpoint with PKCE
-  var verifier=ls.g('oauth_verifier','');
-  var resp=await fetch('https://oauth2.googleapis.com/token',{
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams({
-      client_id:driveCid,
-      code:code,
-      code_verifier:verifier,
-      grant_type:'authorization_code',
-      redirect_uri:window.location.origin+window.location.pathname
-    })
-  });
-  var data=await resp.json();
-  if(data.access_token){
-    driveToken=data.access_token;
-    ls.s('dt7',driveToken);
-    if(data.refresh_token)ls.s('drt7',data.refresh_token);
-    driveSt='sy';updateDriveUI();
-    syncDrive();
-  } else {
-    console.error('Token exchange failed',data);
-    driveSt='er';updateDriveUI();
   }
-}
-
-async function refreshDriveToken(){
-  var refreshToken=ls.g('drt7','');
-  if(!refreshToken)return false;
-  var resp=await fetch('https://oauth2.googleapis.com/token',{
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams({
-      client_id:driveCid,
-      refresh_token:refreshToken,
-      grant_type:'refresh_token'
-    })
-  });
-  var data=await resp.json();
-  if(data.access_token){
-    driveToken=data.access_token;
-    ls.s('dt7',driveToken);
-    return true;
-  }
-  return false;
 }
 
 function checkOAuthCallback(){
-  var params=new URLSearchParams(window.location.search);
-  var code=params.get('code');
-  var state=params.get('state');
-  var savedState=ls.g('oauth_state','');
-  if(code&&state&&state===savedState){
-    // Clean URL
-    window.history.replaceState({},'',window.location.pathname);
-    exchangeCodeForToken(code);
+  // Handle redirect flow response (desktop)
+  var hash=window.location.hash;
+  if(hash&&hash.indexOf('access_token')>=0){
+    var params=new URLSearchParams(hash.slice(1));
+    var token=params.get('access_token');
+    var state=params.get('state');
+    var savedState=ls.g('oauth_state','');
+    if(token&&(!savedState||state===savedState)){
+      window.history.replaceState({},'',window.location.pathname);
+      driveToken=token;
+      ls.s('dt7',token);
+      driveSt='sy';updateDriveUI();
+      syncDrive();
+    }
   }
 }
 function syncDrive(){
