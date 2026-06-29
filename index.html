@@ -424,7 +424,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
   <div class="kpis" id="d-kpis"></div>
 
-  <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button></div>
+  <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">✕ Cancelar</button></div>
   <div class="shdr"><h2>Cuentas</h2><a onclick="showPage('settings')">Gestionar</a></div>
   <div class="accts" id="d-accts"></div>
   <div class="card">
@@ -722,7 +722,7 @@ var ls = {
 
 var DA = [{id:'a1',name:'Bancolombia',icon:'@bank',balance:0},{id:'a2',name:'Nu Bank',icon:'@card',balance:0},{id:'a3',name:'Efectivo',icon:'@cash',balance:0}];
 var DC = {
-  income:[{id:'ci1',name:'Empleo',icon:'@briefcase'},{id:'ci2',name:'Freelance',icon:'@laptop'},{id:'ci3',name:'Dividendos',icon:'@trend'},{id:'ci4',name:'Otros ingresos',icon:'@coins'}],
+  income:[{id:'ci1',name:'Empleo',icon:'@briefcase'},{id:'ci2',name:'Freelance ingreso',icon:'@laptop'},{id:'ci3',name:'Dividendos',icon:'@trend'},{id:'ci4',name:'Otros ingresos',icon:'@coins'}],
   expenses:[{id:'ce1',name:'Arriendo',icon:'@home'},{id:'ce2',name:'Servicios',icon:'@bulb'},{id:'ce3',name:'Mercado',icon:'@cart'},{id:'ce4',name:'Comidas fuera',icon:'@food'},{id:'ce5',name:'Transporte',icon:'@car'},{id:'ce6',name:'Mantenimiento',icon:'@tools'},{id:'ce7',name:'Seguro carro',icon:'@shield'},{id:'ce8',name:'Viajes',icon:'@plane'},{id:'ce9',name:'Telefono',icon:'@phone'},{id:'ce10',name:'Freelance gasto',icon:'@laptop'},{id:'ce11',name:'Educacion',icon:'@book'},{id:'ce12',name:'Deporte',icon:'@ball'},{id:'ce13',name:'Gastos personales',icon:'@tag'},{id:'ce14',name:'Salud',icon:'@health'},{id:'ce15',name:'Ropa',icon:'@shirt'},{id:'ce16',name:'Suscripciones',icon:'@repeat'},{id:'ce17',name:'Regalos',icon:'@gift'},{id:'ce18',name:'Cadena',icon:'@tag'},{id:'ce19',name:'Otros gastos',icon:'@box'}],
   savings:[{id:'cs1',name:'Fondo renovacion',icon:'@building'},{id:'cs2',name:'Fondo emergencia',icon:'@shield'},{id:'cs3',name:'Inversion',icon:'@chart'},{id:'cs4',name:'Proximo viaje',icon:'@plane'}]
 };
@@ -1493,9 +1493,9 @@ function renderDisponible(){
 function saveBudget(){
   pushHistory('Actualizar presupuesto '+MONTHS[curM]+' '+curY);
   var mk=mkK(curY,curM),b={};
-  cats.income.concat(cats.expenses,cats.savings).forEach(function(c){
-    var inp=document.getElementById('bi_'+c.id);
-    if(inp&&inp.value){var raw=parseFloat((inp.value+"").replace(/\./g,""))||0;if(raw>0)b[c.name]=raw;}
+  cats.income.concat(cats.expenses,cats.savings).forEach(function(cat){
+    var inp=document.getElementById('bi_'+cat.id);
+    if(inp&&inp.value){var raw=parseFloat((inp.value+'').replace(/\./g,''))||0;if(raw>0)b[cat.name]=raw;}
   });
   budgets[mk]=b;ls.s('bu7',budgets);
   if(budgetDraft[mk])delete budgetDraft[mk];
@@ -2122,10 +2122,19 @@ function loadFromDrive(){
     // Both empty - do nothing
   }).catch(function(){});
 }
+function cancelDrive(){
+  driveSt='off';
+  driveToken='';driveFileId='';
+  ls.s('dt7','');ls.s('df7','');
+  updateDriveUI();
+}
+
 function updateDriveUI(){
   var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
   var sn=document.getElementById('s-drn'),ss=document.getElementById('s-drs'),sb=document.getElementById('s-drb');
   if(!dot)return;
+  var cancelBtn=document.getElementById('dbtn-cancel');
+  if(cancelBtn)cancelBtn.style.display=driveSt==='sy'?'inline':'none';
   if(driveSt==='ok'){dot.className='ddot ok';var ts=ls.g('dts7','');txt.textContent='Sincronizado'+(ts?' · '+new Date(ts).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'');if(btn)btn.textContent='Sync';if(sn)sn.textContent='Google Drive conectado';if(ss)ss.textContent='Datos seguros en la nube';if(sb)sb.textContent='Sync';}
   else if(driveSt==='sy'){dot.className='ddot sy';txt.textContent='Guardando...';if(btn)btn.textContent='...';}
   else if(driveSt==='er'){dot.className='ddot er';txt.textContent='Error Drive';if(btn)btn.textContent='Reconectar';if(sn)sn.textContent='Error';if(sb)sb.textContent='Reconectar';}
