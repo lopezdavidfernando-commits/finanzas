@@ -1505,7 +1505,7 @@ function saveBudget(){
   btn.style.background='var(--green)';
   renderDash();
   // Sync Drive in background without blocking
-  try{syncDrive();}catch(e){}
+  if(driveToken&&driveCid){try{syncDrive();}catch(e){}}
   setTimeout(function(){
     btn.textContent='Guardar presupuesto';
     btn.style.background='';
@@ -2135,10 +2135,13 @@ function updateDriveUI(){
 function closeM(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.mback').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
 
-setTheme(theme);setIconStyle(iconStyle);populateCatSel();populateAcSel();
+setTheme(theme);populateCatSel();populateAcSel();
 checkOAuthCallback();
-if(driveToken&&driveFileId){driveSt='sy';loadFromDrive();}
 renderAll();
+// Load from Drive after render so UI shows immediately
+if(driveToken&&driveFileId){
+  setTimeout(function(){driveSt='sy';updateDriveUI();loadFromDrive();},500);
+}
 </script>
 
 </body></html>
