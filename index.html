@@ -1520,10 +1520,13 @@ function renderSummary(){
     for(var i=0;i<12;i++){
       var mi=0,me=0,mb=0;
       allY.forEach(function(t){if(new Date(t.date+'T00:00:00').getMonth()===i){if(t.type==='Income')mi+=t.amount;else me+=t.amount;}});
-      var bk=budgets[mkK(sumY,i)]||{};cats.expenses.concat(cats.savings).forEach(function(c){mb+=(bk[c.name]||0);});
-      months.push({i:i,inc:mi,exp:me,budg:mb});
+      var bk=budgets[mkK(sumY,i)]||{};
+      var mbi=0,mbe=0;
+      cats.income.forEach(function(cat){mbi+=(bk['i:'+cat.id]||bk[cat.name]||0);});
+      cats.expenses.concat(cats.savings).forEach(function(cat){mbe+=(bk['e:'+cat.id]||bk['s:'+cat.id]||bk[cat.name]||0);});
+      months.push({i:i,inc:mi,exp:me,budgInc:mbi,budgExp:mbe});
     }
-    var maxMV=1;months.forEach(function(m){var v=Math.max(m.inc,m.exp,m.budg);if(v>maxMV)maxMV=v;});
+    var maxMV=1;months.forEach(function(m){var v=Math.max(m.inc,m.exp,m.budgInc,m.budgExp);if(v>maxMV)maxMV=v;});
     var CH=80;
     // KPIs
     var kgrid=el('div',{cls:'kgrid',style:'margin-bottom:10px'});
@@ -1539,18 +1542,29 @@ function renderSummary(){
     months.forEach(function(m){
       var ih=m.inc?Math.max(4,Math.round((m.inc/maxMV)*CH)):2;
       var eh=m.exp?Math.max(4,Math.round((m.exp/maxMV)*CH)):2;
-      var bh=m.budg?Math.max(4,Math.round((m.budg/maxMV)*CH)):0;
+      var bih=m.budgInc?Math.max(4,Math.round((m.budgInc/maxMV)*CH)):0;
+      var beh=m.budgExp?Math.max(4,Math.round((m.budgExp/maxMV)*CH)):0;
+      var incOk=m.budgInc>0&&m.inc<=m.budgInc;
+      var expOk=m.budgExp>0&&m.exp<=m.budgExp;
       var bars=el('div',{cls:'mcbars'});
-      bars.appendChild(el('div',{cls:'mcbar',style:'height:'+ih+'px;background:var(--green);opacity:'+(m.inc?1:.3)}));
-      bars.appendChild(el('div',{cls:'mcbar',style:'height:'+eh+'px;background:var(--red);opacity:'+(m.exp?1:.3)}));
-      if(bh)bars.appendChild(el('div',{cls:'mcbar',style:'height:'+bh+'px;background:var(--lime);opacity:.5;border:1px dashed var(--limedk)'}));
+      // Income bar + budget line
+      var incWrap=el('div',{style:'position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:'+CH+'px'});
+      incWrap.appendChild(el('div',{cls:'mcbar',style:'height:'+ih+'px;background:'+(incOk?'var(--green)':'var(--amber)')+';opacity:'+(m.inc?1:.3)}));
+      if(bih){var bil=el('div',{style:'position:absolute;bottom:'+bih+'px;left:-1px;right:-1px;height:2px;background:var(--green);opacity:.7;border-radius:1px'});incWrap.appendChild(bil);}
+      // Expense bar + budget line
+      var expWrap=el('div',{style:'position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:'+CH+'px'});
+      expWrap.appendChild(el('div',{cls:'mcbar',style:'height:'+eh+'px;background:'+(expOk?'var(--red)':'var(--amber)')+';opacity:'+(m.exp?1:.3)}));
+      if(beh){var bel=el('div',{style:'position:absolute;bottom:'+beh+'px;left:-1px;right:-1px;height:2px;background:var(--red);opacity:.7;border-radius:1px'});expWrap.appendChild(bel);}
+      bars.appendChild(incWrap);
+      bars.appendChild(expWrap);
       chart.appendChild(el('div',{cls:'mccol'},[bars,el('div',{cls:'mclbl',txt:MO[m.i]})]));
     });
     chartWrap.appendChild(chart);card.appendChild(chartWrap);
     var leg=el('div',{style:'display:flex;gap:12px;margin-top:10px'});
-    [['var(--green)','Ingresos'],['var(--red)','Gastos'],['var(--lime)','Presupuesto']].forEach(function(d){
+    [['var(--green)','Ingresos reales'],['var(--red)','Gastos reales'],['var(--green)','Pres. ingresos','dashed'],['var(--red)','Pres. gastos','dashed']].forEach(function(d){
       var item=el('div',{style:'display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)'});
-      item.appendChild(el('div',{style:'width:10px;height:10px;background:'+d[0]+';border-radius:2px'}));
+      if(d[2]==='dashed'){item.appendChild(el('div',{style:'width:14px;height:2px;background:'+d[0]+';border-radius:1px;opacity:.7'}));}
+      else{item.appendChild(el('div',{style:'width:10px;height:10px;background:'+d[0]+';border-radius:2px'}));}
       item.appendChild(document.createTextNode(d[1]));
       leg.appendChild(item);
     });
@@ -2064,44 +2078,15 @@ function loadFromDrive(){
   .then(function(r){return r.ok?r.json():null;})
   .then(function(d){
     if(!d){syncDrive();return;}
-    var driveHasData=(d.txs&&d.txs.length>0);
-    var localHasData=(txs&&txs.length>0);
-    if(driveHasData&&localHasData){
-      // Both have data - ask user which to keep
-      showConfirm(
-        'Conflicto de datos',
-        'Drive tiene '+d.txs.length+' movimientos y este dispositivo tiene '+txs.length+'. ¿Cuál quieres conservar?',
-        function(){
-          // User chose: keep Drive data
-          txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
-          ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
-          renderAll();
-        }
-      );
-      // Also add "keep local" button
-      var btn=document.getElementById('confirm-ok-btn');
-      if(btn){
-        btn.textContent='Usar datos de Drive';
-        // Add keep local button
-        var keepLocal=btn.cloneNode(false);
-        keepLocal.textContent='Conservar datos locales';
-        keepLocal.style.color='var(--green)';
-        keepLocal.addEventListener('click',function(){
-          closeM('m-confirm');
-          syncDrive(); // upload local to Drive
-        });
-        btn.parentNode.insertBefore(keepLocal,btn);
-      }
-    } else if(driveHasData){
-      // Only Drive has data - load it
+    // Drive is always the source of truth - load without asking
+    if(d.txs&&d.txs.length>0){
       txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
       renderAll();
-    } else if(localHasData){
-      // Only local has data - upload to Drive
+    } else {
+      // Drive is empty - upload local data to Drive
       syncDrive();
     }
-    // Both empty - do nothing
   }).catch(function(){});
 }
 function cancelDrive(){
