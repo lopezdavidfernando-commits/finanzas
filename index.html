@@ -740,6 +740,7 @@ var driveCid=ls.g('dc7',''), driveToken=ls.g('dt7',''), driveFileId=ls.g('df7','
 var curY=new Date().getFullYear(), curM=new Date().getMonth(), sumY=new Date().getFullYear();
 var curFilt='all', curFiltExp='all', editId=null, mTab='tracking', txType='Expenses', cfgType='', cfgEditId=null, cfgIcon='';
 var blurred=ls.g('bl7',false), theme=ls.g('th7','dark'), sumTab='ov';
+var budgetDraft={};
 var iconStyle=ls.g('ic7','color');
 var userName=ls.g('un7','David');
 var sumMode='year', sumM=new Date().getMonth();
@@ -1024,6 +1025,19 @@ function applyBlur(){
 }
 
 function showPage(p){
+  // Save unsaved budget inputs before leaving
+  var budgetPage=document.getElementById('page-budget');
+  if(budgetPage&&budgetPage.classList.contains('active')){
+    var mk=mkK(curY,curM);
+    budgetDraft[mk]={};
+    cats.income.concat(cats.expenses,cats.savings).forEach(function(cat){
+      var inp=document.getElementById('bi_'+cat.id);
+      if(inp&&inp.value){
+        var raw=parseFloat((inp.value+'').replace(/./g,''))||0;
+        if(raw>0)budgetDraft[mk][cat.name]=raw;
+      }
+    });
+  }
   document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
@@ -1342,11 +1356,13 @@ function renderExpenses(){
 function renderBudget(){
   monthStrip('b-months');
   var mk=mkK(curY,curM),b=budgets[mk]||{};
+  var draft=budgetDraft[mk]||{};
   function mkRows(id,list){
     var wrap=clr(id);if(!wrap)return;
     list.forEach(function(c){
       var inp=el('input',{cls:'bpinp',type:'text',id:'bi_'+c.id,placeholder:'0',inputmode:'numeric',oninput:'formatMoneyInput(this);updateBudgetTotals()'});
-      inp.value=b[c.name]?b[c.name].toLocaleString('es-CO'):'';
+      var val=draft[c.name]||b[c.name];
+      inp.value=val?val.toLocaleString('es-CO'):'';
       wrap.appendChild(el('div',{cls:'bprow'},[
         el('div',{cls:'bpico',html:icoHTML(c.icon)}),
         el('div',{cls:'bpnm',txt:c.name}),
@@ -1482,8 +1498,18 @@ function saveBudget(){
     if(inp&&inp.value){var raw=parseFloat((inp.value+"").replace(/\./g,""))||0;if(raw>0)b[c.name]=raw;}
   });
   budgets[mk]=b;ls.s('bu7',budgets);
-  var btn=document.getElementById('savebdg');btn.textContent='✓ Guardado';
-  setTimeout(function(){btn.textContent='Guardar presupuesto';renderDash();syncDrive();},1200);
+  if(budgetDraft[mk])delete budgetDraft[mk];
+  // Save locally first - show feedback immediately
+  var btn=document.getElementById('savebdg');
+  btn.textContent='✓ Guardado';
+  btn.style.background='var(--green)';
+  renderDash();
+  // Sync Drive in background without blocking
+  try{syncDrive();}catch(e){}
+  setTimeout(function(){
+    btn.textContent='Guardar presupuesto';
+    btn.style.background='';
+  },1500);
 }
 
 function setST(t){
@@ -2028,17 +2054,73 @@ function syncDrive(){
   });
 }
 function findOrCreate(data){
-  return fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%22finanzas-david-data.json%22+and+trashed%3Dfalse&spaces=drive,appDataFolder',{headers:{Authorization:'Bearer '+driveToken}}).then(function(r){return r.json();}).then(function(sd){
+  return fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%22finanzas-david-data.json%22+and+trashed%3Dfalse&spaces=drive',{headers:{Authorization:'Bearer '+driveToken}}).then(function(r){return r.json();}).then(function(sd){
     if(sd.files&&sd.files.length>0){driveFileId=sd.files[0].id;ls.s('df7',driveFileId);return updateDF(data);}
-    var meta=new Blob([JSON.stringify({name:'finanzas-david-data.json',parents:['appDataFolder']})],{type:'application/json'});
+    var meta=new Blob([JSON.stringify({name:'finanzas-david-data.json'})],{type:'application/json'});
     var form=new FormData();form.append('metadata',meta);form.append('file',new Blob([data],{type:'application/json'}));
     return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+driveToken},body:form}).then(function(r){if(!r.ok)throw{status:r.status};return r.json();}).then(function(fd){driveFileId=fd.id;ls.s('df7',driveFileId);});
   });
 }
 function updateDF(data){return fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{Authorization:'Bearer '+driveToken,'Content-Type':'application/json'},body:new Blob([data],{type:'application/json'})}).then(function(r){if(!r.ok)throw{status:r.status};});}
 function loadFromDrive(){
-  if(!driveToken||!driveFileId)return;
-  fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{Authorization:'Bearer '+driveToken}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d)return;txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();}).catch(function(){});
+  if(!driveToken)return;
+  if(!driveFileId){
+    fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%22finanzas-david-data.json%22+and+trashed%3Dfalse&spaces=drive',{headers:{Authorization:'Bearer '+driveToken}})
+    .then(function(r){return r.json();})
+    .then(function(sd){
+      if(sd.files&&sd.files.length>0){
+        driveFileId=sd.files[0].id;ls.s('df7',driveFileId);
+        loadFromDrive();
+      } else {
+        // No file in Drive yet - upload local data
+        syncDrive();
+      }
+    }).catch(function(){});
+    return;
+  }
+  fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{Authorization:'Bearer '+driveToken}})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(d){
+    if(!d){syncDrive();return;}
+    var driveHasData=(d.txs&&d.txs.length>0);
+    var localHasData=(txs&&txs.length>0);
+    if(driveHasData&&localHasData){
+      // Both have data - ask user which to keep
+      showConfirm(
+        'Conflicto de datos',
+        'Drive tiene '+d.txs.length+' movimientos y este dispositivo tiene '+txs.length+'. ¿Cuál quieres conservar?',
+        function(){
+          // User chose: keep Drive data
+          txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
+          ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
+          renderAll();
+        }
+      );
+      // Also add "keep local" button
+      var btn=document.getElementById('confirm-ok-btn');
+      if(btn){
+        btn.textContent='Usar datos de Drive';
+        // Add keep local button
+        var keepLocal=btn.cloneNode(false);
+        keepLocal.textContent='Conservar datos locales';
+        keepLocal.style.color='var(--green)';
+        keepLocal.addEventListener('click',function(){
+          closeM('m-confirm');
+          syncDrive(); // upload local to Drive
+        });
+        btn.parentNode.insertBefore(keepLocal,btn);
+      }
+    } else if(driveHasData){
+      // Only Drive has data - load it
+      txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
+      ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
+      renderAll();
+    } else if(localHasData){
+      // Only local has data - upload to Drive
+      syncDrive();
+    }
+    // Both empty - do nothing
+  }).catch(function(){});
 }
 function updateDriveUI(){
   var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
