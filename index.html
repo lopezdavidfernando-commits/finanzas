@@ -122,7 +122,7 @@
 body{font-family:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:124px;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s;max-width:480px;margin:0 auto}
 
 /* NAV: floating dark pill */
-nav{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:max(14px, calc(50vw - 226px));right:max(82px, calc(50vw - 158px));background:var(--navpill);border:none;border-radius:32px;display:flex;align-items:center;z-index:100;padding:7px;gap:2px;box-shadow:0 14px 36px rgba(0,0,0,.32)}
+nav{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));background:var(--navpill);border:none;border-radius:32px;display:flex;align-items:center;z-index:100;padding:7px;gap:2px;box-shadow:0 14px 36px rgba(0,0,0,.32)}
 nav button{flex:1;border:none;background:none;padding:11px 2px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:0;color:#8d877f;font-size:0;font-weight:800;cursor:pointer;transition:background .2s,color .2s;border-radius:24px;white-space:nowrap;overflow:hidden}
 nav button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 nav button.active{flex:0 0 auto;background:#fff;color:#161310;font-size:13.5px;gap:8px;padding:11px 16px}
@@ -204,7 +204,7 @@ nav button.active svg{stroke:#161310}
 .chip{flex-shrink:0;padding:8px 16px;border-radius:22px;font-size:13px;font-weight:600;border:1px solid var(--bord2);background:var(--bg2);cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .15s;box-shadow:var(--shadowsm)}
 .chip.active{background:var(--lime);color:#161310;border-color:var(--lime)}
 
-.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);right:max(16px, calc(50vw - 224px));width:60px;height:60px;border-radius:50%;background:var(--lime);border:none;color:#161310;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;box-shadow:0 10px 26px rgba(200,241,53,.42);transition:transform .12s;font-weight:500}
+.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);right:max(16px, calc(50vw - 224px));width:60px;height:60px;border-radius:50%;background:var(--lime);border:none;color:#161310;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;box-shadow:0 10px 26px rgba(200,241,53,.42);transition:transform .12s;font-weight:500}
 .fab:active{transform:scale(.9)}
 
 .mback{display:none;position:fixed;inset:0;background:rgba(10,8,6,.6);backdrop-filter:blur(2px);z-index:200;align-items:flex-end}
@@ -378,126 +378,11 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 .icobtn:hover{color:var(--text)}
 .icobtn.active{background:var(--lime);color:#161310;border-color:var(--lime)}
 
-.nav-brand{display:none}
-
 /* ── DESKTOP LAYOUT ── */
-@media (min-width: 768px){
-  body{background:#1a1a1a;padding-bottom:0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}
-  [data-theme='light'] body{background:#c8c8c6}
 
-  .app-wrap{
-    display:flex;
-    flex-direction:row;
-    width:860px;
-    min-height:100vh;
-    margin:0 auto;
-    box-shadow:0 0 60px rgba(0,0,0,.5);
-    position:relative;
-  }
-
-  /* Sidebar: reset ALL mobile styles, use flex column */
-  nav{
-    position:sticky !important;
-    top:0 !important;
-    bottom:auto !important;
-    left:auto !important;
-    right:auto !important;
-    height:100vh !important;
-    width:60px !important;
-    min-width:60px !important;
-    max-width:60px !important;
-    flex-direction:column !important;
-    border-top:none !important;
-    border-bottom:none !important;
-    border-right:.5px solid var(--bord2) !important;
-    border-radius:0 !important;
-    padding:10px 0 0 !important;
-    background:var(--bg2) !important;
-    backdrop-filter:none !important;
-    z-index:10 !important;
-    justify-content:flex-start !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    flex-shrink:0 !important;
-    transform:none !important;
-    box-shadow:none !important;
-    gap:0 !important;
-  }
-  nav button{
-    padding:8px 0;
-    flex-direction:column;
-    gap:3px;
-    font-size:8px;
-    letter-spacing:0;
-    justify-content:center;
-    align-items:center;
-    border-radius:8px;
-    margin:1px 5px;
-    width:calc(100% - 10px);
-    text-transform:none;
-  }
-  nav button svg{width:18px;height:18px;flex-shrink:0}
-  nav button.active{background:var(--limebg);color:var(--lime)}
-  .ndot{display:none!important}
-  .nav-brand{
-    display:block;
-    padding:8px 0 12px;
-    border-bottom:.5px solid var(--border);
-    margin-bottom:4px;
-    text-align:center;
-  }
-  .nav-brand-title{font-size:16px}
-  .nav-brand-sub{display:none}
-
-  /* Main content area */
-  .page{
-    margin-left:0;
-    flex:1;
-    min-width:0;
-    width:auto;
-    max-width:none;
-    min-height:100vh;
-    padding-bottom:40px;
-    background:var(--bg);
-  }
-
-  /* FAB stays inside content */
-  .fab{
-    position:fixed;
-    bottom:28px;
-    right:calc(50vw - 430px + 12px);
-  }
-
-  /* Grids */
-  .kgrid{grid-template-columns:repeat(4,1fr)}
-  .agrid{grid-template-columns:repeat(3,1fr)}
-  .accts{padding:2px 16px 6px}
-  .txwrap{padding:0 16px}
-  .sec-hd,.shdr{padding:12px 16px 4px}
-  .kpi-grid{padding:0 16px}
-  .card{margin:0 16px 10px}
-
-  /* Modals */
-  .mback{align-items:center;justify-content:center;padding:20px}
-  .msh{border-radius:20px;max-width:500px;max-height:88vh}
-  .mhnd{display:none}
-}
 </style>
 </head>
-<body><div class="app-wrap">
-
-<nav>
-  <div class="nav-brand" id="nav-brand">
-    <div class="nav-brand-title">💰 Finanzas</div>
-    <div class="nav-brand-sub" id="nav-brand-name">David</div>
-  </div>
-  <button class="active" id="nav-dash" onclick="showPage('dash')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Inicio<div class="ndot"></div></button>
-  <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle></svg>Movimientos<div class="ndot"></div></button>
-  <button id="nav-expenses" onclick="showPage('expenses')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Pendiente<div class="ndot"></div></button>
-  <button id="nav-budget" onclick="showPage('budget')"><svg viewBox="0 0 24 24"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>Presup.<div class="ndot"></div></button>
-  <button id="nav-summary" onclick="showPage('summary')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Resumen<div class="ndot"></div></button>
-  <button id="nav-settings" onclick="showPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Ajustes<div class="ndot"></div></button>
-</nav>
+<body>
 
 
 
@@ -686,6 +571,14 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
 <button class="fab" id="fab" onclick="openTx(null)">+</button>
 
+<nav><button class="active" id="nav-dash" onclick="showPage('dash')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Inicio<div class="ndot"></div></button>
+  <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle></svg>Movimientos<div class="ndot"></div></button>
+  <button id="nav-expenses" onclick="showPage('expenses')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Pendiente<div class="ndot"></div></button>
+  <button id="nav-budget" onclick="showPage('budget')"><svg viewBox="0 0 24 24"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>Presup.<div class="ndot"></div></button>
+  <button id="nav-summary" onclick="showPage('summary')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Resumen<div class="ndot"></div></button>
+  <button id="nav-settings" onclick="showPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Ajustes<div class="ndot"></div></button>
+</nav>
+
 <div class="mback" id="m-tx">
   <div class="msh">
     <div class="mhnd"></div>
@@ -820,7 +713,6 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   </div>
 </div>
 
-</div>
 <script>
 // ALL JS uses createElement — zero string concatenation with quotes
 var ls = {
@@ -2056,14 +1948,116 @@ function importData(e){
 
 function handleDrive(){if(driveCid&&driveToken)syncDrive();else{document.getElementById('drive-cid').value=driveCid||'';document.getElementById('m-drive').classList.add('open');}}
 function saveDriveCid(){var c=document.getElementById('drive-cid').value.trim();if(!c){alert('Pega tu Client ID');return;}driveCid=c;ls.s('dc7',c);closeM('m-drive');initGAuth();}
-function initGAuth(){if(!document.getElementById('gsi-script')){var s=document.createElement('script');s.id='gsi-script';s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=function(){startGAuth();};document.head.appendChild(s);}else startGAuth();}
-function startGAuth(){if(!window.google){setTimeout(startGAuth,500);return;}var c=google.accounts.oauth2.initTokenClient({client_id:driveCid,scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',callback:function(r){if(r.error){driveSt='er';updateDriveUI();return;}driveToken=r.access_token;ls.s('dt7',driveToken);driveSt='sy';updateDriveUI();syncDrive();}});c.requestAccessToken();}
+function initGAuth(){
+  // Use PKCE authorization code flow (complies with Google OAuth policies)
+  var state=Math.random().toString(36).slice(2);
+  var verifier=generateCodeVerifier();
+  ls.s('oauth_verifier',verifier);
+  ls.s('oauth_state',state);
+  generateCodeChallenge(verifier).then(function(challenge){
+    var params=new URLSearchParams({
+      client_id:driveCid,
+      redirect_uri:window.location.origin+window.location.pathname,
+      response_type:'code',
+      scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
+      state:state,
+      code_challenge:challenge,
+      code_challenge_method:'S256',
+      access_type:'offline',
+      prompt:'consent'
+    });
+    window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+  });
+}
+
+function startGAuth(){initGAuth();}
+
+function generateCodeVerifier(){
+  var arr=new Uint8Array(32);
+  window.crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode.apply(null,arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+function generateCodeChallenge(verifier){
+  return window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)).then(function(buf){
+    return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  });
+}
+
+async function exchangeCodeForToken(code){
+  // Exchange auth code for token via Google token endpoint
+  // Note: requires a backend for client_secret - use implicit workaround
+  // Since we can't store client_secret in frontend, use token endpoint with PKCE
+  var verifier=ls.g('oauth_verifier','');
+  var resp=await fetch('https://oauth2.googleapis.com/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({
+      client_id:driveCid,
+      code:code,
+      code_verifier:verifier,
+      grant_type:'authorization_code',
+      redirect_uri:window.location.origin+window.location.pathname
+    })
+  });
+  var data=await resp.json();
+  if(data.access_token){
+    driveToken=data.access_token;
+    ls.s('dt7',driveToken);
+    if(data.refresh_token)ls.s('drt7',data.refresh_token);
+    driveSt='sy';updateDriveUI();
+    syncDrive();
+  } else {
+    console.error('Token exchange failed',data);
+    driveSt='er';updateDriveUI();
+  }
+}
+
+async function refreshDriveToken(){
+  var refreshToken=ls.g('drt7','');
+  if(!refreshToken)return false;
+  var resp=await fetch('https://oauth2.googleapis.com/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({
+      client_id:driveCid,
+      refresh_token:refreshToken,
+      grant_type:'refresh_token'
+    })
+  });
+  var data=await resp.json();
+  if(data.access_token){
+    driveToken=data.access_token;
+    ls.s('dt7',driveToken);
+    return true;
+  }
+  return false;
+}
+
+function checkOAuthCallback(){
+  var params=new URLSearchParams(window.location.search);
+  var code=params.get('code');
+  var state=params.get('state');
+  var savedState=ls.g('oauth_state','');
+  if(code&&state&&state===savedState){
+    // Clean URL
+    window.history.replaceState({},'',window.location.pathname);
+    exchangeCodeForToken(code);
+  }
+}
 function syncDrive(){
   if(!driveToken||!driveCid)return;
   driveSt='sy';updateDriveUI();
   var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:7});
   var p=driveFileId?updateDF(data):findOrCreate(data);
-  p.then(function(){driveSt='ok';ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){if(e&&e.status===401){driveToken='';ls.s('dt7','');}driveSt='er';updateDriveUI();});
+  p.then(function(){driveSt='ok';ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
+    if(e&&e.status===401){
+      refreshDriveToken().then(function(ok){
+        if(ok)syncDrive();
+        else{driveToken='';ls.s('dt7','');driveSt='er';updateDriveUI();}
+      });
+    } else {driveSt='er';updateDriveUI();}
+  });
 }
 function findOrCreate(data){
   return fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%22finanzas-david-data.json%22+and+trashed%3Dfalse&spaces=drive,appDataFolder',{headers:{Authorization:'Bearer '+driveToken}}).then(function(r){return r.json();}).then(function(sd){
@@ -2091,7 +2085,9 @@ function updateDriveUI(){
 function closeM(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.mback').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
 
-setTheme(theme);setIconStyle(iconStyle);populateCatSel();populateAcSel();if(driveToken&&driveFileId){driveSt='sy';loadFromDrive();}else if(driveCid)initGAuth();
+setTheme(theme);setIconStyle(iconStyle);populateCatSel();populateAcSel();
+checkOAuthCallback();
+if(driveToken&&driveFileId){driveSt='sy';loadFromDrive();}
 renderAll();
 </script>
 
