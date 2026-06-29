@@ -740,7 +740,6 @@ var driveCid=ls.g('dc7',''), driveToken=ls.g('dt7',''), driveFileId=ls.g('df7','
 var curY=new Date().getFullYear(), curM=new Date().getMonth(), sumY=new Date().getFullYear();
 var curFilt='all', curFiltExp='all', editId=null, mTab='tracking', txType='Expenses', cfgType='', cfgEditId=null, cfgIcon='';
 var blurred=ls.g('bl7',false), theme=ls.g('th7','dark'), sumTab='ov';
-var budgetDraft={};
 var iconStyle=ls.g('ic7','color');
 var userName=ls.g('un7','David');
 var sumMode='year', sumM=new Date().getMonth();
@@ -1025,19 +1024,6 @@ function applyBlur(){
 }
 
 function showPage(p){
-  // Save unsaved budget inputs before leaving
-  var budgetPage=document.getElementById('page-budget');
-  if(budgetPage&&budgetPage.classList.contains('active')){
-    var mk=mkK(curY,curM);
-    budgetDraft[mk]={};
-    cats.income.concat(cats.expenses,cats.savings).forEach(function(cat){
-      var inp=document.getElementById('bi_'+cat.id);
-      if(inp&&inp.value){
-        var raw=parseFloat((inp.value+'').replace(/./g,''))||0;
-        if(raw>0)budgetDraft[mk][cat.name]=raw;
-      }
-    });
-  }
   document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
@@ -1047,7 +1033,7 @@ function showPage(p){
   renderAll();
 }
 
-function cm(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderAll();}
+function cm(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}var onBudget=document.getElementById('page-budget')&&document.getElementById('page-budget').classList.contains('active');if(onBudget)renderBudget();renderAll();}
 function cmY(d){sumY+=d;renderSummary();}
 function cmSM(d){sumM+=d;if(sumM>11){sumM=0;sumY++;}if(sumM<0){sumM=11;sumY--;}renderSummary();}
 function setSumMode(m){
@@ -1102,7 +1088,7 @@ function monthStrip(id){
       pill.appendChild(el('div',{cls:'mo-nm',txt:MO[mm]}));
       pill.appendChild(el('div',{cls:'mo-mk',txt:active?'✦':(past?'✓':'✦')}));
       pill.appendChild(el('div',{cls:'mo-yr',txt:String(yy).slice(2)}));
-      pill.addEventListener('click',function(){curM=mm;curY=yy;renderAll();});
+      pill.addEventListener('click',function(){curM=mm;curY=yy;var onBudget=document.getElementById('page-budget').classList.contains('active');if(onBudget)renderBudget();renderAll();});
       mwrap.appendChild(pill);
     })(off);
   }
@@ -1167,7 +1153,7 @@ function renderDash(){
   var catData=[];
   cats.expenses.forEach(function(c){
     var tracked=0;tr.forEach(function(t){if(t.type==='Expenses'&&t.category===c.name)tracked+=t.amount;});
-    var b=budget[c.name]||0;
+    var bkx=budgets[mk]||{};var b=(bkx['e:'+c.id]||bkx[c.name]||0);
     if(tracked>0||b>0)catData.push({name:c.name,icon:c.icon,tracked:tracked,b:b});
   });
   catData.sort(function(a,b){var ap=a.b>0?a.tracked/a.b:0,bp=b.b>0?b.tracked/b.b:0;return bp-ap;});
@@ -1356,13 +1342,11 @@ function renderExpenses(){
 function renderBudget(){
   monthStrip('b-months');
   var mk=mkK(curY,curM),b=budgets[mk]||{};
-  var draft=budgetDraft[mk]||{};
   function mkRows(id,list){
     var wrap=clr(id);if(!wrap)return;
     list.forEach(function(c){
       var inp=el('input',{cls:'bpinp',type:'text',id:'bi_'+c.id,placeholder:'0',inputmode:'numeric',oninput:'formatMoneyInput(this);updateBudgetTotals()'});
-      var val=draft[c.name]||b[c.name];
-      inp.value=val?val.toLocaleString('es-CO'):'';
+      var bval=(b['i:'+c.id]||b['e:'+c.id]||b['s:'+c.id]||b[c.name]||0);inp.value=bval?bval.toLocaleString('es-CO'):'';
       wrap.appendChild(el('div',{cls:'bprow'},[
         el('div',{cls:'bpico',html:icoHTML(c.icon)}),
         el('div',{cls:'bpnm',txt:c.name}),
@@ -1416,7 +1400,7 @@ function renderDisponible(){
       var parts=mk.split('-');
       var y=parseInt(parts[0]),m=parseInt(parts[1])-1;
       if(y<curY||(y===curY&&m<=curM)){
-        totalBudg+=(budgets[mk][cat.name]||0);
+        var bkd=budgets[mk]||{};totalBudg+=(bkd['e:'+cat.id]||bkd['s:'+cat.id]||bkd[cat.name]||0);
       }
     });
     // Sum real expenses from tracking up to current month
@@ -1493,12 +1477,10 @@ function renderDisponible(){
 function saveBudget(){
   pushHistory('Actualizar presupuesto '+MONTHS[curM]+' '+curY);
   var mk=mkK(curY,curM),b={};
-  cats.income.concat(cats.expenses,cats.savings).forEach(function(cat){
-    var inp=document.getElementById('bi_'+cat.id);
-    if(inp&&inp.value){var raw=parseFloat((inp.value+'').replace(/\./g,''))||0;if(raw>0)b[cat.name]=raw;}
-  });
+  cats.income.forEach(function(cat){var inp=document.getElementById('bi_'+cat.id);if(inp&&inp.value){var r=parseFloat((inp.value+'').replace(/\./g,''))||0;if(r>0)b['i:'+cat.id]=r;}});
+  cats.expenses.forEach(function(cat){var inp=document.getElementById('bi_'+cat.id);if(inp&&inp.value){var r=parseFloat((inp.value+'').replace(/\./g,''))||0;if(r>0)b['e:'+cat.id]=r;}});
+  cats.savings.forEach(function(cat){var inp=document.getElementById('bi_'+cat.id);if(inp&&inp.value){var r=parseFloat((inp.value+'').replace(/\./g,''))||0;if(r>0)b['s:'+cat.id]=r;}});
   budgets[mk]=b;ls.s('bu7',budgets);
-  if(budgetDraft[mk])delete budgetDraft[mk];
   // Save locally first - show feedback immediately
   var btn=document.getElementById('savebdg');
   btn.textContent='✓ Guardado';
@@ -1618,7 +1600,7 @@ function renderSummary(){
       var tracked=0;allY.forEach(function(t){if(t.type==='Expenses'&&t.category===c.name)tracked+=t.amount;});
       var budgTot=0;
       if(useMonth){var bkm=budgets[mkK(sumY,sumM)]||{};budgTot=bkm[c.name]||0;}
-      else{for(var i=0;i<12;i++){var bk2=budgets[mkK(sumY,i)]||{};budgTot+=(bk2[c.name]||0);}}
+      else{for(var i=0;i<12;i++){var bk2=budgets[mkK(sumY,i)]||{};budgTot+=(bk2['e:'+c.id]||bk2['s:'+c.id]||bk2[c.name]||0);}}
       if(tracked>0||budgTot>0)rkItems.push({name:c.name,icon:c.icon,tracked:tracked,budget:budgTot});
     });
     rkItems.sort(function(a,b){return b.tracked-a.tracked;});
@@ -2129,7 +2111,9 @@ function cancelDrive(){
   updateDriveUI();
 }
 
+function cancelDrive(){driveToken='';driveFileId='';driveSt='off';ls.s('dt7','');ls.s('df7','');updateDriveUI();}
 function updateDriveUI(){
+  var cb=document.getElementById('dbtn-cancel');if(cb)cb.style.display=(driveSt==='sy')?'inline':'none';
   var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
   var sn=document.getElementById('s-drn'),ss=document.getElementById('s-drs'),sb=document.getElementById('s-drb');
   if(!dot)return;
