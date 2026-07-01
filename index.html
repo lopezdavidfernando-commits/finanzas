@@ -1192,7 +1192,8 @@ function makeTxEl(t){
   var inf=el('div',{cls:'tinf'});
   inf.appendChild(el('div',{cls:'td',txt:t.description}));
   var meta=el('div',{cls:'tm'});
-  meta.textContent=(t.category||'Sin categoria')+(t.account?' · '+t.account:'');
+  var metaSecond=t.mode==='expenses'?(t.source||''):(t.account||'');
+  meta.textContent=(t.category||'Sin categoria')+(metaSecond?' · '+metaSecond:'');
   if(t.mode==='expenses'){
     if(t.charge==='Los dos'||t.charge==='Otro'){var b=el('span',{cls:'badge sh',txt:t.charge});meta.appendChild(b);}
     var statusLabels={'Unpaid':'Pendiente','DavidPaidLinaPending':'David pago - Lina pendiente','LinaPaidDavidPending':'Lina pago - David pendiente','Paid':'Pagado'};
@@ -1242,6 +1243,7 @@ function renderExpenses(){
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
   var dav=0,lin=0,otr=0,tot=0,srcEfe=0,srcCred=0,srcDeb=0;
   var srcEfeDav=0,srcEfeLin=0,srcCredDav=0,srcCredLin=0,srcDebDav=0,srcDebLin=0;
+  var srcEfeOtr=0,srcCredOtr=0,srcDebOtr=0;
   all.forEach(function(t){
     var bDav=0,bLin=0,bOtr=0;
     if(t.charge==='David')bDav=t.amount;
@@ -1254,9 +1256,9 @@ function renderExpenses(){
     dav+=bDav;lin+=bLin;otr+=bOtr;
     var pending=bDav+bLin+bOtr;
     tot+=pending;
-    if(t.source==='Efectivo'){srcEfe+=pending;srcEfeDav+=bDav;srcEfeLin+=bLin;}
-    else if(t.source==='Tarjeta crédito'){srcCred+=pending;srcCredDav+=bDav;srcCredLin+=bLin;}
-    else if(t.source==='Tarjeta débito'){srcDeb+=pending;srcDebDav+=bDav;srcDebLin+=bLin;}
+    if(t.source==='Efectivo'){srcEfe+=pending;srcEfeDav+=bDav;srcEfeLin+=bLin;srcEfeOtr+=bOtr;}
+    else if(t.source==='Tarjeta crédito'){srcCred+=pending;srcCredDav+=bDav;srcCredLin+=bLin;srcCredOtr+=bOtr;}
+    else if(t.source==='Tarjeta débito'){srcDeb+=pending;srcDebDav+=bDav;srcDebLin+=bLin;srcDebOtr+=bOtr;}
   });
   document.getElementById('e-dav').textContent=fmt(dav);
   document.getElementById('e-lin').textContent=fmt(lin);
@@ -1264,24 +1266,23 @@ function renderExpenses(){
   document.getElementById('e-tot').textContent=fmt(tot);
   var srcWrap=clr('e-source-body');
   [
-    ['💵','Efectivo',srcEfe,srcEfeDav,srcEfeLin],
-    ['💳','Tarjeta crédito',srcCred,srcCredDav,srcCredLin],
-    ['🏦','Tarjeta débito',srcDeb,srcDebDav,srcDebLin]
+    ['💵','Efectivo',srcEfe,srcEfeDav,srcEfeLin,srcEfeOtr],
+    ['💳','Tarjeta crédito',srcCred,srcCredDav,srcCredLin,srcCredOtr],
+    ['🏦','Tarjeta débito',srcDeb,srcDebDav,srcDebLin,srcDebOtr]
   ].forEach(function(d){
+    if(d[2]===0)return;
     var row=el('div',{cls:'bprow',style:'margin:0 0 5px;align-items:flex-start;padding-top:10px;padding-bottom:10px'});
     row.appendChild(el('div',{cls:'bpico',txt:d[0]}));
-    var nameWrap=el('div',{cls:'bpnm'},[
-      el('div',{txt:d[1]}),
-      el('div',{style:'display:flex;gap:10px;margin-top:3px'},[
-        el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}),
-        el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'})
-      ])
-    ]);
+    var subsRow=el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:3px'});
+    if(d[3]>0)subsRow.appendChild(el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    if(d[4]>0)subsRow.appendChild(el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    if(d[5]>0)subsRow.appendChild(el('span',{txt:'Otro: '+fmt(d[5]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    var nameWrap=el('div',{cls:'bpnm'},[el('div',{txt:d[1]}),subsRow]);
     row.appendChild(nameWrap);
     row.appendChild(el('div',{txt:fmt(d[2]),style:'font-size:14px;font-weight:700'}));
     srcWrap.appendChild(row);
   });
-  var ec=clr('e-chips');
+    var ec=clr('e-chips');
   [['Todos','all'],['David','David'],['Lina','Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
     var chip=el('div',{cls:'chip'+(curFiltExp===d[1]?' active':''),txt:d[0]});
     chip.addEventListener('click',function(){
