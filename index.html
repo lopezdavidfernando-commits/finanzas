@@ -1270,13 +1270,12 @@ function renderExpenses(){
     ['💳','Tarjeta crédito',srcCred,srcCredDav,srcCredLin,srcCredOtr],
     ['🏦','Tarjeta débito',srcDeb,srcDebDav,srcDebLin,srcDebOtr]
   ].forEach(function(d){
-    if(d[2]===0)return;
     var row=el('div',{cls:'bprow',style:'margin:0 0 5px;align-items:flex-start;padding-top:10px;padding-bottom:10px'});
     row.appendChild(el('div',{cls:'bpico',txt:d[0]}));
     var subsRow=el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:3px'});
-    if(d[3]>0)subsRow.appendChild(el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
-    if(d[4]>0)subsRow.appendChild(el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
-    if(d[5]>0)subsRow.appendChild(el('span',{txt:'Otro: '+fmt(d[5]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    subsRow.appendChild(el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    subsRow.appendChild(el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    subsRow.appendChild(el('span',{txt:'Otro: '+fmt(d[5]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
     var nameWrap=el('div',{cls:'bpnm'},[el('div',{txt:d[1]}),subsRow]);
     row.appendChild(nameWrap);
     row.appendChild(el('div',{txt:fmt(d[2]),style:'font-size:14px;font-weight:700'}));
