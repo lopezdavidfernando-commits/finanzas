@@ -1344,16 +1344,23 @@ function renderExpenses(){
     if(curFiltExp==='Los dos') return t.charge==='Los dos'&&t.status==='Paid';
     return false;
   });
-  var paidTotal=0;allPaid.forEach(function(t){paidTotal+=t.amount;});
   var paidTotalEl=document.getElementById('e-paid-total');
-  if(paidTotalEl)paidTotalEl.textContent=fmt(paidTotal);
+  // Total will be set after rendering with correct shares
   var paidList=document.getElementById('e-paid-list');
   if(paidList){
     while(paidList.firstChild)paidList.removeChild(paidList.firstChild);
     if(!allPaid.length){
       paidList.appendChild(el('div',{style:'padding:10px 0;font-size:13px;color:var(--text3);text-align:center',txt:'Sin pagos este mes'}));
     } else {
+      var paidShare=0;
       allPaid.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(t){
+        // Calculate the share for the active filter
+        var shareAmt=t.amount;
+        if(t.charge==='Los dos'){
+          if(curFiltExp==='David'||curFiltExp==='Lina')shareAmt=t.amount/2;
+          else if(curFiltExp==='all')shareAmt=t.amount; // show total when all
+        }
+        paidShare+=shareAmt;
         var row=el('div',{cls:'tx',click:function(){openTx(t.id);}});
         row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
         var inf=el('div',{cls:'tinf'});
@@ -1363,9 +1370,17 @@ function renderExpenses(){
         if(t.charge==='Los dos')meta.appendChild(el('span',{cls:'badge sh',txt:'Los dos',style:'margin-left:4px'}));
         inf.appendChild(meta);
         row.appendChild(inf);
-        row.appendChild(el('div',{cls:'ta exp',txt:'−'+fmt(t.amount)}));
+        // Show share amount, not total
+        var amtEl=el('div',{style:'text-align:right'});
+        amtEl.appendChild(el('div',{cls:'ta exp',txt:'−'+fmt(shareAmt)}));
+        if(t.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')){
+          amtEl.appendChild(el('div',{style:'font-size:10px;color:var(--text3)',txt:'Total: '+fmt(t.amount)}));
+        }
+        row.appendChild(amtEl);
         paidList.appendChild(row);
       });
+      // Update total with share amount
+      if(paidTotalEl)paidTotalEl.textContent=fmt(paidShare);
     }
   }
 
