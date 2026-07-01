@@ -1323,7 +1323,15 @@ function renderExpenses(){
   var el2=clr('e-list');
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
   // Render paid items section
-  var allPaid=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status==='Paid';});
+  var allPaid=mTxs(txs).filter(function(t){
+    if(t.mode!=='expenses'||t.status!=='Paid')return false;
+    if(curFiltExp==='all')return true;
+    if(curFiltExp==='Los dos')return t.charge==='Los dos';
+    if(curFiltExp==='Otro')return t.charge==='Otro';
+    if(curFiltExp==='David')return t.charge==='David'||t.charge==='Los dos';
+    if(curFiltExp==='Lina')return t.charge==='Lina'||t.charge==='Los dos';
+    return t.charge===curFiltExp;
+  });
   var paidTotal=0;allPaid.forEach(function(t){paidTotal+=t.amount;});
   var paidTotalEl=document.getElementById('e-paid-total');
   if(paidTotalEl)paidTotalEl.textContent=fmt(paidTotal);
