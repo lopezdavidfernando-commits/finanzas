@@ -457,6 +457,16 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   </div>
   <div class="chips" id="e-chips"></div>
   <div class="txwrap" id="e-list"></div>
+  <div id="e-paid-section" style="padding:0 20px 24px">
+    <div id="e-paid-toggle" onclick="togglePaidSection()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:12px;border:.5px solid var(--border);cursor:pointer;margin-top:8px">
+      <span style="font-size:13px;font-weight:600;color:var(--text2)">✓ Pagados este mes</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="e-paid-total" style="font-size:13px;font-weight:700;color:var(--green)">$0</span>
+        <span id="e-paid-arrow" style="font-size:12px;color:var(--text3)">▼</span>
+      </div>
+    </div>
+    <div id="e-paid-list" style="display:none;margin-top:6px"></div>
+  </div>
 </div>
 
 <div class="page" id="page-budget">
@@ -1312,6 +1322,33 @@ function renderExpenses(){
   var srt=filtered.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var el2=clr('e-list');
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
+  // Render paid items section
+  var allPaid=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status==='Paid';});
+  var paidTotal=0;allPaid.forEach(function(t){paidTotal+=t.amount;});
+  var paidTotalEl=document.getElementById('e-paid-total');
+  if(paidTotalEl)paidTotalEl.textContent=fmt(paidTotal);
+  var paidList=document.getElementById('e-paid-list');
+  if(paidList){
+    while(paidList.firstChild)paidList.removeChild(paidList.firstChild);
+    if(!allPaid.length){
+      paidList.appendChild(el('div',{style:'padding:10px 0;font-size:13px;color:var(--text3);text-align:center',txt:'Sin pagos este mes'}));
+    } else {
+      allPaid.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(t){
+        var row=el('div',{cls:'tx',click:function(){openTx(t.id);}});
+        row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
+        var inf=el('div',{cls:'tinf'});
+        inf.appendChild(el('div',{cls:'td',txt:t.description}));
+        var meta=el('div',{cls:'tm'});
+        meta.textContent=(t.category||'')+(t.source?' · '+t.source:'');
+        if(t.charge==='Los dos')meta.appendChild(el('span',{cls:'badge sh',txt:'Los dos',style:'margin-left:4px'}));
+        inf.appendChild(meta);
+        row.appendChild(inf);
+        row.appendChild(el('div',{cls:'ta exp',txt:'−'+fmt(t.amount)}));
+        paidList.appendChild(row);
+      });
+    }
+  }
+
   srt.forEach(function(t){
     var row=makeTxEl(t);
     // If filtered by person, replace amount with their share + show total below
@@ -2089,6 +2126,14 @@ function loadFromDrive(){
     }
   }).catch(function(){});
 }
+var paidSectionOpen=false;
+function togglePaidSection(){
+  paidSectionOpen=!paidSectionOpen;
+  var list=document.getElementById('e-paid-list');
+  var arrow=document.getElementById('e-paid-arrow');
+  if(list)list.style.display=paidSectionOpen?'block':'none';
+  if(arrow)arrow.textContent=paidSectionOpen?'▲':'▼';
+}
 function cancelDrive(){
   driveSt='off';
   driveToken='';driveFileId='';
@@ -2096,6 +2141,14 @@ function cancelDrive(){
   updateDriveUI();
 }
 
+var paidSectionOpen=false;
+function togglePaidSection(){
+  paidSectionOpen=!paidSectionOpen;
+  var list=document.getElementById('e-paid-list');
+  var arrow=document.getElementById('e-paid-arrow');
+  if(list)list.style.display=paidSectionOpen?'block':'none';
+  if(arrow)arrow.textContent=paidSectionOpen?'▲':'▼';
+}
 function cancelDrive(){driveToken='';driveFileId='';driveSt='off';ls.s('dt7','');ls.s('df7','');updateDriveUI();}
 function updateDriveUI(){
   var cb=document.getElementById('dbtn-cancel');if(cb)cb.style.display=(driveSt==='sy')?'inline':'none';
