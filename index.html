@@ -1324,13 +1324,25 @@ function renderExpenses(){
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
   // Render paid items section
   var allPaid=mTxs(txs).filter(function(t){
-    if(t.mode!=='expenses'||t.status!=='Paid')return false;
-    if(curFiltExp==='all')return true;
-    if(curFiltExp==='Los dos')return t.charge==='Los dos';
-    if(curFiltExp==='Otro')return t.charge==='Otro';
-    if(curFiltExp==='David')return t.charge==='David'||t.charge==='Los dos';
-    if(curFiltExp==='Lina')return t.charge==='Lina'||t.charge==='Los dos';
-    return t.charge===curFiltExp;
+    if(t.mode!=='expenses')return false;
+    // Only include if this person has already paid their part
+    if(curFiltExp==='all'){
+      // Show all that have any payment done
+      return t.status==='Paid'||t.status==='DavidPaidLinaPending'||t.status==='LinaPaidDavidPending';
+    }
+    if(curFiltExp==='David'){
+      // David paid: status is Paid or DavidPaidLinaPending
+      return (t.charge==='David'||t.charge==='Los dos')&&
+             (t.status==='Paid'||t.status==='DavidPaidLinaPending');
+    }
+    if(curFiltExp==='Lina'){
+      // Lina paid: status is Paid or LinaPaidDavidPending
+      return (t.charge==='Lina'||t.charge==='Los dos')&&
+             (t.status==='Paid'||t.status==='LinaPaidDavidPending');
+    }
+    if(curFiltExp==='Otro') return t.charge==='Otro'&&t.status==='Paid';
+    if(curFiltExp==='Los dos') return t.charge==='Los dos'&&t.status==='Paid';
+    return false;
   });
   var paidTotal=0;allPaid.forEach(function(t){paidTotal+=t.amount;});
   var paidTotalEl=document.getElementById('e-paid-total');
