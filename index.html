@@ -456,6 +456,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
     <div id="e-source-body"></div>
   </div>
   <div class="chips" id="e-chips"></div>
+  <div class="chips" id="e-src-chips" style="padding-top:0"></div>
   <div class="txwrap" id="e-list"></div>
   <div id="e-paid-section" style="padding:0 20px 24px">
     <div id="e-paid-toggle" onclick="togglePaidSection()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:12px;border:.5px solid var(--border);cursor:pointer;margin-top:8px">
@@ -748,7 +749,7 @@ var accts=ls.g('ac7',DA), cats=ls.g('ca7',DC), txs=ls.g('tx7',[]), budgets=ls.g(
 })();
 var driveCid=ls.g('dc7',''), driveToken=ls.g('dt7',''), driveFileId=ls.g('df7',''), driveSt='off';
 var curY=new Date().getFullYear(), curM=new Date().getMonth(), sumY=new Date().getFullYear();
-var curFilt='all', curFiltExp='all', editId=null, mTab='tracking', txType='Expenses', cfgType='', cfgEditId=null, cfgIcon='';
+var curFilt='all', curFiltExp='all', curFiltSrc='all', editId=null, mTab='tracking', txType='Expenses', cfgType='', cfgEditId=null, cfgIcon='';
 var blurred=ls.g('bl7',false), theme=ls.g('th7','dark'), sumTab='ov';
 var iconStyle=ls.g('ic7','color');
 var userName=ls.g('un7','David');
@@ -1089,14 +1090,41 @@ function renderAll(){
 
 function monthStrip(id){
   var mwrap=clr(id);if(!mwrap)return;
+  var onExpenses=document.getElementById('page-expenses')&&document.getElementById('page-expenses').classList.contains('active');
   for(var off=-3;off<=3;off++){
     (function(off){
       var dt=new Date(curY,curM+off,1);
       var yy=dt.getFullYear(),mm=dt.getMonth();
       var active=off===0,past=off<0,future=off>0;
+      // Count pending items for this month (only on expenses page)
+      var pendingCount=0,hasPaid=false;
+      if(onExpenses){
+        txs.forEach(function(t){
+          if(t.mode!=='expenses')return;
+          var d=new Date(t.date+'T00:00:00');
+          if(d.getFullYear()!==yy||d.getMonth()!==mm)return;
+          if(t.status==='Paid')hasPaid=true;
+          else pendingCount++;
+        });
+      }
       var pill=el('div',{cls:'month'+(active?' active':'')+(future?' future':'')});
       pill.appendChild(el('div',{cls:'mo-nm',txt:MO[mm]}));
-      pill.appendChild(el('div',{cls:'mo-mk',txt:active?'✦':(past?'✓':'✦')}));
+      // Indicator dot
+      if(onExpenses){
+        var dotStyle='width:6px;height:6px;border-radius:50%;margin:2px auto;';
+        if(pendingCount>0){
+          // Has pending - amber dot
+          pill.appendChild(el('div',{style:dotStyle+'background:var(--amber)'}));
+        } else if(hasPaid){
+          // All paid - green dot
+          pill.appendChild(el('div',{style:dotStyle+'background:var(--green)'}));
+        } else {
+          // Nothing - empty dot outline
+          pill.appendChild(el('div',{style:dotStyle+'background:transparent;border:1.5px solid var(--border)'}));
+        }
+      } else {
+        pill.appendChild(el('div',{cls:'mo-mk',txt:active?'✦':(past?'✓':'✦')}));
+      }
       pill.appendChild(el('div',{cls:'mo-yr',txt:String(yy).slice(2)}));
       pill.addEventListener('click',function(){curM=mm;curY=yy;var onBudget=document.getElementById('page-budget').classList.contains('active');if(onBudget)renderBudget();renderAll();});
       mwrap.appendChild(pill);
@@ -1211,6 +1239,8 @@ function makeTxEl(t){
     if(t.status&&t.status!=='Paid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:stLabel}));}
   }
   if(t.isShared){meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido'}));}
+  if(t.isAdelanto){meta.appendChild(el('span',{cls:'badge sh',txt:'Adelanto Lina'}));}
+  if(t.isReimb){meta.appendChild(el('span',{cls:'badge sh',txt:'Reembolso'}));}
   inf.appendChild(meta);
   div.appendChild(inf);
   div.appendChild(el('div',{cls:'ta '+(isInc?'inc':'exp'),txt:(isInc?'+':'−')+fmt(t.amount)}));
@@ -1291,7 +1321,19 @@ function renderExpenses(){
     row.appendChild(el('div',{txt:fmt(d[2]),style:'font-size:14px;font-weight:700'}));
     srcWrap.appendChild(row);
   });
-    var ec=clr('e-chips');
+    // Source filter chips
+  var esc=clr('e-src-chips');
+  [['Todos','all'],['💵 Efectivo','Efectivo'],['💳 Crédito','Tarjeta crédito'],['🏦 Débito','Tarjeta débito']].forEach(function(d){
+    var chip=el('div',{cls:'chip'+(curFiltSrc===d[1]?' active':''),txt:d[0]});
+    chip.style.fontSize='11px';
+    chip.style.padding='4px 10px';
+    chip.addEventListener('click',function(){
+      document.querySelectorAll('#e-src-chips .chip').forEach(function(x){x.classList.remove('active');});
+      chip.classList.add('active');curFiltSrc=d[1];renderExpenses();
+    });
+    esc.appendChild(chip);
+  });
+  var ec=clr('e-chips');
   [['Todos','all'],['David','David'],['Lina','Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
     var chip=el('div',{cls:'chip'+(curFiltExp===d[1]?' active':''),txt:d[0]});
     chip.addEventListener('click',function(){
@@ -1300,7 +1342,9 @@ function renderExpenses(){
     });
     ec.appendChild(chip);
   });
-  var filtered=curFiltExp==='all'?all:all.filter(function(t){
+  // Apply source filter on top of person filter
+  var afterSrc=curFiltSrc==='all'?all:all.filter(function(t){return t.source===curFiltSrc;});
+  var filtered=curFiltExp==='all'?afterSrc:afterSrc.filter(function(t){
     if(curFiltExp==='Los dos') return t.charge==='Los dos';
     if(curFiltExp==='Otro') return t.charge==='Otro';
     if(curFiltExp==='David'){
@@ -1325,6 +1369,7 @@ function renderExpenses(){
   // Render paid items section
   var allPaid=mTxs(txs).filter(function(t){
     if(t.mode!=='expenses')return false;
+    if(curFiltSrc!=='all'&&t.source!==curFiltSrc)return false;
     // Only include if this person has already paid their part
     if(curFiltExp==='all'){
       // Show all that have any payment done
@@ -1905,6 +1950,22 @@ function removeLinkedTx(linkedId){
     // Balance recalculated automatically via recalcAllBalances()
   }
 }
+function createAdelantoTx(t,payAccId,shareAmount,existingId){
+  // Represents Lina's share deducted from David's account - returned when Lina pays
+  var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===payAccId){acct=accts[i];break;}}
+  var ltId=existingId||uid();
+  var lt={id:ltId,mode:'tracking',type:'Expenses',
+    description:t.description+' (adelanto Lina)',
+    amount:shareAmount,date:t.date,category:t.category,
+    account:acct?acct.name:'',accountId:payAccId,
+    linkedFrom:t.id,isAdelanto:true,isShared:false,
+    charge:null,source:null,status:null,linkedTxId:null,payAccountId:null};
+  var found=false;
+  for(var i=0;i<txs.length;i++){if(txs[i].id===ltId){txs[i]=lt;found=true;break;}}
+  if(!found)txs.unshift(lt);
+  return ltId;
+}
+
 function createLinkedTx(t,payAccId,shareAmount,existingId){
   var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===payAccId){acct=accts[i];break;}}
   var isShared=(t.charge==='Los dos');
@@ -1938,13 +1999,51 @@ function saveTx(){
     if(old&&old.linkedTxId)removeLinkedTx(old.linkedTxId);
     var payerIsDavid=(t.status==='Paid'||t.status==='DavidPaidLinaPending');
     var chargeVal=document.getElementById('f-ch')?document.getElementById('f-ch').value:'';
+    // If Lina paid back: remove adelanto and add reimbursement income
+    var linaJustPaid=(t.status==='LinaPaidDavidPending'||t.status==='Paid')&&
+                     chargeVal==='Los dos'&&
+                     old&&(old.status==='Unpaid'||old.status==='DavidPaidLinaPending');
+    if(linaJustPaid&&old.adelantoTxId){
+      // Remove adelanto deduction
+      removeLinkedTx(old.adelantoTxId);
+      t.adelantoTxId=null;
+      // Create reimbursement income in the same account
+      var reimb=shareAmount||(t.amount/2);
+      var reimbAccId=old.payAccountId||accts[0].id;
+      var reimbAcct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===reimbAccId){reimbAcct=accts[i];break;}}
+      var reimbTx={id:uid(),mode:'tracking',type:'Income',
+        description:t.description+' (reembolso Lina)',
+        amount:reimb,date:t.date,category:'Otros ingresos',
+        account:reimbAcct?reimbAcct.name:'',accountId:reimbAccId,
+        linkedFrom:t.id,isReimb:true};
+      txs.unshift(reimbTx);
+      t.reimbTxId=reimbTx.id;
+    }
     if(payerIsDavid&&(chargeVal==='David'||chargeVal==='Los dos')){
       var payAccId=document.getElementById('f-payacc').value;
       var shareAmount=(chargeVal==='Los dos')?(t.amount/2):t.amount;
       t.payAccountId=payAccId;
-      // Pass existing linkedTxId so it updates instead of creating duplicate
       var existingLinkedId=(old&&old.linkedTxId)||null;
       t.linkedTxId=createLinkedTx(t,payAccId,shareAmount,existingLinkedId);
+
+      // For "Los dos" with debit/cash: also deduct Lina's share as adelanto
+      var src=document.getElementById('f-so')?document.getElementById('f-so').value:'';
+      var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
+      if(chargeVal==='Los dos'&&isRealDebit){
+        // Remove old adelanto tx if editing
+        if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
+        // Create adelanto tx (Lina's share deducted from account)
+        var adelantoId=(old&&old.adelantoTxId)||null;
+        t.adelantoTxId=createAdelantoTx(t,payAccId,shareAmount,adelantoId);
+      } else {
+        // Remove adelanto if source changed to credit (no real debit)
+        if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
+        t.adelantoTxId=null;
+      }
+    } else {
+      // Not paid by David - remove any existing linked/adelanto txs
+      if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
+      t.adelantoTxId=null;
     }
   }
   if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
@@ -1957,6 +2056,8 @@ function delTx(){
   pushHistory('Eliminar movimiento: '+(t?t.description:''));
   // Balance recalculated automatically via recalcAllBalances()
   if(t&&t.mode==='expenses'&&t.linkedTxId){removeLinkedTx(t.linkedTxId);}
+  if(t&&t.mode==='expenses'&&t.adelantoTxId){removeLinkedTx(t.adelantoTxId);}
+  if(t&&t.mode==='expenses'&&t.reimbTxId){removeLinkedTx(t.reimbTxId);}
   // If this is a linked tracking tx, also remove the reference in parent
   if(t&&t.linkedFrom){
     for(var i=0;i<txs.length;i++){
