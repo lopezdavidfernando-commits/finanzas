@@ -458,12 +458,12 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   <div class="chips" id="e-chips"></div>
   <div class="chips" id="e-src-chips" style="padding-top:0"></div>
   <div class="txwrap" id="e-list"></div>
-  <div id="e-paid-section" style="padding:0 20px 24px">
-    <div id="e-paid-toggle" onclick="togglePaidSection()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:12px;border:.5px solid var(--border);cursor:pointer;margin-top:8px">
-      <span style="font-size:13px;font-weight:600;color:var(--text2)">✓ Pagados este mes</span>
+  <div style="padding:8px 20px 24px">
+    <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);cursor:pointer">
+      <span style="font-size:13px;font-weight:600;color:var(--text2)">✓ Pagados</span>
       <div style="display:flex;align-items:center;gap:8px">
-        <span id="e-paid-total" style="font-size:13px;font-weight:700;color:var(--green)">$0</span>
-        <span id="e-paid-arrow" style="font-size:12px;color:var(--text3)">▼</span>
+        <span id="e-paid-count" style="font-size:12px;font-weight:700;color:var(--green)">0</span>
+        <span id="e-paid-arrow" style="font-size:11px;color:var(--text3)">▼</span>
       </div>
     </div>
     <div id="e-paid-list" style="display:none;margin-top:6px"></div>
@@ -612,7 +612,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       <div id="tf-shared" style="display:none">
         <div class="fgrow">
           <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option>David</option><option>Lina</option><option>Los dos</option><option>Otro</option></select></div>
-          <div class="fg"><label>Fuente</label><select id="f-so"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
+          <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
         <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
         <div class="fg" id="payacc-row" style="display:none"><label>De donde salio el dinero?</label><select id="f-payacc"></select></div>
@@ -1061,7 +1061,7 @@ function recalcAllBalances(){
       if(t.accountId===acct.id&&t.mode==='tracking'){
         // Personal expenses (mode=tracking) always affect balance
         // Linked shared expenses also affect balance (they are copies of paid shared)
-        var isPersonalExpense=(t.type==='Expenses'&&!t.linkedFrom);
+        if(t.isReimbursed) return; // adelanto ya reembolsado - no afecta balance
         var isPaidExpense=(t.type==='Expenses'&&(t.status==='Paid'||!t.status||t.linkedFrom));
         var affects=(t.type==='Income'||isPaidExpense);
         if(affects)calc+=t.type==='Income'?t.amount:-t.amount;
@@ -1134,7 +1134,7 @@ function monthStrip(id){
 
 function renderDash(){
   var mk=mkK(curY,curM),budget=budgets[mk]||{};
-  var tr=mTxs(txs).filter(function(t){return t.mode==='tracking';});
+  var tr=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed;});
   var inc=0,exp=0;
   tr.forEach(function(t){if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
   var avail=inc-exp;
@@ -1239,7 +1239,7 @@ function makeTxEl(t){
     if(t.status&&t.status!=='Paid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:stLabel}));}
   }
   if(t.isShared){meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido'}));}
-  if(t.isAdelanto){meta.appendChild(el('span',{cls:'badge sh',txt:'Adelanto Lina'}));}
+  if(t.isAdelanto){meta.appendChild(el('span',{cls:'badge sh',txt:t.description&&t.description.indexOf('Otro')>=0?'Adelanto Otro':'Adelanto'}));}
   if(t.isReimb){meta.appendChild(el('span',{cls:'badge sh',txt:'Reembolso'}));}
   inf.appendChild(meta);
   div.appendChild(inf);
@@ -1249,7 +1249,7 @@ function makeTxEl(t){
 
 function renderTracking(){
   monthStrip('t-months');
-  var all=mTxs(txs).filter(function(t){return t.mode==='tracking';});
+  var all=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed;});
   var uc=[];all.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
   var tc=clr('t-chips');
   function addChip(label,val){
@@ -1278,7 +1278,85 @@ function renderTracking(){
   });
 }
 
+var ePaidOpen=false;
+function toggleEPaid(){
+  ePaidOpen=!ePaidOpen;
+  var list=document.getElementById('e-paid-list');
+  var arrow=document.getElementById('e-paid-arrow');
+  if(list)list.style.display=ePaidOpen?'block':'none';
+  if(arrow)arrow.textContent=ePaidOpen?'▲':'▼';
+}
+
+function renderPaidExpenses(){
+  var cnt=document.getElementById('e-paid-count');
+  var list=document.getElementById('e-paid-list');
+  if(!list)return;
+  while(list.firstChild)list.removeChild(list.firstChild);
+
+  // txs is already updated - use directly
+  var paid=txs.filter(function(t){
+    if(t.mode!=='expenses'||t.status!=='Paid') return false;
+    var d=new Date(t.date+'T00:00:00');
+    if(d.getFullYear()!==curY||d.getMonth()!==curM) return false;
+    if(curFiltSrc!=='all'&&t.source!==curFiltSrc) return false;
+    if(curFiltExp==='all') return true;
+    if(curFiltExp==='Los dos') return t.charge==='Los dos';
+    if(curFiltExp==='David') return t.charge==='David'||t.charge==='Los dos';
+    if(curFiltExp==='Lina') return t.charge==='Lina'||t.charge==='Los dos';
+    if(curFiltExp==='Otro') return t.charge==='Otro';
+    return false;
+  });
+
+  // Calculate total (share amount per filter)
+  var paidTotal=0;
+  paid.forEach(function(t){
+    var share=t.amount;
+    if(t.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')) share=t.amount/2;
+    else if(t.charge==='Los dos'&&curFiltExp==='all') share=t.amount;
+    paidTotal+=share;
+  });
+  if(cnt){
+    cnt.textContent=fmt(paidTotal);
+    cnt.style.fontSize='12px';
+  }
+
+  if(!paid.length){
+    list.appendChild(el('div',{style:'padding:10px 0;font-size:13px;color:var(--text3);text-align:center',txt:'Sin pagados este mes'}));
+    return;
+  }
+
+  paid.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  paid.forEach(function(t){
+    (function(tx){
+      var shareAmt=tx.amount;
+      if(tx.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')) shareAmt=tx.amount/2;
+      else if(tx.charge==='Los dos'&&(curFiltExp==='all'||curFiltExp==='Los dos')) shareAmt=tx.amount;
+      var row=el('div',{cls:'tx',click:function(){openTx(tx.id);}});
+      row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(tx.category))}));
+      var inf=el('div',{cls:'tinf'});
+      inf.appendChild(el('div',{cls:'td',txt:tx.description}));
+      var meta=el('div',{cls:'tm'});
+      meta.textContent=(tx.category||'')+(tx.source?' · '+tx.source:'');
+      if(tx.charge==='Los dos') meta.appendChild(el('span',{cls:'badge sh',txt:'Los dos',style:'margin-left:4px'}));
+      inf.appendChild(meta);
+      row.appendChild(inf);
+      var amtEl=el('div',{style:'text-align:right'});
+      amtEl.appendChild(el('div',{cls:'ta exp',txt:'−'+fmt(shareAmt)}));
+      if(tx.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')){
+        amtEl.appendChild(el('div',{style:'font-size:10px;color:var(--text3)',txt:'Total: '+fmt(tx.amount)}));
+      }
+      row.appendChild(amtEl);
+      list.appendChild(row);
+    })(t);
+  });
+
+  // Keep open/closed state
+  var listEl=document.getElementById('e-paid-list');
+  if(listEl)listEl.style.display=ePaidOpen?'block':'none';
+}
+
 function renderExpenses(){
+  
   monthStrip('e-months');
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
   var dav=0,lin=0,otr=0,tot=0,srcEfe=0,srcCred=0,srcDeb=0;
@@ -1338,11 +1416,12 @@ function renderExpenses(){
     var chip=el('div',{cls:'chip'+(curFiltExp===d[1]?' active':''),txt:d[0]});
     chip.addEventListener('click',function(){
       document.querySelectorAll('#e-chips .chip').forEach(function(x){x.classList.remove('active');});
-      chip.classList.add('active');curFiltExp=d[1];renderExpenses();
+      chip.classList.add('active');curFiltExp=d[1];renderExpenses();setTimeout(function(){renderPaidExpenses();},250);
     });
     ec.appendChild(chip);
   });
   // Apply source filter on top of person filter
+  // Main list shows pending + partial paid (not fully paid)
   var afterSrc=curFiltSrc==='all'?all:all.filter(function(t){return t.source===curFiltSrc;});
   var filtered=curFiltExp==='all'?afterSrc:afterSrc.filter(function(t){
     if(curFiltExp==='Los dos') return t.charge==='Los dos';
@@ -1367,67 +1446,8 @@ function renderExpenses(){
   var el2=clr('e-list');
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
   // Render paid items section
-  var allPaid=mTxs(txs).filter(function(t){
-    if(t.mode!=='expenses')return false;
-    if(curFiltSrc!=='all'&&t.source!==curFiltSrc)return false;
-    // Only include if this person has already paid their part
-    if(curFiltExp==='all'){
-      // Show all that have any payment done
-      return t.status==='Paid'||t.status==='DavidPaidLinaPending'||t.status==='LinaPaidDavidPending';
-    }
-    if(curFiltExp==='David'){
-      // David paid: status is Paid or DavidPaidLinaPending
-      return (t.charge==='David'||t.charge==='Los dos')&&
-             (t.status==='Paid'||t.status==='DavidPaidLinaPending');
-    }
-    if(curFiltExp==='Lina'){
-      // Lina paid: status is Paid or LinaPaidDavidPending
-      return (t.charge==='Lina'||t.charge==='Los dos')&&
-             (t.status==='Paid'||t.status==='LinaPaidDavidPending');
-    }
-    if(curFiltExp==='Otro') return t.charge==='Otro'&&t.status==='Paid';
-    if(curFiltExp==='Los dos') return t.charge==='Los dos'&&t.status==='Paid';
-    return false;
-  });
-  var paidTotalEl=document.getElementById('e-paid-total');
-  // Total will be set after rendering with correct shares
-  var paidList=document.getElementById('e-paid-list');
-  if(paidList){
-    while(paidList.firstChild)paidList.removeChild(paidList.firstChild);
-    if(!allPaid.length){
-      paidList.appendChild(el('div',{style:'padding:10px 0;font-size:13px;color:var(--text3);text-align:center',txt:'Sin pagos este mes'}));
-    } else {
-      var paidShare=0;
-      allPaid.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(t){
-        // Calculate the share for the active filter
-        var shareAmt=t.amount;
-        if(t.charge==='Los dos'){
-          if(curFiltExp==='David'||curFiltExp==='Lina')shareAmt=t.amount/2;
-          else if(curFiltExp==='all')shareAmt=t.amount; // show total when all
-        }
-        paidShare+=shareAmt;
-        var row=el('div',{cls:'tx',click:function(){openTx(t.id);}});
-        row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
-        var inf=el('div',{cls:'tinf'});
-        inf.appendChild(el('div',{cls:'td',txt:t.description}));
-        var meta=el('div',{cls:'tm'});
-        meta.textContent=(t.category||'')+(t.source?' · '+t.source:'');
-        if(t.charge==='Los dos')meta.appendChild(el('span',{cls:'badge sh',txt:'Los dos',style:'margin-left:4px'}));
-        inf.appendChild(meta);
-        row.appendChild(inf);
-        // Show share amount, not total
-        var amtEl=el('div',{style:'text-align:right'});
-        amtEl.appendChild(el('div',{cls:'ta exp',txt:'−'+fmt(shareAmt)}));
-        if(t.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')){
-          amtEl.appendChild(el('div',{style:'font-size:10px;color:var(--text3)',txt:'Total: '+fmt(t.amount)}));
-        }
-        row.appendChild(amtEl);
-        paidList.appendChild(row);
-      });
-      // Update total with share amount
-      if(paidTotalEl)paidTotalEl.textContent=fmt(paidShare);
-    }
-  }
+  
+  renderPaidExpenses();
 
   srt.forEach(function(t){
     var row=makeTxEl(t);
@@ -1860,19 +1880,24 @@ function updateStatusOptions(){
   var chSel=document.getElementById('f-ch');if(!chSel)return;
   var charge=chSel.value;
   var stSel=document.getElementById('f-st');if(!stSel)return;
+  var soEl=document.getElementById('f-so');
+  var src=soEl?soEl.value:'';
+  var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
   var currentVal=stSel.value;
   while(stSel.firstChild)stSel.removeChild(stSel.firstChild);
   function addOpt(val,label){var o=document.createElement('option');o.value=val;o.textContent=label;stSel.appendChild(o);}
   if(charge==='Los dos'){
-    addOpt('Paid','Pagado');
     addOpt('Unpaid','Pendiente');
     addOpt('DavidPaidLinaPending','David pago - Lina pendiente');
-    addOpt('LinaPaidDavidPending','Lina pago - David pendiente');
+    if(!isRealDebit){
+      // With credit card, Lina can also pay first
+      addOpt('LinaPaidDavidPending','Lina pago - David pendiente');
+    }
+    addOpt('Paid','Pagado');
   } else {
     addOpt('Unpaid','Pendiente');
     addOpt('Paid','Pagado');
   }
-  // Restore previous value if still valid, otherwise default to first option
   var stillValid=false;
   for(var i=0;i<stSel.options.length;i++){if(stSel.options[i].value===currentVal){stillValid=true;break;}}
   stSel.value=stillValid?currentVal:stSel.options[0].value;
@@ -1884,12 +1909,23 @@ function updatePayAccVis(){
   var st=stEl.value;
   var chEl=document.getElementById('f-ch');
   var charge=chEl?chEl.value:'';
-  // Only show "de donde salio el dinero" when David is the one paying:
-  // either charge=David and status=Paid, or charge=Los dos and status is Paid or DavidPaidLinaPending
+  var soEl=document.getElementById('f-so');
+  var src=soEl?soEl.value:'';
+  var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
+  // Show account field when:
+  // 1. David pays (any charge) - Paid or DavidPaidLinaPending
+  // 2. Lina/Otro with debit/cash - money left David's account
   var show=false;
-  if(charge==='David'&&st==='Paid')show=true;
-  else if(charge==='Los dos'&&(st==='Paid'||st==='DavidPaidLinaPending'))show=true;
+  if(charge==='David'&&st==='Paid') show=true;
+  else if(charge==='Los dos'&&(st==='Paid'||st==='DavidPaidLinaPending')) show=true;
+  else if((charge==='Lina'||charge==='Otro')&&isRealDebit) show=true;
   var row=document.getElementById('payacc-row');
+  var lbl=document.querySelector('#payacc-row label');
+  if(lbl){
+    if((charge==='Lina'||charge==='Otro')&&isRealDebit&&st!=='Paid')
+      lbl.textContent='Cuenta que lo adelantó';
+    else lbl.textContent='¿De dónde salió el dinero?';
+  }
   if(row)row.style.display=show?'block':'none';
 }
 
@@ -1950,12 +1986,13 @@ function removeLinkedTx(linkedId){
     // Balance recalculated automatically via recalcAllBalances()
   }
 }
-function createAdelantoTx(t,payAccId,shareAmount,existingId){
-  // Represents Lina's share deducted from David's account - returned when Lina pays
+function createAdelantoTx(t,payAccId,shareAmount,existingId,personName){
+  // Represents other person's share deducted from David's account - returned when they pay
   var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===payAccId){acct=accts[i];break;}}
   var ltId=existingId||uid();
+  var pName=personName||'Lina';
   var lt={id:ltId,mode:'tracking',type:'Expenses',
-    description:t.description+' (adelanto Lina)',
+    description:t.description+' (adelanto '+pName+')',
     amount:shareAmount,date:t.date,category:t.category,
     account:acct?acct.name:'',accountId:payAccId,
     linkedFrom:t.id,isAdelanto:true,isShared:false,
@@ -1992,62 +2029,68 @@ function saveTx(){
   // Map mTab to mode/type
   var txMode=(mTab==='shared')?'expenses':'tracking';
   var txTypeResolved=(mTab==='income')?'Income':'Expenses';
-  var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false};
+  var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false,adelantoTxId:(old&&old.adelantoTxId)||null,adelantoAmt:(old&&old.adelantoAmt)||0,payAccountId:(old&&old.payAccountId)||null};
   // Balance is recalculated automatically in renderAll via recalcAllBalances()
   if(txMode==='expenses'){
-    // Always remove old linked tx first to avoid duplicates
     if(old&&old.linkedTxId)removeLinkedTx(old.linkedTxId);
-    var payerIsDavid=(t.status==='Paid'||t.status==='DavidPaidLinaPending');
     var chargeVal=document.getElementById('f-ch')?document.getElementById('f-ch').value:'';
-    // If Lina paid back: remove adelanto and add reimbursement income
-    var linaJustPaid=(t.status==='LinaPaidDavidPending'||t.status==='Paid')&&
-                     chargeVal==='Los dos'&&
-                     old&&(old.status==='Unpaid'||old.status==='DavidPaidLinaPending');
-    if(linaJustPaid&&old.adelantoTxId){
-      // Remove adelanto deduction
-      removeLinkedTx(old.adelantoTxId);
-      t.adelantoTxId=null;
-      // Create reimbursement income in the same account
-      var reimb=shareAmount||(t.amount/2);
-      var reimbAccId=old.payAccountId||accts[0].id;
-      var reimbAcct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===reimbAccId){reimbAcct=accts[i];break;}}
-      var reimbTx={id:uid(),mode:'tracking',type:'Income',
-        description:t.description+' (reembolso Lina)',
-        amount:reimb,date:t.date,category:'Otros ingresos',
-        account:reimbAcct?reimbAcct.name:'',accountId:reimbAccId,
-        linkedFrom:t.id,isReimb:true};
-      txs.unshift(reimbTx);
-      t.reimbTxId=reimbTx.id;
-    }
-    if(payerIsDavid&&(chargeVal==='David'||chargeVal==='Los dos')){
-      var payAccId=document.getElementById('f-payacc').value;
-      var shareAmount=(chargeVal==='Los dos')?(t.amount/2):t.amount;
-      t.payAccountId=payAccId;
-      var existingLinkedId=(old&&old.linkedTxId)||null;
-      t.linkedTxId=createLinkedTx(t,payAccId,shareAmount,existingLinkedId);
+    var src=document.getElementById('f-so')?document.getElementById('f-so').value:'';
+    var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
+    var payAccId2=document.getElementById('f-payacc')?document.getElementById('f-payacc').value:(accts[0]?accts[0].id:'');
+    var payerIsDavid=(t.status==='Paid'||t.status==='DavidPaidLinaPending');
 
-      // For "Los dos" with debit/cash: also deduct Lina's share as adelanto
-      var src=document.getElementById('f-so')?document.getElementById('f-so').value:'';
-      var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
-      if(chargeVal==='Los dos'&&isRealDebit){
-        // Remove old adelanto tx if editing
-        if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
-        // Create adelanto tx (Lina's share deducted from account)
-        var adelantoId=(old&&old.adelantoTxId)||null;
-        t.adelantoTxId=createAdelantoTx(t,payAccId,shareAmount,adelantoId);
-      } else {
-        // Remove adelanto if source changed to credit (no real debit)
-        if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
-        t.adelantoTxId=null;
+    // ── 1. DAVID'S LINKED TX (his share as personal expense) ──
+    if(payerIsDavid&&(chargeVal==='David'||chargeVal==='Los dos')){
+      var shareAmount=(chargeVal==='Los dos')?(t.amount/2):t.amount;
+      var existingLinkedId=(old&&old.linkedTxId)||null;
+      t.linkedTxId=createLinkedTx(t,payAccId2||accts[0].id,shareAmount,existingLinkedId);
+      t.payAccountId=payAccId2||accts[0].id;
+    }
+
+    // ── 2. ADELANTO (others' share deducted from David's account) ──
+    var existingAdelantoId=t.adelantoTxId||(old&&old.adelantoTxId)||null;
+    var personName=chargeVal==='Los dos'?'Lina':chargeVal;
+    var adelantoAmt=0;
+    if(isRealDebit&&payAccId2){
+      if(chargeVal==='Lina') adelantoAmt=t.amount;
+      else if(chargeVal==='Otro') adelantoAmt=t.amount;
+      else if(chargeVal==='Los dos'&&payerIsDavid) adelantoAmt=t.amount/2;
+    }
+
+    // Check if paid status means adelanto should be reimbursed
+    var adelantoPaid=false;
+    if((chargeVal==='Lina'||chargeVal==='Otro')&&t.status==='Paid') adelantoPaid=true;
+    if(chargeVal==='Los dos'&&(t.status==='Paid'||t.status==='LinaPaidDavidPending')) adelantoPaid=true;
+
+    if(adelantoPaid&&existingAdelantoId){
+      // Mark adelanto as reimbursed - stays in txs but hidden from movimientos
+      for(var ri=0;ri<txs.length;ri++){
+        if(txs[ri].id===existingAdelantoId){txs[ri].isReimbursed=true;break;}
       }
-    } else {
-      // Not paid by David - remove any existing linked/adelanto txs
-      if(old&&old.adelantoTxId)removeLinkedTx(old.adelantoTxId);
+      t.adelantoTxId=existingAdelantoId;
+      t.adelantoAmt=(old&&old.adelantoAmt)||adelantoAmt;
+    } else if(!adelantoPaid&&adelantoAmt>0){
+      // Create or update adelanto
+      if(existingAdelantoId){
+        // Un-mark if previously reimbursed
+        for(var ri=0;ri<txs.length;ri++){
+          if(txs[ri].id===existingAdelantoId){txs[ri].isReimbursed=false;break;}
+        }
+        t.adelantoTxId=existingAdelantoId;
+      } else {
+        t.adelantoTxId=createAdelantoTx(t,payAccId2,adelantoAmt,null,personName);
+      }
+      t.adelantoAmt=adelantoAmt;
+    } else if(!adelantoPaid&&!adelantoAmt&&existingAdelantoId){
+      // Source changed to credit - remove adelanto
+      removeLinkedTx(existingAdelantoId);
       t.adelantoTxId=null;
+      t.adelantoAmt=0;
     }
   }
-  if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
-  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
+    if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
+  console.log('TXS AFTER SAVE: paid expenses=',txs.filter(function(x){return x.mode==='expenses'&&x.status==='Paid';}).map(function(x){return x.charge+'/'+x.date;}));
+  ls.s('tx7',txs);closeM('m-tx');renderAll();setTimeout(function(){if(document.getElementById('page-expenses').classList.contains('active')){renderPaidExpenses();}},300);syncDrive();
 }
 
 function delTx(){
@@ -2065,7 +2108,7 @@ function delTx(){
     }
   }
   txs=txs.filter(function(x){return x.id!==editId;});
-  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
+  ls.s('tx7',txs);closeM('m-tx');renderAll();setTimeout(function(){renderPaidExpenses();},200);syncDrive();
   });
 }
 
@@ -2262,14 +2305,18 @@ function loadFromDrive(){
     }
   }).catch(function(){});
 }
-var paidSectionOpen=false;
-function togglePaidSection(){
-  paidSectionOpen=!paidSectionOpen;
-  var list=document.getElementById('e-paid-list');
-  var arrow=document.getElementById('e-paid-arrow');
-  if(list)list.style.display=paidSectionOpen?'block':'none';
-  if(arrow)arrow.textContent=paidSectionOpen?'▲':'▼';
+
+function updateDriveUI(){
+  var cb=document.getElementById('dbtn-cancel');if(cb)cb.style.display=(driveSt==='sy')?'inline':'none';
+  var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
+  var sn=document.getElementById('s-drn'),ss=document.getElementById('s-drs'),sb=document.getElementById('s-drb');
+  if(!dot)return;
+  if(driveSt==='ok'){dot.className='ddot ok';var ts=ls.g('dts7','');txt.textContent='Sincronizado'+(ts?' · '+new Date(ts).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'');if(btn)btn.textContent='Sync';if(sn)sn.textContent='Google Drive conectado';if(ss)ss.textContent='Datos seguros en la nube';if(sb)sb.textContent='Sync';}
+  else if(driveSt==='sy'){dot.className='ddot sy';txt.textContent='Guardando...';if(btn)btn.textContent='...';}
+  else if(driveSt==='er'){dot.className='ddot er';txt.textContent='Error Drive';if(btn)btn.textContent='Reconectar';if(sn)sn.textContent='Error';if(sb)sb.textContent='Reconectar';}
+  else{dot.className='ddot';txt.textContent='Sin sincronizacion';if(btn)btn.textContent='Conectar Drive';if(sn)sn.textContent='Sin conexion';if(ss)ss.textContent='Datos solo en este celular';if(sb)sb.textContent='Conectar';}
 }
+
 function cancelDrive(){
   driveSt='off';
   driveToken='';driveFileId='';
@@ -2277,27 +2324,7 @@ function cancelDrive(){
   updateDriveUI();
 }
 
-var paidSectionOpen=false;
-function togglePaidSection(){
-  paidSectionOpen=!paidSectionOpen;
-  var list=document.getElementById('e-paid-list');
-  var arrow=document.getElementById('e-paid-arrow');
-  if(list)list.style.display=paidSectionOpen?'block':'none';
-  if(arrow)arrow.textContent=paidSectionOpen?'▲':'▼';
-}
-function cancelDrive(){driveToken='';driveFileId='';driveSt='off';ls.s('dt7','');ls.s('df7','');updateDriveUI();}
-function updateDriveUI(){
-  var cb=document.getElementById('dbtn-cancel');if(cb)cb.style.display=(driveSt==='sy')?'inline':'none';
-  var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
-  var sn=document.getElementById('s-drn'),ss=document.getElementById('s-drs'),sb=document.getElementById('s-drb');
-  if(!dot)return;
-  var cancelBtn=document.getElementById('dbtn-cancel');
-  if(cancelBtn)cancelBtn.style.display=driveSt==='sy'?'inline':'none';
-  if(driveSt==='ok'){dot.className='ddot ok';var ts=ls.g('dts7','');txt.textContent='Sincronizado'+(ts?' · '+new Date(ts).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'');if(btn)btn.textContent='Sync';if(sn)sn.textContent='Google Drive conectado';if(ss)ss.textContent='Datos seguros en la nube';if(sb)sb.textContent='Sync';}
-  else if(driveSt==='sy'){dot.className='ddot sy';txt.textContent='Guardando...';if(btn)btn.textContent='...';}
-  else if(driveSt==='er'){dot.className='ddot er';txt.textContent='Error Drive';if(btn)btn.textContent='Reconectar';if(sn)sn.textContent='Error';if(sb)sb.textContent='Reconectar';}
-  else{dot.className='ddot';txt.textContent='Sin sincronizacion';if(btn)btn.textContent='Conectar Drive';if(sn)sn.textContent='Sin conexion';if(ss)ss.textContent='Datos solo en este celular';if(sb)sb.textContent='Conectar';}
-}
+
 
 function closeM(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.mback').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
