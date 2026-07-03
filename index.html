@@ -424,6 +424,16 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
   <div class="kpis" id="d-kpis"></div>
 
+  <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="showPage('budget')">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Conciliación</div>
+      <div style="font-size:11px;color:var(--text3)" id="d-concil-sub">Cuentas vs Disponible</div>
+    </div>
+    <div style="text-align:right">
+      <div id="d-concil-val" style="font-size:15px;font-weight:700">$0</div>
+      <div id="d-concil-status" style="font-size:10px;margin-top:1px">—</div>
+    </div>
+  </div>
   <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">✕ Cancelar</button></div>
   <div class="shdr"><h2>Cuentas</h2><a onclick="showPage('settings')">Gestionar</a></div>
   <div class="accts" id="d-accts"></div>
@@ -1217,6 +1227,55 @@ function renderDash(){
       el('div',{cls:'vbnm',txt:c.name})
     ]));
   });
+
+  // Conciliacion
+  var totalCuentas=0;
+  accts.forEach(function(a){totalCuentas+=(a.balance||0);});
+  // Calculate disponible acumulado (same logic as renderDisponible)
+  var allCatsD=cats.expenses.concat(cats.savings);
+  var grandBudgD=0,grandExpD=0;
+  allCatsD.forEach(function(cat){
+    Object.keys(budgets).forEach(function(mk){
+      var parts=mk.split('-');
+      var y=parseInt(parts[0]),m=parseInt(parts[1])-1;
+      if(y<curY||(y===curY&&m<=curM)){
+        var bkd=budgets[mk]||{};
+        grandBudgD+=(bkd['e:'+cat.id]||bkd['s:'+cat.id]||bkd[cat.name]||0);
+      }
+    });
+    txs.forEach(function(t){
+      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name&&!t.isAdelanto&&!t.isReimbursed&&!t.isReimb){
+        var d=new Date(t.date+'T00:00:00');
+        var y=d.getFullYear(),m=d.getMonth();
+        if(y<curY||(y===curY&&m<=curM)) grandExpD+=t.amount;
+      }
+    });
+  });
+  var disponibleAcum=grandBudgD-grandExpD;
+  // Adelantos pendientes (salieron de cuenta pero no contados como gasto)
+  var adelantosPend=0;
+  txs.forEach(function(t){if(t.isAdelanto&&!t.isReimbursed)adelantosPend+=t.amount;});
+  var diff=disponibleAcum-totalCuentas;
+  var cv=document.getElementById('d-concil-val');
+  var cs=document.getElementById('d-concil-status');
+  var csub=document.getElementById('d-concil-sub');
+  if(cv){
+    cv.textContent=fmt(Math.abs(diff));
+    if(Math.abs(diff)<=1000){
+      cv.style.color='var(--green)';
+      if(cs)cs.textContent='✓ Cuadrado';
+      if(cs)cs.style.color='var(--green)';
+    } else {
+      cv.style.color=diff>0?'var(--amber)':'var(--red)';
+      if(cs)cs.textContent=diff>0?'Disponible > Cuentas':'Cuentas > Disponible';
+      if(cs)cs.style.color='var(--amber)';
+    }
+    if(csub&&adelantosPend>0){
+      csub.textContent='Adelantos pend: '+fmt(adelantosPend);
+    } else if(csub){
+      csub.textContent='Cuentas vs Disponible acum.';
+    }
+  }
 
   // Recent
   var recent=tr.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).slice(0,5);
