@@ -1544,7 +1544,7 @@ function renderDisponible(){
     });
     // Sum real expenses from tracking up to current month
     txs.forEach(function(t){
-      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name){
+      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name&&!t.isAdelanto&&!t.isReimbursed&&!t.isReimb){
         var d=new Date(t.date+'T00:00:00');
         var y=d.getFullYear(),m=d.getMonth();
         if(y<curY||(y===curY&&m<=curM)){
