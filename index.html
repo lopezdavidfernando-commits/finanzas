@@ -821,7 +821,7 @@ function openAcctModal(acctId){
 
   // Get all txs affecting this account
   var related=txs.filter(function(t){
-    return t.accountId===acctId&&t.mode==='tracking';
+    return t.accountId===acctId&&t.mode==='tracking'&&!t.isReimb&&!t.isReimbursed;
   }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 
   var totalInc=0,totalExp=0;
@@ -1062,6 +1062,8 @@ function recalcAllBalances(){
         // Personal expenses (mode=tracking) always affect balance
         // Linked shared expenses also affect balance (they are copies of paid shared)
         if(t.isReimbursed) return; // adelanto ya reembolsado - no afecta balance
+        if(t.isReimb) return; // reembolso artificial - no afecta balance
+        if(t.isAdelanto&&t.isReimbursed) return; // adelanto pagado
         var isPaidExpense=(t.type==='Expenses'&&(t.status==='Paid'||!t.status||t.linkedFrom));
         var affects=(t.type==='Income'||isPaidExpense);
         if(affects)calc+=t.type==='Income'?t.amount:-t.amount;
@@ -1134,7 +1136,7 @@ function monthStrip(id){
 
 function renderDash(){
   var mk=mkK(curY,curM),budget=budgets[mk]||{};
-  var tr=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed;});
+  var tr=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
   var inc=0,exp=0;
   tr.forEach(function(t){if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
   var avail=inc-exp;
@@ -1249,7 +1251,7 @@ function makeTxEl(t){
 
 function renderTracking(){
   monthStrip('t-months');
-  var all=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed;});
+  var all=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
   var uc=[];all.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
   var tc=clr('t-chips');
   function addChip(label,val){
