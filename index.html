@@ -456,8 +456,8 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   <div class="topbar"><h1>Pendiente</h1><p>Gastos compartidos por saldar</p></div>
   <div class="months" id="e-months"></div>
   <div class="kgrid" style="margin-bottom:10px">
-    <div class="kpi"><div class="kl">David</div><div class="kv cr" id="e-dav">$0</div></div>
-    <div class="kpi"><div class="kl">Lina</div><div class="kv cb" id="e-lin">$0</div></div>
+    <div class="kpi"><div class="kl" id="kl-dav">David</div><div class="kv cr" id="e-dav">$0</div></div>
+    <div class="kpi"><div class="kl" id="kl-lin">Lina</div><div class="kv cb" id="e-lin">$0</div></div>
     <div class="kpi"><div class="kl">Otro</div><div class="kv ca" id="e-otr">$0</div></div>
     <div class="kpi"><div class="kl">Total</div><div class="kv cl" id="e-tot">$0</div></div>
   </div>
@@ -542,10 +542,11 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       <div class="srt"><div class="srn">Tema</div><div class="srs">Fondo de la aplicación</div></div>
       <div class="thtogg"><button id="th-dk" onclick="setTheme('dark')" style="display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Oscuro</button><button id="th-lt" onclick="setTheme('light')" style="display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Claro</button></div>
     </div>
+
     <div class="srow">
-      <div class="srico">✨</div>
-      <div class="srt"><div class="srn">Estilo de íconos</div><div class="srs">A color o minimalista</div></div>
-      <div class="thtogg"><button id="ic-co" onclick="setIconStyle('color')">Color</button><button id="ic-mn" onclick="setIconStyle('mono')">Mini</button></div>
+      <div class="srico">🤝</div>
+      <div class="srt"><div class="srn">Pestaña Pendiente</div><div class="srs">Gastos compartidos con otros</div></div>
+      <button class="btnout" id="s-pend-btn" onclick="togglePendienteTab()">Activada</button>
     </div>
     <div class="srow">
       <div class="srico">👁</div>
@@ -556,6 +557,11 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       <div class="srico">😀</div>
       <div class="srt"><div class="srn">Tu nombre</div><div class="srs">Como te saluda la app</div></div>
       <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="David" oninput="saveUserName()">
+    </div>
+    <div class="srow">
+      <div class="srico">😊</div>
+      <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
+      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="Lina" oninput="savePartnerName()">
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Google Drive</div>
@@ -621,7 +627,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       <div id="tf-gasto"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
       <div id="tf-shared" style="display:none">
         <div class="fgrow">
-          <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option>David</option><option>Lina</option><option>Los dos</option><option>Otro</option></select></div>
+          <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david">David</option><option id="ch-lina">Lina</option><option>Los dos</option><option>Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
         <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
@@ -763,6 +769,8 @@ var curFilt='all', curFiltExp='all', curFiltSrc='all', editId=null, mTab='tracki
 var blurred=ls.g('bl7',false), theme=ls.g('th7','dark'), sumTab='ov';
 var iconStyle=ls.g('ic7','color');
 var userName=ls.g('un7','David');
+var showPendiente=ls.g('sp7',true);
+var partnerName=ls.g('pn7','Lina');
 var sumMode='year', sumM=new Date().getMonth();
 var changeHistory=ls.g('hist7',[]);
 
@@ -1096,6 +1104,13 @@ function renderAll(){
   var hn=document.getElementById('hero-name');if(hn)hn.textContent=userName+' 👋';
   var un=document.getElementById('s-username');if(un)un.value=userName;
   var nb=document.getElementById('nav-brand-name');if(nb)nb.textContent=userName;
+  var pn=document.getElementById('s-partnername');if(pn)pn.value=partnerName;
+  applyPendienteTab();
+  // Update charge select options with current names
+  var chDavid=document.getElementById('ch-david');if(chDavid)chDavid.textContent=userName;
+  var chLina=document.getElementById('ch-lina');if(chLina)chLina.textContent=partnerName;
+  var klDav=document.getElementById('kl-dav');if(klDav)klDav.textContent=userName;
+  var klLin=document.getElementById('kl-lin');if(klLin)klLin.textContent=partnerName;
   var sb=document.getElementById('s-hide-btn');if(sb)sb.textContent=blurred?'Desactivar':'Activar';
   var eb=document.getElementById('eyebtn');if(eb)eb.textContent=blurred?'🙈':'👁';
 }
@@ -1135,7 +1150,17 @@ function monthStrip(id){
           pill.appendChild(el('div',{style:dotStyle+'background:transparent;border:1.5px solid var(--border)'}));
         }
       } else {
+        // Check if month has any tracking movements
+        var hasMovs=false;
+        txs.forEach(function(t){
+          if(hasMovs||t.mode!=='tracking') return;
+          var d=new Date(t.date+'T00:00:00');
+          if(d.getFullYear()===yy&&d.getMonth()===mm) hasMovs=true;
+        });
         pill.appendChild(el('div',{cls:'mo-mk',txt:active?'✦':(past?'✓':'✦')}));
+        if(hasMovs&&!active){
+          pill.style.background='var(--bg3)';
+        }
       }
       pill.appendChild(el('div',{cls:'mo-yr',txt:String(yy).slice(2)}));
       pill.addEventListener('click',function(){curM=mm;curY=yy;var onBudget=document.getElementById('page-budget').classList.contains('active');if(onBudget)renderBudget();renderAll();});
@@ -1295,7 +1320,7 @@ function makeTxEl(t){
   meta.textContent=(t.category||'Sin categoria')+(metaSecond?' · '+metaSecond:'');
   if(t.mode==='expenses'){
     if(t.charge==='Los dos'||t.charge==='Otro'){var b=el('span',{cls:'badge sh',txt:t.charge});meta.appendChild(b);}
-    var statusLabels={'Unpaid':'Pendiente','DavidPaidLinaPending':'David pago - Lina pendiente','LinaPaidDavidPending':'Lina pago - David pendiente','Paid':'Pagado'};
+    var statusLabels={'Unpaid':'Pendiente','DavidPaidLinaPending':userName+' pago - '+partnerName+' pendiente','LinaPaidDavidPending':partnerName+' pago - '+userName+' pendiente','Paid':'Pagado'};
     var stLabel=statusLabels[t.status]||t.status;
     if(t.status&&t.status!=='Paid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:stLabel}));}
   }
@@ -1452,8 +1477,8 @@ function renderExpenses(){
     var row=el('div',{cls:'bprow',style:'margin:0 0 5px;align-items:flex-start;padding-top:10px;padding-bottom:10px'});
     row.appendChild(el('div',{cls:'bpico',txt:d[0]}));
     var subsRow=el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:3px'});
-    subsRow.appendChild(el('span',{txt:'David: '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
-    subsRow.appendChild(el('span',{txt:'Lina: '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    subsRow.appendChild(el('span',{txt:userName+': '+fmt(d[3]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
+    subsRow.appendChild(el('span',{txt:partnerName+': '+fmt(d[4]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
     subsRow.appendChild(el('span',{txt:'Otro: '+fmt(d[5]),style:'font-size:10px;color:var(--text2);font-weight:500'}));
     var nameWrap=el('div',{cls:'bpnm'},[el('div',{txt:d[1]}),subsRow]);
     row.appendChild(nameWrap);
@@ -1473,7 +1498,7 @@ function renderExpenses(){
     esc.appendChild(chip);
   });
   var ec=clr('e-chips');
-  [['Todos','all'],['David','David'],['Lina','Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
+  [['Todos','all'],[userName,'David'],[partnerName,'Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
     var chip=el('div',{cls:'chip'+(curFiltExp===d[1]?' active':''),txt:d[0]});
     chip.addEventListener('click',function(){
       document.querySelectorAll('#e-chips .chip').forEach(function(x){x.classList.remove('active');});
@@ -1949,10 +1974,10 @@ function updateStatusOptions(){
   function addOpt(val,label){var o=document.createElement('option');o.value=val;o.textContent=label;stSel.appendChild(o);}
   if(charge==='Los dos'){
     addOpt('Unpaid','Pendiente');
-    addOpt('DavidPaidLinaPending','David pago - Lina pendiente');
+    addOpt('DavidPaidLinaPending',userName+' pago - '+partnerName+' pendiente');
     if(!isRealDebit){
       // With credit card, Lina can also pay first
-      addOpt('LinaPaidDavidPending','Lina pago - David pendiente');
+      addOpt('LinaPaidDavidPending',partnerName+' pago - '+userName+' pendiente');
     }
     addOpt('Paid','Pagado');
   } else {
@@ -1994,6 +2019,35 @@ function saveUserName(){
   var v=document.getElementById('s-username').value.trim()||'David';
   userName=v;ls.s('un7',userName);
   var hn=document.getElementById('hero-name');if(hn)hn.textContent=userName+' 👋';
+  renderAll();
+}
+
+function togglePendienteTab(){
+  showPendiente=!showPendiente;
+  ls.s('sp7',showPendiente);
+  applyPendienteTab();
+}
+function applyPendienteTab(){
+  var navBtn=document.getElementById('nav-expenses');
+  var page=document.getElementById('page-expenses');
+  var settBtn=document.getElementById('s-pend-btn');
+  var modalTab=document.getElementById('mt-shared');
+  if(navBtn)navBtn.style.display=showPendiente?'':'none';
+  if(modalTab)modalTab.style.display=showPendiente?'':'none';
+  if(settBtn)settBtn.textContent=showPendiente?'Activada':'Desactivada';
+  // If on expenses page and hiding, go to dash
+  if(!showPendiente&&page&&page.classList.contains('active')){
+    showPage('dash');
+  }
+  // If modal is open on shared tab and hiding, switch to gasto
+  if(!showPendiente&&mTab==='shared'){
+    setMTab('gasto');
+  }
+}
+function savePartnerName(){
+  var v=document.getElementById('s-partnername').value.trim()||'Lina';
+  partnerName=v;ls.s('pn7',partnerName);
+  renderAll();
 }
 
 function openTx(id){
