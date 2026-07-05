@@ -1158,7 +1158,7 @@ function monthStrip(id){
           if(d.getFullYear()===yy&&d.getMonth()===mm) hasMovs=true;
         });
         pill.appendChild(el('div',{cls:'mo-mk',txt:active?'✦':(past?'✓':'✦')}));
-        if(hasMovs&&!active){
+        if(!hasMovs&&!active){
           pill.style.background='var(--bg3)';
         }
       }
@@ -2453,4 +2453,4 @@ if(driveToken&&driveFileId){
 }
 </script>
 
-</body></html> 
+</body></html>
