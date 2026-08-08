@@ -1672,14 +1672,13 @@ function renderDisponible(){
     var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
     availBadge.appendChild(el('span',{txt:isOver?'Excedido':isExact?'Completo':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
     availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
-    if(isOver)availBadge.appendChild(el('span',{txt:'▲ '+Math.round(r.exp/r.budg*100)+'% (+'+excessPct+'%)',style:'font-size:10px;color:var(--red);font-weight:600'}));
-    else if(isExact)availBadge.appendChild(el('span',{txt:'✓ 100%',style:'font-size:10px;color:var(--blue);font-weight:600'}));
+
 
     var card=el('div',{style:'background:var(--bg2);border-radius:12px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
     card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
       el('span',{html:icoHTML(r.cat.icon,16),style:'font-size:16px;display:flex;align-items:center;color:var(--text2)'}),
       el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
-      el('span',{txt:pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
+      el('span',{txt:isOver?'+'+excessPct+'%':pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
     ]));
     card.appendChild(barBg);
     card.appendChild(numRow);
