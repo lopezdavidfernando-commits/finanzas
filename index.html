@@ -1653,12 +1653,14 @@ function renderDisponible(){
   rows.forEach(function(r){
     var pct=r.budg>0?Math.min(100,Math.round((r.exp/r.budg)*100)):100;
     var isOver=r.avail<0;
-    var barCol=isOver?'var(--red)':pct>80?'var(--amber)':'var(--lime)';
-    var availCol=isOver?'var(--red)':pct>80?'var(--amber)':'var(--green)';
+    var isExact=(pct===100);
+    var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
+    var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
+    var excessPct=isOver?Math.round(pct-100):0;
 
     // Bar fill
     var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
-    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+pct+'%;background:'+barCol+';transition:width .5s'});
+    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+Math.min(pct,100)+'%;background:'+barCol+';transition:width .5s'});
     barBg.appendChild(barFill);
 
     // Numbers row
@@ -1668,9 +1670,10 @@ function renderDisponible(){
 
     // Available badge
     var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
-    availBadge.appendChild(el('span',{txt:isOver?'Excedido':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
+    availBadge.appendChild(el('span',{txt:isOver?'Excedido':isExact?'Completo':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
     availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
-    if(isOver)availBadge.appendChild(el('span',{txt:'▲ por encima',style:'font-size:10px;color:var(--red)'}));
+    if(isOver)availBadge.appendChild(el('span',{txt:'▲ '+pct+'% (+'+excessPct+'%)',style:'font-size:10px;color:var(--red);font-weight:600'}));
+    if(isExact)availBadge.appendChild(el('span',{txt:'✓ 100%',style:'font-size:10px;color:var(--blue);font-weight:600'}));
 
     var card=el('div',{style:'background:var(--bg2);border-radius:12px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
     card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
@@ -2453,4 +2456,4 @@ if(driveToken&&driveFileId){
 }
 </script>
 
-</body></html> 
+</body></html>
