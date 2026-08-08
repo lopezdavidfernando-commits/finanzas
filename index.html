@@ -1656,7 +1656,7 @@ function renderDisponible(){
     var isExact=(pct===100&&!isOver);
     var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
     var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
-    var excessPct=isOver?Math.round((r.exp/r.budg*100)-100):0;
+    var excessPct=isOver?Math.round(r.exp/r.budg*100):0;
 
     // Bar fill
     var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
@@ -1678,7 +1678,7 @@ function renderDisponible(){
     card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
       el('span',{html:icoHTML(r.cat.icon,16),style:'font-size:16px;display:flex;align-items:center;color:var(--text2)'}),
       el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
-      el('span',{txt:isOver?'+'+excessPct+'%':pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
+      el('span',{txt:isOver?'▲ +'+excessPct+'%':pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
     ]));
     card.appendChild(barBg);
     card.appendChild(numRow);
