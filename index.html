@@ -1565,19 +1565,29 @@ function renderExpenses(){
 function renderBudget(){
   monthStrip('b-months');
   var mk=mkK(curY,curM),b=budgets[mk]||{};
-  function mkRows(id,list){
+  // Get previous month budget
+  var prevDt=new Date(curY,curM-1,1);
+  var prevMk=mkK(prevDt.getFullYear(),prevDt.getMonth());
+  var bPrev=budgets[prevMk]||{};
+  function mkRows(id,list,prefix){
     var wrap=clr(id);if(!wrap)return;
     list.forEach(function(c){
       var inp=el('input',{cls:'bpinp',type:'text',id:'bi_'+c.id,placeholder:'0',inputmode:'numeric',oninput:'formatMoneyInput(this);updateBudgetTotals()'});
       var bval=(b['i:'+c.id]||b['e:'+c.id]||b['s:'+c.id]||b[c.name]||0);inp.value=bval?bval.toLocaleString('es-CO'):'';
+      // Previous month value
+      var prevVal=(bPrev[prefix+c.id]||bPrev[c.name]||0);
+      var prevHint=prevVal?el('div',{txt:'Mes ant: '+prevVal.toLocaleString('es-CO'),style:'font-size:10px;color:var(--text3);text-align:right;margin-top:2px'}):null;
+      var inpWrap=el('div',{style:'display:flex;flex-direction:column;align-items:flex-end'});
+      inpWrap.appendChild(inp);
+      if(prevHint)inpWrap.appendChild(prevHint);
       wrap.appendChild(el('div',{cls:'bprow'},[
         el('div',{cls:'bpico',html:icoHTML(c.icon)}),
         el('div',{cls:'bpnm',txt:c.name}),
-        inp
+        inpWrap
       ]));
     });
   }
-  mkRows('b-inc',cats.income);mkRows('b-exp',cats.expenses);mkRows('b-sav',cats.savings);
+  mkRows('b-inc',cats.income,'i:');mkRows('b-exp',cats.expenses,'e:');mkRows('b-sav',cats.savings,'s:');
   updateBudgetTotals();
   renderDisponible();
 }
