@@ -504,8 +504,12 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
     <div id="b-balance-sub" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
   </div>
   <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
-  <div class="bpsect" style="margin-top:8px">📊 Disponible acumulado por rubro</div>
+  <div style="display:flex;gap:8px;padding:12px 20px 0">
+    <button id="btab-acum" onclick="setBudgetTab('acum')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--lime);color:#000">Acumulado</button>
+    <button id="btab-mes" onclick="setBudgetTab('mes')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2)">Este mes</button>
+  </div>
   <div id="b-avail-wrap" style="padding:0 20px 24px"></div>
+  <div id="b-mes-wrap" style="padding:0 20px 24px;display:none"></div>
 </div>
 
 <div class="page" id="page-summary">
@@ -1560,6 +1564,98 @@ function renderExpenses(){
     }
     el2.appendChild(row);
   });
+}
+
+var budgetTab='acum';
+function setBudgetTab(tab){
+  budgetTab=tab;
+  var acumBtn=document.getElementById('btab-acum');
+  var mesBtn=document.getElementById('btab-mes');
+  var acumWrap=document.getElementById('b-avail-wrap');
+  var mesWrap=document.getElementById('b-mes-wrap');
+  if(acumBtn)acumBtn.style.background=tab==='acum'?'var(--lime)':'var(--bg3)';
+  if(acumBtn)acumBtn.style.color=tab==='acum'?'#000':'var(--text2)';
+  if(mesBtn)mesBtn.style.background=tab==='mes'?'var(--lime)':'var(--bg3)';
+  if(mesBtn)mesBtn.style.color=tab==='mes'?'#000':'var(--text2)';
+  if(acumWrap)acumWrap.style.display=tab==='acum'?'block':'none';
+  if(mesWrap)mesWrap.style.display=tab==='mes'?'block':'none';
+  if(tab==='mes')renderMesDisponible();
+}
+
+function renderMesDisponible(){
+  var wrap=document.getElementById('b-mes-wrap');if(!wrap)return;
+  while(wrap.firstChild)wrap.removeChild(wrap.firstChild);
+  var mk=mkK(curY,curM);
+  var b=budgets[mk]||{};
+  var allCats=cats.expenses.concat(cats.savings);
+  var rows=[];
+  var grandBudg=0,grandExp=0;
+
+  allCats.forEach(function(cat){
+    var budg=(b['e:'+cat.id]||b['s:'+cat.id]||b[cat.name]||0);
+    var exp=0;
+    txs.forEach(function(t){
+      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name&&!t.isAdelanto&&!t.isReimbursed&&!t.isReimb){
+        var d=new Date(t.date+'T00:00:00');
+        if(d.getFullYear()===curY&&d.getMonth()===curM) exp+=t.amount;
+      }
+    });
+    if(budg>0||exp>0){
+      rows.push({cat:cat,budg:budg,exp:exp,avail:budg-exp});
+      grandBudg+=budg;grandExp+=exp;
+    }
+  });
+
+  if(!rows.length){
+    wrap.appendChild(el('div',{cls:'empty',txt:'Sin presupuesto para este mes'}));
+    return;
+  }
+
+  rows.sort(function(a,b){
+    var pa=a.budg>0?a.exp/a.budg:0;
+    var pb=b.budg>0?b.exp/b.budg:0;
+    return pb-pa;
+  });
+
+  rows.forEach(function(r){
+    var pct=r.budg>0?Math.round(r.exp/r.budg*100):0;
+    var isOver=r.avail<0;
+    var isExact=(pct===100&&!isOver);
+    var excessPct=isOver?Math.round(r.exp/r.budg*100):0;
+    var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
+    var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
+
+    var card=el('div',{style:'background:var(--bg2);border-radius:14px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:10px'});
+    card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
+      el('span',{html:icoHTML(r.cat.icon,16),style:'font-size:16px;display:flex;align-items:center;color:var(--text2)'}),
+      el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
+      el('span',{txt:isOver?'▲ +'+excessPct+'%':pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
+    ]));
+
+    var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
+    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+Math.min(pct,100)+'%;background:'+barCol+';transition:width .5s'});
+    barBg.appendChild(barFill);
+    card.appendChild(barBg);
+
+    var numRow=el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-top:3px'});
+    numRow.appendChild(el('span',{txt:'Gastado: '+fmt(r.exp),style:'font-size:10px;color:var(--text2)'}));
+    numRow.appendChild(el('span',{txt:'Presup: '+fmt(r.budg),style:'font-size:10px;color:var(--text2)'}));
+    card.appendChild(numRow);
+
+    var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
+    availBadge.appendChild(el('span',{txt:isOver?'Excedido':isExact?'Completo':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
+    availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
+    card.appendChild(availBadge);
+    wrap.appendChild(card);
+  });
+
+  // Grand total
+  var tot=el('div',{style:'margin-top:8px;padding:12px 14px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center'});
+  tot.appendChild(el('span',{txt:'Total mes',style:'font-size:12px;font-weight:600;color:var(--text2)'}));
+  var grandAvail=grandBudg-grandExp;
+  var grandCol=grandAvail<0?'var(--red)':'var(--green)';
+  tot.appendChild(el('span',{txt:(grandAvail<0?'−':'')+fmt(Math.abs(grandAvail)),style:'font-size:15px;font-weight:700;color:'+grandCol}));
+  wrap.appendChild(tot);
 }
 
 function renderBudget(){
