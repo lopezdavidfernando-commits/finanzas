@@ -1369,6 +1369,7 @@ function renderTracking(){
     tl.appendChild(el('div',{cls:'txdh',txt:d}));
     grp[d].forEach(function(t){tl.appendChild(makeTxEl(t));});
   });
+  renderPaidExpenses();
 }
 
 var ePaidOpen=false;
@@ -1540,7 +1541,7 @@ function renderExpenses(){
   if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'🧾'}),el('p',{txt:'Sin gastos compartidos'})]));return;}
   // Render paid items section
   
-  renderPaidExpenses();
+  // renderPaidExpenses called at end after srt render
 
   srt.forEach(function(t){
     var row=makeTxEl(t);
@@ -2422,7 +2423,7 @@ function delTx(){
     }
   }
   txs=txs.filter(function(x){return x.id!==editId;});
-  ls.s('tx7',txs);closeM('m-tx');renderAll();setTimeout(function(){renderPaidExpenses();},200);syncDrive();
+  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
   });
 }
 
