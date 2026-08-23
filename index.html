@@ -1396,21 +1396,26 @@ function renderPaidExpenses(){
     var fullyPaid=t.status==='Paid';
     var davidPaid=t.status==='Paid'||t.status==='DavidPaidLinaPending';
     var linaPaid=t.status==='Paid'||t.status==='LinaPaidDavidPending';
+    // isRealDebit: money left David's account immediately, so it was never "pending" for David
+    var isRealDebit=(t.source==='Tarjeta débito'||t.source==='Efectivo');
     if(curFiltExp==='all'){
-      // Show all shared expenses where someone paid
-      if(t.charge==='Los dos') return davidPaid||linaPaid;
+      if(t.charge==='Los dos'){
+        if(isRealDebit) return linaPaid; // Only show when Lina pays back
+        return davidPaid||linaPaid;
+      }
       if(t.charge==='Lina') return linaPaid;
       if(t.charge==='Otro') return fullyPaid;
-      return false; // Don't show charge='David' - those are personal
+      return false;
     }
     if(curFiltExp==='David'){
-      // Show Los dos where David paid
+      // With debit/cash David never had it pending, don't show
+      if(t.charge==='Los dos'&&isRealDebit) return false;
       if(t.charge==='Los dos') return davidPaid;
       return false;
     }
     if(curFiltExp==='Lina'){
       if(t.charge==='Lina') return linaPaid;
-      if(t.charge==='Los dos') return linaPaid;
+      if(t.charge==='Los dos') return linaPaid; // Lina's share regardless of source
       return false;
     }
     if(curFiltExp==='Los dos') return t.charge==='Los dos'&&fullyPaid;
