@@ -1388,36 +1388,30 @@ function renderPaidExpenses(){
   while(list.firstChild)list.removeChild(list.firstChild);
 
   // txs is already updated - use directly
+  // Paid filter mirrors the pending filter exactly:
+  // whatever showed in pending for a filter, shows in paid when status=Paid
   var paid=txs.filter(function(t){
     if(t.mode!=='expenses') return false;
     var d=new Date(t.date+'T00:00:00');
     if(d.getFullYear()!==curY||d.getMonth()!==curM) return false;
     if(curFiltSrc!=='all'&&t.source!==curFiltSrc) return false;
-    var fullyPaid=t.status==='Paid';
-    var davidPaid=t.status==='Paid'||t.status==='DavidPaidLinaPending';
-    var linaPaid=t.status==='Paid'||t.status==='LinaPaidDavidPending';
-    // isRealDebit: money left David's account immediately, so it was never "pending" for David
-    var isRealDebit=(t.source==='Tarjeta débito'||t.source==='Efectivo');
+    if(t.status!=='Paid') return false; // only fully paid
+
     if(curFiltExp==='all'){
-      if(t.charge==='Los dos') return fullyPaid||davidPaid||linaPaid;
-      if(t.charge==='David') return fullyPaid;
-      if(t.charge==='Lina') return linaPaid;
-      if(t.charge==='Otro') return fullyPaid;
-      return false;
+      // Todos: only shared expenses (Los dos, Lina, Otro) - not personal David ones
+      return t.charge==='Los dos'||t.charge==='Lina'||t.charge==='Otro';
     }
     if(curFiltExp==='David'){
-      // Mirror the pending filter: show paid versions of what was pending for David
-      if(t.charge==='David') return fullyPaid;
-      if(t.charge==='Los dos') return fullyPaid; // was Unpaid or LinaPaidDavidPending -> now Paid
-      return false;
+      // Pending David shows: charge=David(Unpaid) + charge=Los dos(Unpaid or LinaPaidDavidPending)
+      // So paid David shows: charge=David(Paid) + charge=Los dos(Paid)
+      return t.charge==='David'||t.charge==='Los dos';
     }
     if(curFiltExp==='Lina'){
-      if(t.charge==='Lina') return linaPaid;
-      if(t.charge==='Los dos') return linaPaid; // Lina's share regardless of source
-      return false;
+      // Pending Lina shows: charge=Lina(Unpaid) + charge=Los dos(Unpaid or DavidPaidLinaPending)
+      return t.charge==='Lina'||t.charge==='Los dos';
     }
-    if(curFiltExp==='Los dos') return t.charge==='Los dos'&&fullyPaid;
-    if(curFiltExp==='Otro') return t.charge==='Otro'&&fullyPaid;
+    if(curFiltExp==='Los dos') return t.charge==='Los dos';
+    if(curFiltExp==='Otro') return t.charge==='Otro';
     return false;
   });
 
