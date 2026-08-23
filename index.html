@@ -1231,7 +1231,10 @@ function renderDash(){
   // Vertical bars
   var catData=[];
   cats.expenses.forEach(function(c){
-    var tracked=0;tr.forEach(function(t){if(t.type==='Expenses'&&t.category===c.name)tracked+=t.amount;});
+    var tracked=0;tr.forEach(function(t){
+      if(t.type==='Expenses'&&t.category===c.name&&!t.isAdelanto&&!t.isReimbursed&&!t.isReimb)
+        tracked+=t.amount;
+    });
     var bkx=budgets[mk]||{};var b=(bkx['e:'+c.id]||bkx[c.name]||0);
     if(tracked>0||b>0)catData.push({name:c.name,icon:c.icon,tracked:tracked,b:b});
   });
