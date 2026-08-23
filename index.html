@@ -1389,15 +1389,27 @@ function renderPaidExpenses(){
 
   // txs is already updated - use directly
   var paid=txs.filter(function(t){
-    if(t.mode!=='expenses'||t.status!=='Paid') return false;
+    if(t.mode!=='expenses') return false;
     var d=new Date(t.date+'T00:00:00');
     if(d.getFullYear()!==curY||d.getMonth()!==curM) return false;
     if(curFiltSrc!=='all'&&t.source!==curFiltSrc) return false;
-    if(curFiltExp==='all') return true;
-    if(curFiltExp==='Los dos') return t.charge==='Los dos';
-    if(curFiltExp==='David') return t.charge==='David'||t.charge==='Los dos';
-    if(curFiltExp==='Lina') return t.charge==='Lina'||t.charge==='Los dos';
-    if(curFiltExp==='Otro') return t.charge==='Otro';
+    // Determine if this tx counts as "paid" for the active filter
+    var fullyPaid=t.status==='Paid';
+    var davidPaid=t.status==='Paid'||t.status==='DavidPaidLinaPending';
+    var linaPaid=t.status==='Paid'||t.status==='LinaPaidDavidPending';
+    if(curFiltExp==='all') return fullyPaid||(t.charge==='Los dos'&&(davidPaid||linaPaid))||(t.charge==='David'&&davidPaid)||(t.charge==='Lina'&&linaPaid)||(t.charge==='Otro'&&fullyPaid);
+    if(curFiltExp==='David'){
+      if(t.charge==='David') return davidPaid;
+      if(t.charge==='Los dos') return davidPaid;
+      return false;
+    }
+    if(curFiltExp==='Lina'){
+      if(t.charge==='Lina') return linaPaid;
+      if(t.charge==='Los dos') return linaPaid;
+      return false;
+    }
+    if(curFiltExp==='Los dos') return t.charge==='Los dos'&&fullyPaid;
+    if(curFiltExp==='Otro') return t.charge==='Otro'&&fullyPaid;
     return false;
   });
 
@@ -1424,7 +1436,10 @@ function renderPaidExpenses(){
     (function(tx){
       var shareAmt=tx.amount;
       if(tx.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina')) shareAmt=tx.amount/2;
-      else if(tx.charge==='Los dos'&&(curFiltExp==='all'||curFiltExp==='Los dos')) shareAmt=tx.amount;
+      // Status label for partial payments
+      var statusLabel='';
+      if(tx.status==='DavidPaidLinaPending') statusLabel='David pagó';
+      else if(tx.status==='LinaPaidDavidPending') statusLabel='Lina pagó';
       var row=el('div',{cls:'tx',click:function(){openTx(tx.id);}});
       row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(tx.category))}));
       var inf=el('div',{cls:'tinf'});
@@ -1432,6 +1447,7 @@ function renderPaidExpenses(){
       var meta=el('div',{cls:'tm'});
       meta.textContent=(tx.category||'')+(tx.source?' · '+tx.source:'');
       if(tx.charge==='Los dos') meta.appendChild(el('span',{cls:'badge sh',txt:'Los dos',style:'margin-left:4px'}));
+          if(statusLabel) meta.appendChild(el('span',{cls:'badge',txt:statusLabel,style:'margin-left:4px;background:var(--greenbg);color:var(--green);font-size:9px'}));
       inf.appendChild(meta);
       row.appendChild(inf);
       var amtEl=el('div',{style:'text-align:right'});
