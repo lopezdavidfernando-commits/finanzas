@@ -1399,18 +1399,16 @@ function renderPaidExpenses(){
     // isRealDebit: money left David's account immediately, so it was never "pending" for David
     var isRealDebit=(t.source==='Tarjeta débito'||t.source==='Efectivo');
     if(curFiltExp==='all'){
-      if(t.charge==='Los dos'){
-        if(isRealDebit) return linaPaid; // Only show when Lina pays back
-        return davidPaid||linaPaid;
-      }
+      if(t.charge==='Los dos') return fullyPaid||davidPaid||linaPaid;
+      if(t.charge==='David') return fullyPaid;
       if(t.charge==='Lina') return linaPaid;
       if(t.charge==='Otro') return fullyPaid;
       return false;
     }
     if(curFiltExp==='David'){
-      // With debit/cash David never had it pending, don't show
-      if(t.charge==='Los dos'&&isRealDebit) return false;
-      if(t.charge==='Los dos') return davidPaid;
+      // Mirror the pending filter: show paid versions of what was pending for David
+      if(t.charge==='David') return fullyPaid;
+      if(t.charge==='Los dos') return fullyPaid; // was Unpaid or LinaPaidDavidPending -> now Paid
       return false;
     }
     if(curFiltExp==='Lina'){
