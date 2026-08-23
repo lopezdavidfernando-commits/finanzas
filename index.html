@@ -1393,13 +1393,18 @@ function renderPaidExpenses(){
     var d=new Date(t.date+'T00:00:00');
     if(d.getFullYear()!==curY||d.getMonth()!==curM) return false;
     if(curFiltSrc!=='all'&&t.source!==curFiltSrc) return false;
-    // Determine if this tx counts as "paid" for the active filter
     var fullyPaid=t.status==='Paid';
     var davidPaid=t.status==='Paid'||t.status==='DavidPaidLinaPending';
     var linaPaid=t.status==='Paid'||t.status==='LinaPaidDavidPending';
-    if(curFiltExp==='all') return fullyPaid||(t.charge==='Los dos'&&(davidPaid||linaPaid))||(t.charge==='David'&&davidPaid)||(t.charge==='Lina'&&linaPaid)||(t.charge==='Otro'&&fullyPaid);
+    if(curFiltExp==='all'){
+      // Show all shared expenses where someone paid
+      if(t.charge==='Los dos') return davidPaid||linaPaid;
+      if(t.charge==='Lina') return linaPaid;
+      if(t.charge==='Otro') return fullyPaid;
+      return false; // Don't show charge='David' - those are personal
+    }
     if(curFiltExp==='David'){
-      if(t.charge==='David') return davidPaid;
+      // Show Los dos where David paid
       if(t.charge==='Los dos') return davidPaid;
       return false;
     }
