@@ -1995,17 +1995,81 @@ function renderSettings(){
 
   function makeList(wrapId,items,type,addLabel){
     var wrap=clr(wrapId);if(!wrap)return;
+    var isCat=type!=='account';
+    var dragSrc=null;
+
+    function reorder(fromId,toId){
+      var from=items.findIndex(function(x){return x.id===fromId;});
+      var to=items.findIndex(function(x){return x.id===toId;});
+      if(from<0||to<0||from===to)return;
+      var item=items.splice(from,1)[0];
+      items.splice(to,0,item);
+      ls.s('ca7',cats);syncDrive();
+      makeList(wrapId,items,type,addLabel);
+      populateCatSel();
+    }
+
     items.forEach(function(item){
       var sub=type==='account'?fmt(item.balance||0):'';
       var editBtn=el('button',{txt:'✏️'});
       editBtn.addEventListener('click',(function(id){return function(){openCfg(type,id);};})(item.id));
       var delBtn=el('button',{txt:'🗑️'});
       delBtn.addEventListener('click',(function(id){return function(){delCfg(type,id);};})(item.id));
-      var row=el('div',{cls:'srow'},[
-        el('div',{cls:'srico',html:icoHTML(item.icon)}),
-        el('div',{cls:'srt'},[el('div',{cls:'srn',txt:item.name}),sub?el('div',{cls:'srs',txt:sub}):null]),
-        el('div',{cls:'sra'},[editBtn,delBtn])
-      ]);
+      var controls=el('div',{cls:'sra'});
+      // Drag handle for categories
+      var handle=null;
+      if(isCat){
+        handle=el('div',{txt:'⠿',style:'cursor:grab;font-size:18px;color:var(--text3);padding:0 8px;touch-action:none'});
+      }
+      controls.appendChild(editBtn);
+      controls.appendChild(delBtn);
+      var row=el('div',{cls:'srow',style:'cursor:default'});
+      if(handle)row.insertBefore(handle,row.firstChild);
+      row.appendChild(el('div',{cls:'srico',html:icoHTML(item.icon)}));
+      row.appendChild(el('div',{cls:'srt'},[el('div',{cls:'srn',txt:item.name}),sub?el('div',{cls:'srs',txt:sub}):null]));
+      row.appendChild(controls);
+
+      if(isCat){
+        row.setAttribute('draggable','true');
+        row.dataset.id=item.id;
+        row.addEventListener('dragstart',function(e){
+          dragSrc=item.id;
+          e.dataTransfer.effectAllowed='move';
+          row.style.opacity='0.5';
+        });
+        row.addEventListener('dragend',function(){row.style.opacity='1';});
+        row.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='move';row.style.background='var(--bg3)';});
+        row.addEventListener('dragleave',function(){row.style.background='';});
+        row.addEventListener('drop',function(e){
+          e.preventDefault();row.style.background='';
+          if(dragSrc&&dragSrc!==item.id)reorder(dragSrc,item.id);
+        });
+        // Touch support
+        var touchStartY=0,touchItem=null;
+        handle.addEventListener('touchstart',function(e){
+          touchStartY=e.touches[0].clientY;
+          dragSrc=item.id;
+          row.style.opacity='0.6';
+          e.preventDefault();
+        },{passive:false});
+        handle.addEventListener('touchmove',function(e){
+          e.preventDefault();
+          var touch=e.touches[0];
+          var el2=document.elementFromPoint(touch.clientX,touch.clientY);
+          var targetRow=el2?el2.closest('[draggable]'):null;
+          if(targetRow&&targetRow!==row){
+            document.querySelectorAll('[draggable]').forEach(function(r){r.style.background='';});
+            targetRow.style.background='var(--bg3)';
+            touchItem=targetRow.dataset.id;
+          }
+        },{passive:false});
+        handle.addEventListener('touchend',function(){
+          row.style.opacity='1';
+          document.querySelectorAll('[draggable]').forEach(function(r){r.style.background='';});
+          if(dragSrc&&touchItem&&dragSrc!==touchItem)reorder(dragSrc,touchItem);
+          dragSrc=null;touchItem=null;
+        });
+      }
       wrap.appendChild(row);
     });
     var addRow=el('div',{cls:'addsrow'});
