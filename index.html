@@ -2441,7 +2441,7 @@ function delTx(){
     }
   }
   txs=txs.filter(function(x){return x.id!==editId;});
-  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
+  ls.s('tx7',txs);ls.s('dts7',new Date().toISOString());closeM('m-tx');renderAll();syncDrive();
   });
 }
 
@@ -2627,14 +2627,28 @@ function loadFromDrive(){
   .then(function(r){return r.ok?r.json():null;})
   .then(function(d){
     if(!d){syncDrive();return;}
-    // Drive is always the source of truth - load without asking
-    if(d.txs&&d.txs.length>0){
+    // Compare timestamps - use whichever is more recent
+    var driveTime=d.at?new Date(d.at).getTime():0;
+    var localTime=ls.g('dts7','')?new Date(ls.g('dts7','')).getTime():0;
+    var driveHasData=d.txs&&d.txs.length>0;
+    var localHasData=txs&&txs.length>0;
+
+    if(!driveHasData){
+      // Drive empty - upload local
+      syncDrive();
+    } else if(!localHasData){
+      // Local empty - load from Drive
       txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
       renderAll();
-    } else {
-      // Drive is empty - upload local data to Drive
+    } else if(localTime>driveTime){
+      // Local is newer - upload to Drive
       syncDrive();
+    } else {
+      // Drive is newer or same - load from Drive
+      txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
+      ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
+      renderAll();
     }
   }).catch(function(){});
 }
@@ -2663,6 +2677,20 @@ function closeM(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.mback').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
 
 setTheme(theme);populateCatSel();populateAcSel();
+
+// Force sync to Drive before page closes
+window.addEventListener('beforeunload',function(){
+  if(driveToken&&driveCid){
+    var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:7});
+    // Use sendBeacon for reliable delivery even when closing
+    if(driveFileId){
+      navigator.sendBeacon&&navigator.sendBeacon(
+        'https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',
+        new Blob([data],{type:'application/json'})
+      );
+    }
+  }
+});
 checkOAuthCallback();
 renderAll();
 // Load from Drive after render so UI shows immediately
