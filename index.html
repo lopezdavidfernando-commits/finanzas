@@ -2584,12 +2584,14 @@ function checkOAuthCallback(){
     }
   }
 }
+var syncPending=false;
 function syncDrive(){
   if(!driveToken||!driveCid)return;
-  driveSt='sy';updateDriveUI();
+  driveSt='sy';syncPending=true;updateDriveUI();
   var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:7});
   var p=driveFileId?updateDF(data):findOrCreate(data);
-  p.then(function(){driveSt='ok';ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
+  p.then(function(){driveSt='ok';syncPending=false;ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
+    syncPending=false;
     if(e&&e.status===401){
       refreshDriveToken().then(function(ok){
         if(ok)syncDrive();
@@ -2627,28 +2629,19 @@ function loadFromDrive(){
   .then(function(r){return r.ok?r.json():null;})
   .then(function(d){
     if(!d){syncDrive();return;}
-    // Compare timestamps - use whichever is more recent
-    var driveTime=d.at?new Date(d.at).getTime():0;
-    var localTime=ls.g('dts7','')?new Date(ls.g('dts7','')).getTime():0;
-    var driveHasData=d.txs&&d.txs.length>0;
-    var localHasData=txs&&txs.length>0;
-
-    if(!driveHasData){
-      // Drive empty - upload local
+    if(!d||!d.txs||d.txs.length===0){
+      // Drive empty - upload local data
       syncDrive();
-    } else if(!localHasData){
-      // Local empty - load from Drive
+      return;
+    }
+    // Only load from Drive if localStorage is empty
+    if(!txs||txs.length===0){
       txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
       renderAll();
-    } else if(localTime>driveTime){
-      // Local is newer - upload to Drive
-      syncDrive();
     } else {
-      // Drive is newer or same - load from Drive
-      txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
-      ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
-      renderAll();
+      // Local has data - push to Drive instead
+      syncDrive();
     }
   }).catch(function(){});
 }
@@ -2678,30 +2671,26 @@ document.querySelectorAll('.mback').forEach(function(m){m.addEventListener('clic
 
 setTheme(theme);populateCatSel();populateAcSel();
 
-// Force sync to Drive before page closes
-window.addEventListener('beforeunload',function(){
-  if(driveToken&&driveCid){
-    var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:7});
-    // Use sendBeacon for reliable delivery even when closing
-    if(driveFileId){
-      navigator.sendBeacon&&navigator.sendBeacon(
-        'https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',
-        new Blob([data],{type:'application/json'})
-      );
-    }
+// Warn user if sync is still pending when closing
+window.addEventListener('beforeunload',function(e){
+  if(syncPending){
+    e.preventDefault();
+    e.returnValue='Hay cambios que aún se están guardando en Drive. ¿Seguro que quieres salir?';
+    return e.returnValue;
   }
 });
 checkOAuthCallback();
-// Always render from localStorage first (instant, reliable)
 renderAll();
-// Sync with Drive in background - but don't overwrite local data if local is newer
+// Drive is backup only - don't overwrite localStorage on startup
+// Only auto-connect to show sync status
 if(driveToken&&driveFileId){
   setTimeout(function(){
-    driveSt='sy';updateDriveUI();
     if(!txs||txs.length===0){
-      loadFromDrive(); // Local empty, load from Drive
+      // localStorage empty - load from Drive
+      driveSt='sy';updateDriveUI();loadFromDrive();
     } else {
-      syncDrive(); // Local has data, push to Drive
+      // localStorage has data - sync TO Drive, don't overwrite local
+      driveSt='sy';updateDriveUI();syncDrive();
     }
   },1000);
 }
