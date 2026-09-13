@@ -2692,10 +2692,18 @@ window.addEventListener('beforeunload',function(){
   }
 });
 checkOAuthCallback();
+// Always render from localStorage first (instant, reliable)
 renderAll();
-// Load from Drive after render so UI shows immediately
+// Sync with Drive in background - but don't overwrite local data if local is newer
 if(driveToken&&driveFileId){
-  setTimeout(function(){driveSt='sy';updateDriveUI();loadFromDrive();},500);
+  setTimeout(function(){
+    driveSt='sy';updateDriveUI();
+    if(!txs||txs.length===0){
+      loadFromDrive(); // Local empty, load from Drive
+    } else {
+      syncDrive(); // Local has data, push to Drive
+    }
+  },1000);
 }
 </script>
 
