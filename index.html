@@ -748,7 +748,18 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 // ALL JS uses createElement — zero string concatenation with quotes
 var ls = {
   g: function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},
-  s: function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  s: function(k,v){
+    var str=JSON.stringify(v);
+    try{localStorage.setItem(k,str);return true;}catch(e){}
+    // Storage full: drop history (least important) and retry
+    try{
+      if(k!=='hist7'){localStorage.removeItem('hist7');if(typeof changeHistory!=='undefined')changeHistory=[];}
+      localStorage.setItem(k,str);return true;
+    }catch(e2){
+      if(!window._lsWarned){window._lsWarned=true;alert('No se pudo guardar en este dispositivo: el almacenamiento está lleno. Exporta tus datos desde Ajustes.');}
+      return false;
+    }
+  }
 };
 
 var DA = [{id:'a1',name:'Bancolombia',icon:'@bank',balance:0},{id:'a2',name:'Nu Bank',icon:'@card',balance:0},{id:'a3',name:'Efectivo',icon:'@cash',balance:0}];
@@ -777,11 +788,12 @@ var showPendiente=ls.g('sp7',true);
 var partnerName=ls.g('pn7','Lina');
 var sumMode='year', sumM=new Date().getMonth();
 var changeHistory=ls.g('hist7',[]);
+if(changeHistory.length>10){changeHistory=changeHistory.slice(0,10);try{localStorage.setItem('hist7',JSON.stringify(changeHistory));}catch(e){localStorage.removeItem('hist7');changeHistory=[];}}
 
 function pushHistory(label){
   var snap={txs:JSON.parse(JSON.stringify(txs)),accts:JSON.parse(JSON.stringify(accts)),cats:JSON.parse(JSON.stringify(cats)),budgets:JSON.parse(JSON.stringify(budgets))};
   changeHistory.unshift({id:uid(),label:label,at:new Date().toISOString(),snap:snap});
-  if(changeHistory.length>30)changeHistory=changeHistory.slice(0,30);
+  if(changeHistory.length>10)changeHistory=changeHistory.slice(0,10);
   ls.s('hist7',changeHistory);
 }
 
@@ -2588,7 +2600,9 @@ var syncPending=false;
 function syncDrive(){
   if(!driveToken||!driveCid)return;
   driveSt='sy';syncPending=true;updateDriveUI();
-  var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:7});
+  var stamp=new Date().toISOString();
+  ls.s('lm7',stamp);
+  var data=JSON.stringify({txs:txs,accts:accts,cats:cats,budgets:budgets,at:stamp,v:7});
   var p=driveFileId?updateDF(data):findOrCreate(data);
   p.then(function(){driveSt='ok';syncPending=false;ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
     syncPending=false;
@@ -2634,14 +2648,15 @@ function loadFromDrive(){
       syncDrive();
       return;
     }
-    // Only load from Drive if localStorage is empty
-    if(!txs||txs.length===0){
+    // Newest copy wins: local only wins if it has changes Drive never received
+    var localLm=ls.g('lm7','');
+    if(localLm&&d.at&&localLm>d.at){
+      syncDrive();
+    } else {
       txs=d.txs||[];accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
+      driveSt='ok';updateDriveUI();
       renderAll();
-    } else {
-      // Local has data - push to Drive instead
-      syncDrive();
     }
   }).catch(function(){});
 }
@@ -2684,15 +2699,7 @@ renderAll();
 // Drive is backup only - don't overwrite localStorage on startup
 // Only auto-connect to show sync status
 if(driveToken&&driveFileId){
-  setTimeout(function(){
-    if(!txs||txs.length===0){
-      // localStorage empty - load from Drive
-      driveSt='sy';updateDriveUI();loadFromDrive();
-    } else {
-      // localStorage has data - sync TO Drive, don't overwrite local
-      driveSt='sy';updateDriveUI();syncDrive();
-    }
-  },1000);
+  setTimeout(function(){driveSt='sy';updateDriveUI();loadFromDrive();},500);
 }
 </script>
 
