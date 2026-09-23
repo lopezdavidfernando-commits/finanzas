@@ -424,6 +424,8 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
   <div class="kpis" id="d-kpis"></div>
 
+  <div id="d-recs" style="display:none;margin:0 20px 10px"></div>
+  <div id="d-nocat" onclick="goNoCat()" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--amberbg);border:.5px solid rgba(245,158,11,.35);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-nocat-txt" style="font-size:12.5px;font-weight:600;color:var(--amber)"></span><span style="font-size:12px;font-weight:700;color:var(--amber);white-space:nowrap">Revisar ›</span></div>
   <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="showPage('budget')">
     <div>
       <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Conciliación</div>
@@ -467,6 +469,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   </div>
   <div class="chips" id="e-chips"></div>
   <div class="chips" id="e-src-chips" style="padding-top:0"></div>
+  <div style="display:flex;justify-content:flex-end;gap:16px;padding:2px 22px 6px"><span id="sel-all" onclick="selectAllVisible()" style="display:none;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer">Seleccionar todos</span><span id="sel-toggle" onclick="toggleSelMode()" style="font-size:13px;font-weight:700;color:var(--limedk);cursor:pointer">Seleccionar</span></div>
   <div class="txwrap" id="e-list"></div>
   <div style="padding:8px 20px 24px">
     <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);cursor:pointer">
@@ -483,6 +486,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 <div class="page" id="page-budget">
   <div class="topbar"><h1>Presupuesto</h1><p>Cuánto planeas gastar</p></div>
   <div class="months" id="b-months"></div>
+  <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:14px;background:var(--bg2);border:.5px solid var(--border)"></div>
   <div class="bpsect">💰 Ingresos</div><div id="b-inc"></div>
   <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ingresos</span>
@@ -588,6 +592,8 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Historial de cambios</div>
   <div class="sg2" id="s-hist-wrap"></div>
+  <div class="sgt" style="padding:12px 20px 6px">Movimientos recurrentes</div>
+  <div class="sg2" id="s-rec-wrap"></div>
   <div class="sgt" style="padding:12px 20px 6px">Mis cuentas</div>
   <div class="agrid" id="s-ag"></div>
   <div class="sg2" id="s-al-wrap"></div>
@@ -601,6 +607,52 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 </div>
 
 <button class="fab" id="fab" onclick="openTx(null)">+</button>
+
+<div id="sel-bar" style="display:none;position:fixed;left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:120;background:var(--navpill);color:#fff;border-radius:18px;padding:10px 10px 10px 16px;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3)"><span id="sel-count" style="flex:1;font-size:13px;font-weight:600">0 seleccionados</span><button id="sel-pay" onclick="bulkPayAsk()" style="background:var(--lime);color:#111;border:none;border-radius:12px;padding:10px 14px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer">Marcar pagado</button></div>
+
+<div class="mback" id="m-bulk" style="align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
+    <div style="padding:20px">
+      <div style="font-size:30px;text-align:center;margin-bottom:8px">✅</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;text-align:center">Marcar como pagados</div>
+      <div id="bulk-desc" style="font-size:13px;color:var(--text2);line-height:1.5;text-align:center"></div>
+      <div id="bulk-acc-row" class="fg" style="display:none;margin-top:14px"><label>¿De dónde salió el dinero?</label><select id="bulk-acc"></select></div>
+    </div>
+    <div style="display:flex;border-top:.5px solid var(--border)">
+      <button onclick="closeM('m-bulk')" style="flex:1;padding:14px;background:none;border:none;border-right:.5px solid var(--border);font-size:14px;font-weight:600;color:var(--text2);font-family:inherit;cursor:pointer">Cancelar</button>
+      <button onclick="bulkPayConfirm()" style="flex:1;padding:14px;background:none;border:none;font-size:14px;font-weight:700;color:var(--limedk);font-family:inherit;cursor:pointer">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mback" id="m-adj">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2>Cuadrar con el banco</h2><button class="xbtn" onclick="closeM('m-adj')">✕</button></div>
+    <div class="mbody">
+      <div id="adj-acct" style="font-size:13px;color:var(--text2);margin-bottom:12px"></div>
+      <div class="fg"><label>Saldo que muestra el banco</label><input id="adj-bank" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this);adjCompute()"></div>
+      <div id="adj-result" style="margin-bottom:14px"></div>
+      <button class="btnp" id="adj-btn" onclick="adjApply()">Comparar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mback" id="m-rec">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2>Movimiento recurrente</h2><button class="xbtn" onclick="closeM('m-rec')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>Descripción</label><input id="rec-d" type="text"></div>
+      <div class="fgrow">
+        <div class="fg"><label>Monto sugerido</label><input id="rec-m" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+        <div class="fg"><label>Día del mes</label><input id="rec-day" type="number" min="1" max="28"></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text3);margin:-4px 0 14px">Ese día te aparecerá en Inicio para aprobarlo. Nada se registra sin tu aprobación.</div>
+      <button class="btnp" onclick="saveRecEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
 
 <nav><button class="active" id="nav-dash" onclick="showPage('dash')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Inicio<div class="ndot"></div></button>
   <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle></svg>Movimientos<div class="ndot"></div></button>
@@ -637,6 +689,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
         <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
         <div class="fg" id="payacc-row" style="display:none"><label>De donde salio el dinero?</label><select id="f-payacc"></select></div>
       </div>
+      <label id="rec-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--bg2);border-radius:12px;margin-bottom:12px;border:.5px solid var(--border);cursor:pointer"><span><span style="font-size:13px;font-weight:600;display:block">🔁 Repetir cada mes</span><span id="rec-hint" style="font-size:11px;color:var(--text3)">Te pediré aprobarlo cada mes</span></span><input type="checkbox" id="f-rec" style="width:20px;height:20px;accent-color:var(--limedk)"></label>
       <button class="btnp" onclick="saveTx()">Guardar</button>
       <div id="delbtn-wrap" style="display:none;margin-top:12px;padding:12px 0 0;border-top:.5px solid var(--border)">
         <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()">🗑 Eliminar movimiento</button>
@@ -711,6 +764,10 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       </div>
       <div id="acct-modal-balance" style="font-size:28px;font-weight:800;letter-spacing:-1px"></div>
       <div id="acct-modal-calc" style="font-size:11px;color:var(--text2);margin-top:3px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
+        <span id="acct-modal-recon" style="font-size:11px;color:var(--text3)"></span>
+        <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap">🏦 Cuadrar con el banco</button>
+      </div>
     </div>
     <div style="display:flex;border-bottom:.5px solid var(--border)">
       <div style="flex:1;padding:12px 16px;text-align:center;border-right:.5px solid var(--border)">
@@ -790,6 +847,7 @@ var showPendiente=ls.g('sp7',true);
 var partnerName=ls.g('pn7','Lina');
 var sumMode='year', sumM=new Date().getMonth();
 var changeHistory=ls.g('hist7',[]);
+var recs=ls.g('rc7',[]);
 if(changeHistory.length>10){changeHistory=changeHistory.slice(0,10);try{localStorage.setItem('hist7',JSON.stringify(changeHistory));}catch(e){localStorage.removeItem('hist7');changeHistory=[];}}
 
 function pushHistory(label){
@@ -854,6 +912,7 @@ function openAcctModal(acctId){
   if(!acct)return;
   document.getElementById('acct-modal-title').textContent=icoLabel(acct.icon,acct.name);
   document.getElementById('acct-modal-balance').textContent=fmt(acct.balance||0);
+  var rcl=document.getElementById('acct-modal-recon');if(rcl)rcl.textContent=acct.lastRecon?'Cuadrada el '+fmtDateCO(acct.lastRecon):'Nunca cuadrada con el banco';
 
   // Get all txs affecting this account
   var related=txs.filter(function(t){
@@ -1071,6 +1130,7 @@ function applyBlur(){
 }
 
 function showPage(p){
+  if(p!=='expenses')exitSelMode();
   document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
@@ -1112,7 +1172,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-09-22 · v8';
+var APP_VERSION='2026-09-22 · v9';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1157,13 +1217,223 @@ function migrateLegacy(list){
   return out;
 }
 
+
+// ══════ v9: Pagar varios · Sin categoría · Recurrentes · Copiar presupuesto · Cuadrar cuenta ══════
+function findTx(id){for(var i=0;i<txs.length;i++)if(txs[i].id===id)return txs[i];return null;}
+function findAcct(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i];return null;}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtDateCO(iso){if(!iso)return '';return new Date(iso+'T00:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});}
+
+// ── 3. Pagar varios a la vez ──
+var selMode=false,selIds={};
+function toggleSelMode(){selMode=!selMode;selIds={};renderExpenses();updateSelBar();}
+function exitSelMode(){if(!selMode)return;selMode=false;selIds={};updateSelBar();}
+function selShare(t){return (t.charge==='Los dos'&&(curFiltExp==='David'||curFiltExp==='Lina'))?t.amount/2:t.amount;}
+function bulkNextStatus(t){
+  var isDeb=(t.source==='Tarjeta débito'||t.source==='Efectivo');
+  if(t.charge!=='Los dos')return 'Paid';
+  if(curFiltExp==='Lina'){if(t.status==='DavidPaidLinaPending')return 'Paid';return isDeb?'Paid':'LinaPaidDavidPending';}
+  if(curFiltExp==='David'){if(t.status==='LinaPaidDavidPending')return 'Paid';return 'DavidPaidLinaPending';}
+  return 'Paid';
+}
+function selVisible(){return Array.prototype.map.call(document.querySelectorAll('#e-list [data-selid]'),function(n){return n.getAttribute('data-selid');});}
+function selectAllVisible(){
+  var v=selVisible();var all=v.length&&v.every(function(id){return selIds[id];});
+  v.forEach(function(id){if(all)delete selIds[id];else selIds[id]=true;});
+  renderExpenses();updateSelBar();
+}
+function updateSelBar(){
+  var bar=document.getElementById('sel-bar'),fab=document.getElementById('fab');
+  var tg=document.getElementById('sel-toggle'),sa=document.getElementById('sel-all');
+  if(tg)tg.textContent=selMode?'Cancelar':'Seleccionar';
+  if(sa)sa.style.display=selMode?'inline':'none';
+  if(!bar)return;
+  if(!selMode){bar.style.display='none';if(fab)fab.style.display='flex';return;}
+  if(fab)fab.style.display='none';
+  var ids=Object.keys(selIds),tot=0;
+  ids.forEach(function(id){var t=findTx(id);if(t)tot+=selShare(t);});
+  document.getElementById('sel-count').textContent=ids.length+' seleccionado'+(ids.length===1?'':'s')+' · '+fmt(tot);
+  var sp=document.getElementById('sel-pay');sp.disabled=!ids.length;sp.style.opacity=ids.length?'1':'.45';
+  bar.style.display='flex';
+}
+function bulkNeedsAcc(t){var ns=bulkNextStatus(t);var dp=(ns==='Paid'||ns==='DavidPaidLinaPending');return dp&&(t.charge==='David'||t.charge==='Los dos')&&!t.payAccountId;}
+function bulkPayAsk(){
+  var items=Object.keys(selIds).map(findTx).filter(Boolean);if(!items.length)return;
+  var tot=0;items.forEach(function(t){tot+=selShare(t);});
+  var who=curFiltExp==='David'?userName:curFiltExp==='Lina'?partnerName:null;
+  document.getElementById('bulk-desc').textContent=items.length+' gasto'+(items.length===1?'':'s')+' por '+fmt(tot)+(who?' quedarán como pagados por '+who+'.':' quedarán como pagados.');
+  var needAcc=items.some(bulkNeedsAcc);
+  document.getElementById('bulk-acc-row').style.display=needAcc?'block':'none';
+  var s=document.getElementById('bulk-acc');while(s.firstChild)s.removeChild(s.firstChild);
+  accts.forEach(function(a){var o=document.createElement('option');o.value=a.id;o.textContent=a.name;s.appendChild(o);});
+  document.getElementById('m-bulk').classList.add('open');
+}
+function bulkPayConfirm(){
+  var ids=Object.keys(selIds);var acc=document.getElementById('bulk-acc').value;
+  pushHistory('Marcar '+ids.length+' como pagados');
+  ids.forEach(function(id){var t=findTx(id);if(!t)return;
+    var need=bulkNeedsAcc(t);t.status=bulkNextStatus(t);if(need)t.payAccountId=acc;});
+  closeM('m-bulk');selMode=false;selIds={};
+  ls.s('tx7',txs);renderAll();updateSelBar();syncDrive();
+}
+
+// ── 2. Sin categoría ──
+function catValid(t){var list=t.type==='Income'?cats.income:cats.expenses.concat(cats.savings);for(var i=0;i<list.length;i++)if(list[i].name===t.category)return true;return false;}
+function noCatTxs(){return txs.filter(function(t){if(t.isAdjust||isDerived(t))return false;if(t.mode!=='tracking'&&t.mode!=='expenses')return false;return !t.category||!catValid(t);});}
+function goNoCat(){curFilt='__nocat';showPage('tracking');renderTracking();}
+
+// ── 4. Recurrentes ──
+function saveRecs(){ls.s('rc7',recs);}
+function findRec(id){for(var i=0;i<recs.length;i++)if(recs[i].id===id)return recs[i];return null;}
+function todayMk(){var d=new Date();return mkK(d.getFullYear(),d.getMonth());}
+function recDay(iso){var n=parseInt((iso||'').split('-')[2],10)||1;return Math.min(Math.max(n,1),28);}
+function recFromTx(t,r){
+  r=r||{id:uid(),done:{}};
+  r.kind=t.mode==='expenses'?'shared':(t.type==='Income'?'income':'expense');
+  r.description=t.description;r.amount=t.amount;r.category=t.category;r.accountId=t.accountId;r.day=recDay(t.date);
+  if(r.kind==='shared'){r.charge=t.charge;r.source=t.source;r.status=t.status;r.payAccountId=t.payAccountId||null;}
+  return r;
+}
+function recsDue(){var mk=todayMk(),day=new Date().getDate();
+  return recs.filter(function(r){return r.active!==false&&!(r.done&&r.done[mk])&&(r.start||'')<=mk&&r.day<=day;});}
+function recApproveOne(r,amt){
+  var mk=todayMk();var acct=findAcct(r.accountId);
+  var t={id:uid(),description:r.description,amount:amt||r.amount,date:mk+'-'+String(r.day).padStart(2,'0'),category:r.category,recId:r.id,accountId:r.accountId||'',account:acct?acct.name:''};
+  if(r.kind==='shared'){t.mode='expenses';t.type='Expenses';t.charge=r.charge;t.source=r.source;t.status=r.status||'Unpaid';t.payAccountId=r.payAccountId||null;}
+  else{t.mode='tracking';t.type=r.kind==='income'?'Income':'Expenses';}
+  txs.unshift(t);r.amount=t.amount;r.done=r.done||{};r.done[mk]='a';
+}
+function recAmountFromRow(id){var inp=document.getElementById('rq_'+id);return inp?rawNum(inp):0;}
+function recApprove(id){var r=findRec(id);if(!r)return;pushHistory('Aprobar recurrente: '+r.description);
+  recApproveOne(r,recAmountFromRow(id));saveRecs();ls.s('tx7',txs);renderAll();syncDrive();}
+function recApproveAll(){var due=recsDue();if(!due.length)return;pushHistory('Aprobar '+due.length+' recurrentes');
+  due.forEach(function(r){recApproveOne(r,recAmountFromRow(r.id));});saveRecs();ls.s('tx7',txs);renderAll();syncDrive();}
+function recSkip(id){var r=findRec(id);if(!r)return;r.done=r.done||{};r.done[todayMk()]='s';saveRecs();renderAll();syncDrive();}
+function renderRecsCard(){
+  var w=document.getElementById('d-recs');if(!w)return;
+  while(w.firstChild)w.removeChild(w.firstChild);
+  var due=recsDue();if(!due.length){w.style.display='none';return;}
+  w.style.display='block';
+  var card=el('div',{style:'background:var(--bg2);border-radius:16px;border:.5px solid var(--border);padding:14px'});
+  card.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'},[
+    el('div',{txt:'🔁 '+due.length+' recurrente'+(due.length===1?'':'s')+' por aprobar',style:'font-size:14px;font-weight:700'}),
+    due.length>1?el('button',{txt:'Aprobar todos',click:recApproveAll,style:'background:var(--lime);color:#111;border:none;border-radius:10px;padding:7px 11px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer'}):null
+  ]));
+  due.forEach(function(r){
+    var acct=findAcct(r.accountId);
+    var sub=(r.kind==='shared'?'Pendiente · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
+    var inp=el('input',{id:'rq_'+r.id,type:'text',inputmode:'numeric',oninput:'formatMoneyInput(this)',style:'width:96px;text-align:right;padding:7px 8px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px;font-weight:600'});
+    inp.value=Number(r.amount||0).toLocaleString('es-CO');
+    var row=el('div',{style:'display:flex;align-items:center;gap:8px;padding:9px 0;border-top:.5px solid var(--border)'},[
+      el('div',{cls:'bpico',html:icoHTML(cIcon(r.category))}),
+      el('div',{style:'flex:1;min-width:0'},[el('div',{txt:r.description,style:'font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'}),el('div',{txt:sub,style:'font-size:11px;color:var(--text3)'})]),
+      inp,
+      el('button',{txt:'✓',title:'Aprobar',click:function(){recApprove(r.id);},style:'width:32px;height:32px;border-radius:50%;border:none;background:var(--lime);color:#111;font-weight:800;font-size:15px;cursor:pointer'}),
+      el('button',{txt:'✕',title:'Omitir este mes',click:function(){recSkip(r.id);},style:'width:32px;height:32px;border-radius:50%;border:.5px solid var(--border2);background:none;color:var(--text2);font-size:13px;cursor:pointer'})
+    ]);
+    card.appendChild(row);
+  });
+  card.appendChild(el('div',{txt:'✓ registra el movimiento · ✕ lo omite solo este mes',style:'font-size:10.5px;color:var(--text3);margin-top:6px'}));
+  w.appendChild(card);
+}
+var recEditId=null;
+function openRecEdit(id){var r=findRec(id);if(!r)return;recEditId=id;
+  document.getElementById('rec-d').value=r.description;document.getElementById('rec-m').value=Number(r.amount||0).toLocaleString('es-CO');
+  document.getElementById('rec-day').value=r.day;document.getElementById('m-rec').classList.add('open');}
+function saveRecEdit(){var r=findRec(recEditId);if(!r)return;
+  var d=document.getElementById('rec-d').value.trim();var m=rawNum(document.getElementById('rec-m'));var day=parseInt(document.getElementById('rec-day').value,10);
+  if(!d||!m||!day){alert('Completa descripción, monto y día');return;}
+  r.description=d;r.amount=m;r.day=Math.min(Math.max(day,1),28);saveRecs();closeM('m-rec');renderAll();syncDrive();}
+function delRec(id){var r=findRec(id);if(!r)return;
+  showConfirm('Eliminar recurrente','"'+r.description+'" dejará de aparecer cada mes. Los movimientos ya registrados no se borran.',function(){
+    recs=recs.filter(function(x){return x.id!==id;});saveRecs();renderAll();syncDrive();});}
+function renderRecsSettings(){
+  var w=document.getElementById('s-rec-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
+  if(!recs.length){w.appendChild(el('div',{txt:'Activa «Repetir cada mes» al crear un movimiento para que aparezca aquí.',style:'padding:14px 16px;font-size:12px;color:var(--text3)'}));return;}
+  recs.forEach(function(r){
+    var kindTxt=r.kind==='income'?'Ingreso':r.kind==='shared'?'Pendiente':'Gasto';
+    var eb=el('button',{txt:'✏️',click:function(){openRecEdit(r.id);}});
+    var db=el('button',{txt:'🗑️',click:function(){delRec(r.id);}});
+    w.appendChild(el('div',{cls:'srow'},[el('div',{cls:'srico',html:icoHTML(cIcon(r.category))}),
+      el('div',{cls:'srt'},[el('div',{cls:'srn',txt:r.description}),el('div',{cls:'srs',txt:kindTxt+' · '+fmt(r.amount)+' · día '+r.day})]),
+      el('div',{cls:'sra'},[eb,db])]));
+  });
+}
+
+// ── 5. Copiar presupuesto ──
+var bdgDismiss={};
+function prevMonthInfo(){var d=new Date(curY,curM-1,1);return {mk:mkK(d.getFullYear(),d.getMonth()),name:MONTHS[d.getMonth()]};}
+function budgetPrefixLists(){return [['i:',cats.income],['e:',cats.expenses],['s:',cats.savings]];}
+function copyPrevBudget(){
+  var pm=prevMonthInfo(),bp=budgets[pm.mk]||{},n=0;
+  budgetPrefixLists().forEach(function(pl){pl[1].forEach(function(c){
+    var inp=document.getElementById('bi_'+c.id);var v=bp[pl[0]+c.id]||bp[c.name]||0;
+    if(inp&&v&&!rawNum(inp)){inp.value=Number(v).toLocaleString('es-CO');n++;}
+  });});
+  updateBudgetTotals();bdgDismiss[mkK(curY,curM)]=true;
+  var bn=document.getElementById('b-copy-banner');
+  if(bn){while(bn.firstChild)bn.removeChild(bn.firstChild);
+    bn.appendChild(el('div',{txt:'✓ Se copiaron '+n+' valores de '+pm.name+'. Ajusta los que necesites y toca «Guardar presupuesto».',style:'font-size:12.5px;color:var(--green);font-weight:600;line-height:1.45'}));}
+}
+function dismissBudgetBanner(){bdgDismiss[mkK(curY,curM)]=true;var bn=document.getElementById('b-copy-banner');if(bn)bn.style.display='none';}
+function renderBudgetBanner(){
+  var bn=document.getElementById('b-copy-banner');if(!bn)return;
+  var mk=mkK(curY,curM),pm=prevMonthInfo(),b=budgets[mk]||{},bp=budgets[pm.mk]||{};
+  if(Object.keys(b).length||!Object.keys(bp).length||bdgDismiss[mk]){bn.style.display='none';return;}
+  var tot=0;Object.keys(bp).forEach(function(k){if(k.indexOf('e:')===0||k.indexOf('s:')===0)tot+=bp[k];});
+  while(bn.firstChild)bn.removeChild(bn.firstChild);
+  bn.appendChild(el('div',{txt:'Este mes no tiene presupuesto',style:'font-size:14px;font-weight:700;margin-bottom:3px'}));
+  bn.appendChild(el('div',{txt:'Puedes usar el de '+pm.name+' como base y cambiar solo lo necesario.',style:'font-size:12px;color:var(--text2);margin-bottom:11px'}));
+  bn.appendChild(el('div',{style:'display:flex;gap:8px'},[
+    el('button',{txt:'Usar el de '+pm.name+' ('+fmt(tot)+')',click:copyPrevBudget,style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
+    el('button',{txt:'En blanco',click:dismissBudgetBanner,style:'background:var(--bg3);color:var(--text2);border:none;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'})
+  ]));
+  bn.style.display='block';
+}
+
+// ── 1. Cuadrar con el banco ──
+function openAdjust(){var a=findAcct(currentAcctId);if(!a)return;
+  document.getElementById('adj-acct').textContent=a.name+(a.lastRecon?' · cuadrada por última vez el '+fmtDateCO(a.lastRecon):' · nunca se ha cuadrado');
+  document.getElementById('adj-bank').value='';adjCompute();document.getElementById('m-adj').classList.add('open');}
+function adjDiff(){var a=findAcct(currentAcctId);var inp=document.getElementById('adj-bank');
+  if(!a||!inp.value.trim())return null;return rawNum(inp)-Math.round(a.balance||0);}
+function adjCompute(){
+  var a=findAcct(currentAcctId),r=document.getElementById('adj-result'),btn=document.getElementById('adj-btn');if(!a||!r)return;
+  while(r.firstChild)r.removeChild(r.firstChild);
+  var diff=adjDiff();
+  function line(l,v,col){return el('div',{style:'display:flex;justify-content:space-between;padding:5px 0;font-size:13px'},[el('span',{txt:l,style:'color:var(--text2)'}),el('span',{txt:v,style:'font-weight:700;'+(col?'color:'+col:'')})]);}
+  var box=el('div',{style:'background:var(--bg3);border-radius:12px;padding:10px 12px'});
+  box.appendChild(line('Saldo en la app',fmt(a.balance||0)));
+  if(diff===null){r.appendChild(box);btn.textContent='Escribe el saldo del banco';btn.style.opacity='.5';return;}
+  box.appendChild(line('Saldo en el banco',fmt(rawNum(document.getElementById('adj-bank')))));
+  box.appendChild(line('Diferencia',(diff>0?'+':diff<0?'−':'')+fmt(Math.abs(diff)),diff===0?'var(--green)':'var(--amber)'));
+  r.appendChild(box);btn.style.opacity='1';
+  if(diff===0){r.appendChild(el('div',{txt:'✓ La cuenta está cuadrada.',style:'font-size:12.5px;color:var(--green);font-weight:600;margin-top:10px'}));btn.textContent='Marcar como cuadrada';}
+  else{r.appendChild(el('div',{txt:'Antes de ajustar, revisa si falta registrar algún movimiento'+(a.lastRecon?' desde el '+fmtDateCO(a.lastRecon):'')+'. El ajuste corrige el saldo sin afectar tu presupuesto ni el resumen.',style:'font-size:12px;color:var(--text2);line-height:1.5;margin-top:10px'}));
+    btn.textContent='Crear ajuste por '+(diff>0?'+':'−')+fmt(Math.abs(diff));}
+}
+function adjApply(){
+  var a=findAcct(currentAcctId);var diff=adjDiff();if(!a||diff===null)return;
+  if(diff!==0){pushHistory('Ajuste de saldo: '+a.name);
+    txs.unshift({id:uid(),mode:'tracking',type:diff>0?'Income':'Expenses',description:'Ajuste de saldo',amount:Math.abs(diff),date:todayISO(),category:'Ajuste de saldo',account:a.name,accountId:a.id,isAdjust:true});}
+  a.lastRecon=todayISO();ls.s('tx7',txs);ls.s('ac7',accts);closeM('m-adj');renderAll();openAcctModal(a.id);syncDrive();
+}
+
+function renderDashExtras(){
+  renderRecsCard();
+  var nc=noCatTxs(),w=document.getElementById('d-nocat');
+  if(w){if(nc.length){var tot=0;nc.forEach(function(t){tot+=t.amount;});
+    document.getElementById('d-nocat-txt').textContent='⚠️ '+nc.length+' movimiento'+(nc.length===1?'':'s')+' sin categoría · '+fmt(tot);w.style.display='flex';}
+    else w.style.display='none';}
+}
+
 function renderAll(){
   rebuildDerived();
   recalcAllBalances();
   var lbl=mLbl();
   ['d','t','e','b'].forEach(function(p){var e=document.getElementById(p+'-mbar');if(e)e.textContent=lbl;});
   var dl=document.getElementById('d-mlbl');if(dl)dl.textContent=lbl;
-  renderDash();renderTracking();renderExpenses();
+  renderDash();renderDashExtras();renderTracking();renderExpenses();
   if(!document.getElementById('page-budget').classList.contains('active'))renderBudget();
   renderSummary();renderSettings();
   populateAcSel();setTheme(theme);applyBlur();updateDriveUI();setIconStyle(iconStyle);
@@ -1239,7 +1509,7 @@ function renderDash(){
   var mk=mkK(curY,curM),budget=budgets[mk]||{};
   var tr=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
   var inc=0,exp=0;
-  tr.forEach(function(t){if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
+  tr.forEach(function(t){if(t.isAdjust)return;if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
   var avail=inc-exp;
 
   // Month strip
@@ -1394,6 +1664,7 @@ function makeTxEl(t){
     if(t.status&&t.status!=='Paid'){meta.appendChild(el('span',{cls:'badge unpaid',txt:stLabel}));}
   }
   if(t.isShared){meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido'}));}
+  if(t.isAdjust){meta.appendChild(el('span',{cls:'badge',txt:'Ajuste',style:'margin-left:4px;background:var(--bg3);color:var(--text2)'}));}
   if(t.isAdelanto){meta.appendChild(el('span',{cls:'badge sh',txt:t.description&&t.description.indexOf('Otro')>=0?'Adelanto Otro':'Adelanto'}));}
   if(t.isReimb){meta.appendChild(el('span',{cls:'badge sh',txt:'Reembolso'}));}
   inf.appendChild(meta);
@@ -1404,8 +1675,10 @@ function makeTxEl(t){
 
 function renderTracking(){
   monthStrip('t-months');
-  var all=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
-  var uc=[];all.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
+  var monthAll=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
+  var nc=noCatTxs();if(curFilt==='__nocat'&&!nc.length)curFilt='all';
+  var all=curFilt==='__nocat'?nc:monthAll;
+  var uc=[];monthAll.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
   var tc=clr('t-chips');
   function addChip(label,val){
     var c=el('div',{cls:'chip'+(curFilt===val?' active':''),txt:label});
@@ -1416,8 +1689,9 @@ function renderTracking(){
     tc.appendChild(c);
   }
   addChip('Todos','all');
+  if(nc.length)addChip('⚠️ Sin categoría ('+nc.length+')','__nocat');
   uc.forEach(function(c){addChip(icoLabel(cIcon(c),c),c);});
-  var filt=curFilt==='all'?all:all.filter(function(t){return t.category===curFilt;});
+  var filt=(curFilt==='all'||curFilt==='__nocat')?all:all.filter(function(t){return t.category===curFilt;});
   var srt=filt.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var tl=clr('t-list');
   if(!srt.length){tl.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'💸'}),el('p',{txt:'Sin movimientos este mes'})]));return;}
@@ -1646,6 +1920,12 @@ function renderExpenses(){
         row.replaceChild(shareDiv,amtEl);
       }
     }
+    if(selMode){
+      row=row.cloneNode(true);row.setAttribute('data-selid',t.id);var on=!!selIds[t.id];
+      var ck=el('div',{txt:on?'✓':'',style:'width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin-right:2px;'+(on?'background:var(--lime);color:#111':'border:1.5px solid var(--border2)')});
+      row.insertBefore(ck,row.firstChild);if(on)row.style.boxShadow='0 0 0 2px var(--lime) inset';
+      (function(id){row.addEventListener('click',function(){if(selIds[id])delete selIds[id];else selIds[id]=true;renderExpenses();updateSelBar();});})(t.id);
+    }
     el2.appendChild(row);
   });
 }
@@ -1756,7 +2036,8 @@ function renderBudget(){
       var bval=(b['i:'+c.id]||b['e:'+c.id]||b['s:'+c.id]||b[c.name]||0);inp.value=bval?bval.toLocaleString('es-CO'):'';
       // Previous month value
       var prevVal=(bPrev[prefix+c.id]||bPrev[c.name]||0);
-      var prevHint=prevVal?el('div',{txt:'Mes ant: '+prevVal.toLocaleString('es-CO'),style:'font-size:10px;color:var(--text3);text-align:right;margin-top:2px'}):null;
+      var prevHint=prevVal?el('div',{txt:'Mes ant: '+prevVal.toLocaleString('es-CO')+' · usar',style:'font-size:10px;color:var(--limedk);text-align:right;margin-top:2px;cursor:pointer;font-weight:600'}):null;
+      if(prevHint)(function(i2,v){prevHint.addEventListener('click',function(){i2.value=Number(v).toLocaleString('es-CO');updateBudgetTotals();});})(inp,prevVal);
       var inpWrap=el('div',{style:'display:flex;flex-direction:column;align-items:flex-end'});
       inpWrap.appendChild(inp);
       if(prevHint)inpWrap.appendChild(prevHint);
@@ -1768,6 +2049,7 @@ function renderBudget(){
     });
   }
   mkRows('b-inc',cats.income,'i:');mkRows('b-exp',cats.expenses,'e:');mkRows('b-sav',cats.savings,'s:');
+  renderBudgetBanner();
   updateBudgetTotals();
   renderDisponible();
 }
@@ -1923,8 +2205,8 @@ function renderSummary(){
   var useMonth=(sumTab!=='ov'&&sumMode==='month');
   var allY=txs.filter(function(t){
     var d=new Date(t.date+'T00:00:00');
-    if(useMonth)return d.getFullYear()===sumY&&d.getMonth()===sumM&&t.mode==='tracking';
-    return d.getFullYear()===sumY&&t.mode==='tracking';
+    if(useMonth)return d.getFullYear()===sumY&&d.getMonth()===sumM&&t.mode==='tracking'&&!t.isAdjust;
+    return d.getFullYear()===sumY&&t.mode==='tracking'&&!t.isAdjust;
   });
   var periodLabel=useMonth?(MONTHS[sumM]+' '+sumY):String(sumY);
   var totInc=0,totExp=0;allY.forEach(function(t){if(t.type==='Income')totInc+=t.amount;else totExp+=t.amount;});
@@ -2067,6 +2349,7 @@ function renderSummary(){
 
 function renderSettings(){
   renderHistory();
+  renderRecsSettings();
   var av=document.getElementById('app-version');if(av)av.textContent='Versión '+APP_VERSION;
   var ag=clr('s-ag');
   accts.forEach(function(a,i){
@@ -2200,6 +2483,7 @@ function populateCatSel(){
   var s=document.getElementById('f-c');if(!s)return;
   while(s.firstChild)s.removeChild(s.firstChild);
   var list=(mTab==='income')?cats.income:cats.expenses.concat(cats.savings);
+  var ph=document.createElement('option');ph.value='';ph.textContent='Elige una categoría…';s.appendChild(ph);
   list.forEach(function(c){
     var opt=document.createElement('option');opt.value=c.name;opt.textContent=icoLabel(c.icon,c.name);s.appendChild(opt);
   });
@@ -2347,6 +2631,7 @@ function openTx(id){
     if(accts[0]){document.getElementById('f-payacc').value=accts[0].id;document.getElementById('f-ac-inc').value=accts[0].id;}
     updatePayAccVis();
   }
+  var frec=document.getElementById('f-rec');if(frec){var ct=id?findTx(id):null;frec.checked=!!(ct&&ct.recId&&findRec(ct.recId));}
   document.getElementById('m-tx').classList.add('open');
 }
 
@@ -2358,6 +2643,8 @@ function saveTx(){
   var date=document.getElementById('f-dt').value;
   var cat=document.getElementById('f-c').value;
   if(!desc||!amount||!date){alert('Completa descripcion, monto y fecha');return;}
+  var oldPre=editId?findTx(editId):null;
+  if(!cat&&!(oldPre&&oldPre.isAdjust)){alert('Elige una categoría');return;}
   pushHistory((editId?'Editar movimiento: ':'Nuevo movimiento: ')+desc);
   var aId=(mTab==='income')?document.getElementById('f-ac-inc').value:document.getElementById('f-ac').value;
   var acct=null;for(var i=0;i<accts.length;i++){if(accts[i].id===aId){acct=accts[i];break;}}
@@ -2367,6 +2654,8 @@ function saveTx(){
   var txMode=(mTab==='shared')?'expenses':'tracking';
   var txTypeResolved=(mTab==='income')?'Income':'Expenses';
   var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false,adelantoTxId:(old&&old.adelantoTxId)||null,adelantoAmt:(old&&old.adelantoAmt)||0,payAccountId:(old&&old.payAccountId)||null};
+  if(old&&old.isAdjust){t.isAdjust=true;t.category='Ajuste de saldo';}
+  if(old&&old.recId)t.recId=old.recId;
   // Balance is recalculated automatically in renderAll via recalcAllBalances()
   if(txMode==='expenses'){
     // Solo se guarda el gasto compartido; tu parte y los adelantos se calculan solos
@@ -2380,6 +2669,10 @@ function saveTx(){
     delete t.linkedTxId;delete t.adelantoTxId;delete t.adelantoAmt;delete t.reimbTxId;
   }
   if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
+  var recEl=document.getElementById('f-rec'),recOn=recEl&&recEl.checked&&!t.isAdjust;
+  var exRec=t.recId?findRec(t.recId):null;
+  if(recOn){var rr=recFromTx(t,exRec);if(!exRec){rr.start=t.date.slice(0,7);rr.done={};rr.done[t.date.slice(0,7)]='a';recs.push(rr);t.recId=rr.id;}saveRecs();}
+  else if(exRec){recs=recs.filter(function(x){return x!==exRec;});saveRecs();}
   ls.s('tx7',txs);closeM('m-tx');renderAll();setTimeout(function(){if(document.getElementById('page-expenses').classList.contains('active')){renderPaidExpenses();}},300);syncDrive();
 }
 
@@ -2454,7 +2747,7 @@ function delCfg(type,id){
 }
 
 function exportData(){
-  var data={txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,at:new Date().toISOString(),v:8};
+  var data={txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:new Date().toISOString(),v:8};
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='finanzas-'+new Date().toISOString().split('T')[0]+'.json';a.click();
 }
@@ -2462,7 +2755,7 @@ function importData(e){
   var file=e.target.files[0];if(!file)return;
   var r=new FileReader();
   r.onload=function(ev){
-    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
+    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
   };r.readAsText(file);
 }
 
@@ -2539,7 +2832,7 @@ function syncDrive(){
   driveSt='sy';syncPending=true;updateDriveUI();
   var stamp=new Date().toISOString();
   ls.s('lm7',stamp);
-  var data=JSON.stringify({txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,at:stamp,v:8});
+  var data=JSON.stringify({txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:stamp,v:8});
   var p=driveFileId?updateDF(data):findOrCreate(data);
   p.then(function(){driveSt='ok';syncPending=false;ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
     syncPending=false;
@@ -2590,7 +2883,7 @@ function loadFromDrive(){
     if(localLm&&d.at&&localLm>d.at){
       syncDrive();
     } else {
-      txs=(d.v>=8)?(d.txs||[]):migrateLegacy(d.txs);accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
+      txs=(d.v>=8)?(d.txs||[]):migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
       driveSt='ok';updateDriveUI();
       renderAll();
