@@ -427,15 +427,12 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   <div id="d-lent" onclick="showPage('expenses')" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:.5px solid var(--border);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-lent-txt" style="font-size:12.5px;font-weight:600;color:var(--text2)"></span><span style="font-size:12px;font-weight:700;color:var(--text3);white-space:nowrap">Ver ›</span></div>
   <div id="d-recs" style="display:none;margin:0 20px 10px"></div>
   <div id="d-nocat" onclick="goNoCat()" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--amberbg);border:.5px solid rgba(245,158,11,.35);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-nocat-txt" style="font-size:12.5px;font-weight:600;color:var(--amber)"></span><span style="font-size:12px;font-weight:700;color:var(--amber);white-space:nowrap">Revisar ›</span></div>
-  <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="showPage('budget')">
-    <div>
-      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Conciliación</div>
-      <div style="font-size:11px;color:var(--text3)" id="d-concil-sub">Cuentas vs Disponible</div>
+  <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleConcil()">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Conciliación</div>
+      <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="font-size:10px;color:var(--text3)">▼</span></div>
     </div>
-    <div style="text-align:right">
-      <div id="d-concil-val" style="font-size:15px;font-weight:700">$0</div>
-      <div id="d-concil-status" style="font-size:10px;margin-top:1px">—</div>
-    </div>
+    <div id="d-concil-lines" style="display:none;margin-top:8px"></div>
   </div>
   <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">✕ Cancelar</button></div>
   <div class="shdr"><h2>Cuentas</h2><a onclick="showPage('settings')">Gestionar</a></div>
@@ -513,6 +510,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
     <div id="b-balance-sub" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
   </div>
   <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
+  <div id="b-unassigned" style="display:none;margin:12px 20px 0;padding:14px;border-radius:14px;border:.5px solid var(--border)"></div>
   <div style="display:flex;gap:8px;padding:12px 20px 0">
     <button id="btab-acum" onclick="setBudgetTab('acum')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--lime);color:#000">Acumulado</button>
     <button id="btab-mes" onclick="setBudgetTab('mes')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2)">Este mes</button>
@@ -639,6 +637,19 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       <div class="fg"><label>Saldo que muestra el banco</label><input id="adj-bank" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this);adjCompute()"></div>
       <div id="adj-result" style="margin-bottom:14px"></div>
       <button class="btnp" id="adj-btn" onclick="adjApply()">Comparar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mback" id="m-assign">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2>Asignar dinero</h2><button class="xbtn" onclick="closeM('m-assign')">✕</button></div>
+    <div class="mbody">
+      <div id="asg-info" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5"></div>
+      <div class="fg"><label>Monto</label><input id="asg-m" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="fg"><label>Rubro</label><select id="asg-cat"></select></div>
+      <button class="btnp" onclick="assignConfirm()">Asignar</button>
     </div>
   </div>
 </div>
@@ -1190,7 +1201,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-02 · v11';
+var APP_VERSION='2026-10-02 · v12';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1217,6 +1228,8 @@ function deriveFrom(p){
 }
 function rebuildDerived(){
   var base=baseTxs(),derived=[];
+  // Limpieza: un gasto de Movimientos siempre está pagado; el estado solo aplica a Pendiente
+  base.forEach(function(t){if(t.mode==='tracking'&&t.status)delete t.status;});
   base.forEach(function(p){derived=derived.concat(deriveFrom(p));});
   txs=base.concat(derived);
 }
@@ -1489,9 +1502,107 @@ function matchQuery(t,q){
 }
 function clearSearch(){trackQuery='';var s=document.getElementById('t-search');if(s)s.value='';renderTracking();}
 
+
+// ══════ v12: Por asignar · Conciliación con desglose ══════
+function concilData(y,m){
+  var upTo=function(d){var x=new Date(d+'T00:00:00');return x.getFullYear()<y||(x.getFullYear()===y&&x.getMonth()<=m);};
+  var catNames=cats.expenses.concat(cats.savings).map(function(c){return c.name;});
+  var o={cuentas:0,I:0,B:0,Ecat:0,nocat:0,prest:0,adj:0,fut:0};
+  accts.forEach(function(a){o.cuentas+=a.balance||0;});
+  txs.forEach(function(t){
+    if(t.mode!=='tracking')return;
+    if(t.isAdjust){o.adj+=(t.type==='Income'?1:-1)*t.amount;return;}
+    if(t.isAdelanto){o.prest+=t.amount;return;}
+    var fut=!upTo(t.date);
+    if(t.type==='Income'){if(fut)o.fut+=t.amount;else o.I+=t.amount;return;}
+    if(fut){o.fut-=t.amount;return;}
+    if(catNames.indexOf(t.category)>=0)o.Ecat+=t.amount;else o.nocat+=t.amount;
+  });
+  Object.keys(budgets).forEach(function(mk){var p=mk.split('-'),by=+p[0],bm=+p[1]-1;
+    if(by<y||(by===y&&bm<=m)){var b=budgets[mk]||{};Object.keys(b).forEach(function(k){if(k.indexOf('e:')===0||k.indexOf('s:')===0)o.B+=b[k];});}});
+  o.disp=o.B-o.Ecat;o.porAsignar=o.I-o.B;
+  o.sinExplicar=o.cuentas-(o.disp+o.porAsignar-o.prest-o.nocat+o.adj+o.fut);
+  return o;
+}
+var concilOpen=false;
+function toggleConcil(){concilOpen=!concilOpen;renderConcil();}
+function renderConcil(){
+  var st=document.getElementById('d-concil-status'),ln=document.getElementById('d-concil-lines'),ar=document.getElementById('d-concil-arrow');if(!st||!ln)return;
+  var now=new Date(),o=concilData(now.getFullYear(),now.getMonth());
+  var ok=Math.abs(o.sinExplicar)<1;
+  st.textContent=ok?'✓ Todo explicado':'⚠ Sin explicar '+fmt(Math.abs(o.sinExplicar));
+  st.style.color=ok?'var(--green)':'var(--red)';
+  ln.style.display=concilOpen?'block':'none';if(ar)ar.textContent=concilOpen?'▲':'▼';
+  while(ln.firstChild)ln.removeChild(ln.firstChild);
+  function money(v,sign){return (sign&&v>0?'+':v<0?'−':'')+fmt(Math.abs(v));}
+  function line(label,v,opt){opt=opt||{};
+    var r=el('div',{style:'display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px;'+(opt.top?'border-top:.5px solid var(--border);margin-top:4px;padding-top:9px;':'')+(opt.go?'cursor:pointer;':'')},[
+      el('span',{txt:label+(opt.go?' ›':''),style:'color:'+(opt.strong?'var(--text)':'var(--text2)')+';font-weight:'+(opt.strong?'700':'500')}),
+      el('span',{txt:opt.raw?fmt(v):money(v,true),style:'font-weight:700;'+(opt.col?'color:'+opt.col:'')})]);
+    if(opt.go)r.addEventListener('click',opt.go);ln.appendChild(r);}
+  line('Disponible acumulado',o.disp,{raw:true,go:function(){showPage('budget');}});
+  line(o.porAsignar>=0?'Por asignar':'Te faltan por cubrir',o.porAsignar,{go:function(){showPage('budget');}});
+  if(o.prest)line('Prestado (te lo deben)',-o.prest,{go:function(){showPage('expenses');}});
+  if(o.nocat)line('Gastos sin categoría',-o.nocat,{go:goNoCat});
+  if(o.adj)line('Ajustes de saldo',o.adj);
+  if(Math.abs(o.fut)>=1)line('Movimientos con fecha futura',o.fut);
+  line('= Total en tus cuentas',o.cuentas,{raw:true,strong:true,top:true});
+  line('Sin explicar',o.sinExplicar,{col:ok?'var(--green)':'var(--red)'});
+  if(!ok)ln.appendChild(el('div',{txt:'Hay una diferencia que no corresponde a nada de lo anterior. Revisa si falta registrar algún movimiento o usa «Cuadrar con el banco» en la cuenta.',style:'font-size:11px;color:var(--text3);line-height:1.45;margin-top:4px'}));
+}
+
+var asgMax=0;
+function assignCats(){return cats.expenses.map(function(c){return {c:c,p:'e:'};}).concat(cats.savings.map(function(c){return {c:c,p:'s:'};}));}
+function renderUnassigned(){
+  var w=document.getElementById('b-unassigned');if(!w)return;
+  while(w.firstChild)w.removeChild(w.firstChild);
+  var o=concilData(curY,curM),v=Math.round(o.porAsignar);asgMax=v;
+  if(Math.abs(v)<1){w.style.display='block';w.style.background='var(--bg2)';
+    w.appendChild(el('div',{txt:'✓ Todo tu dinero está asignado',style:'font-size:12.5px;font-weight:600;color:var(--green)'}));return;}
+  w.style.display='block';
+  if(v>0){
+    w.style.background='var(--greenbg)';
+    w.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:baseline'},[
+      el('span',{txt:'Por asignar',style:'font-size:13px;font-weight:700'}),el('span',{txt:fmt(v),style:'font-size:18px;font-weight:800;color:var(--green)'})]));
+    w.appendChild(el('div',{txt:'Te entró más de lo que presupuestaste hasta '+MONTHS[curM]+'. Decide a qué rubro de '+MONTHS[curM]+' lo mandas.',style:'font-size:11.5px;color:var(--text2);margin:4px 0 11px;line-height:1.45'}));
+    var sav=cats.savings[0];
+    w.appendChild(el('div',{style:'display:flex;gap:8px'},[
+      el('button',{txt:'Asignar a un rubro',click:function(){openAssign();},style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
+      sav?el('button',{txt:'Mandar a '+sav.name,click:function(){assignTo('s:',sav,v);},style:'flex:1;background:var(--bg2);color:var(--text);border:.5px solid var(--border2);border-radius:10px;padding:10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'}):null]));
+  } else {
+    w.style.background='var(--amberbg)';
+    w.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:baseline'},[
+      el('span',{txt:'Te faltan por cubrir',style:'font-size:13px;font-weight:700'}),el('span',{txt:fmt(-v),style:'font-size:18px;font-weight:800;color:var(--amber)'})]));
+    w.appendChild(el('div',{txt:'Te entró menos de lo que presupuestaste hasta '+MONTHS[curM]+'. Baja algún rubro de '+MONTHS[curM]+' en ese valor para que el plan se ajuste a la realidad.',style:'font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.45'}));
+  }
+}
+function openAssign(){
+  var s=document.getElementById('asg-cat');while(s.firstChild)s.removeChild(s.firstChild);
+  assignCats().forEach(function(x){var o=document.createElement('option');o.value=x.p+x.c.id;o.textContent=x.c.name;s.appendChild(o);});
+  document.getElementById('asg-m').value=Number(asgMax).toLocaleString('es-CO');
+  document.getElementById('asg-info').textContent='Tienes '+fmt(asgMax)+' por asignar. Se sumará al presupuesto de '+MONTHS[curM]+' '+curY+' del rubro que elijas.';
+  document.getElementById('m-assign').classList.add('open');
+}
+function assignConfirm(){
+  var amt=rawNum(document.getElementById('asg-m'));var key=document.getElementById('asg-cat').value;
+  if(!amt){alert('Escribe un monto');return;}
+  var p=key.slice(0,2),id=key.slice(2),cat=null;assignCats().forEach(function(x){if(x.c.id===id)cat=x.c;});
+  closeM('m-assign');if(cat)assignTo(p,cat,amt);
+}
+function assignTo(prefix,cat,amt){
+  var inp=document.getElementById('bi_'+cat.id);
+  if(!document.getElementById('page-budget').classList.contains('active')||!inp){showPage('budget');renderBudget();inp=document.getElementById('bi_'+cat.id);}
+  if(!inp)return;
+  inp.value=Number(rawNum(inp)+amt).toLocaleString('es-CO');
+  saveBudget();
+  renderDisponible();if(typeof budgetTab!=='undefined'&&budgetTab==='mes')renderMesDisponible();
+  renderUnassigned();renderConcil();
+}
+
 function renderDashExtras(){
   renderRecsCard();
   renderLent();
+  renderUnassigned();
   var nc=noCatTxs(),w=document.getElementById('d-nocat');
   if(w){if(nc.length){var tot=0;nc.forEach(function(t){tot+=t.amount;});
     document.getElementById('d-nocat-txt').textContent='⚠️ '+nc.length+' movimiento'+(nc.length===1?'':'s')+' sin categoría · '+fmt(tot);w.style.display='flex';}
@@ -1663,54 +1774,7 @@ function renderDash(){
     ]));
   });
 
-  // Conciliacion
-  var totalCuentas=0;
-  accts.forEach(function(a){totalCuentas+=(a.balance||0);});
-  // Calculate disponible acumulado (same logic as renderDisponible)
-  var allCatsD=cats.expenses.concat(cats.savings);
-  var grandBudgD=0,grandExpD=0;
-  allCatsD.forEach(function(cat){
-    Object.keys(budgets).forEach(function(mk){
-      var parts=mk.split('-');
-      var y=parseInt(parts[0]),m=parseInt(parts[1])-1;
-      if(y<curY||(y===curY&&m<=curM)){
-        var bkd=budgets[mk]||{};
-        grandBudgD+=(bkd['e:'+cat.id]||bkd['s:'+cat.id]||bkd[cat.name]||0);
-      }
-    });
-    txs.forEach(function(t){
-      if(t.mode==='tracking'&&t.type==='Expenses'&&t.category===cat.name&&!t.isAdelanto&&!t.isReimbursed&&!t.isReimb){
-        var d=new Date(t.date+'T00:00:00');
-        var y=d.getFullYear(),m=d.getMonth();
-        if(y<curY||(y===curY&&m<=curM)) grandExpD+=t.amount;
-      }
-    });
-  });
-  var disponibleAcum=grandBudgD-grandExpD;
-  // Adelantos pendientes (salieron de cuenta pero no contados como gasto)
-  var adelantosPend=0;
-  txs.forEach(function(t){if(t.isAdelanto&&!t.isReimbursed)adelantosPend+=t.amount;});
-  var diff=disponibleAcum-totalCuentas;
-  var cv=document.getElementById('d-concil-val');
-  var cs=document.getElementById('d-concil-status');
-  var csub=document.getElementById('d-concil-sub');
-  if(cv){
-    cv.textContent=fmt(Math.abs(diff));
-    if(Math.abs(diff)<=1000){
-      cv.style.color='var(--green)';
-      if(cs)cs.textContent='✓ Cuadrado';
-      if(cs)cs.style.color='var(--green)';
-    } else {
-      cv.style.color=diff>0?'var(--amber)':'var(--red)';
-      if(cs)cs.textContent=diff>0?'Disponible > Cuentas':'Cuentas > Disponible';
-      if(cs)cs.style.color='var(--amber)';
-    }
-    if(csub&&adelantosPend>0){
-      csub.textContent='Adelantos pend: '+fmt(adelantosPend);
-    } else if(csub){
-      csub.textContent='Cuentas vs Disponible acum.';
-    }
-  }
+  renderConcil();
 
   // Recent
   var recent=tr.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).slice(0,5);
@@ -2742,7 +2806,7 @@ function saveTx(){
   // Map mTab to mode/type
   var txMode=(mTab==='shared')?'expenses':'tracking';
   var txTypeResolved=(mTab==='income')?'Income':'Expenses';
-  var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:document.getElementById('f-st').value||'Paid',linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false,adelantoTxId:(old&&old.adelantoTxId)||null,adelantoAmt:(old&&old.adelantoAmt)||0,payAccountId:(old&&old.payAccountId)||null};
+  var t={id:editId||uid(),mode:txMode,type:txTypeResolved,description:desc,amount:amount,date:date,category:cat,account:acct?acct.name:'',accountId:aId,charge:document.getElementById('f-ch').value,source:document.getElementById('f-so').value,status:(txMode==='expenses')?(document.getElementById('f-st').value||'Paid'):undefined,linkedTxId:null,payAccountId:null,linkedFrom:(old&&old.linkedFrom)||null,isShared:(old&&old.isShared)||false,adelantoTxId:(old&&old.adelantoTxId)||null,adelantoAmt:(old&&old.adelantoAmt)||0,payAccountId:(old&&old.payAccountId)||null};
   if(old&&old.isAdjust){t.isAdjust=true;t.category='Ajuste de saldo';}
   if(old&&old.recId)t.recId=old.recId;
   // Balance is recalculated automatically in renderAll via recalcAllBalances()
