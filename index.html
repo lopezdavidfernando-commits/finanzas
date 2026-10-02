@@ -215,7 +215,7 @@ nav button.active svg{stroke:#161310}
 .mhdr h2{font-size:18px;font-weight:800;letter-spacing:-.3px}
 .xbtn{background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2)}
 .mtabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;gap:4px}
-.mtab{padding:11px 14px;font-size:13.5px;font-weight:700;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+.mtab{padding:11px 9px;font-size:13px;font-weight:700;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
 .mtab.active{color:var(--text);border-bottom-color:var(--lime)}
 .mbody{padding:18px 20px}
 .seg{display:flex;background:var(--bg3);border-radius:13px;padding:4px;gap:4px;margin-bottom:14px}
@@ -424,6 +424,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
   <div class="kpis" id="d-kpis"></div>
 
+  <div id="d-lent" onclick="showPage('expenses')" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:.5px solid var(--border);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-lent-txt" style="font-size:12.5px;font-weight:600;color:var(--text2)"></span><span style="font-size:12px;font-weight:700;color:var(--text3);white-space:nowrap">Ver ›</span></div>
   <div id="d-recs" style="display:none;margin:0 20px 10px"></div>
   <div id="d-nocat" onclick="goNoCat()" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--amberbg);border:.5px solid rgba(245,158,11,.35);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-nocat-txt" style="font-size:12.5px;font-weight:600;color:var(--amber)"></span><span style="font-size:12px;font-weight:700;color:var(--amber);white-space:nowrap">Revisar ›</span></div>
   <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="showPage('budget')">
@@ -449,6 +450,10 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 
 <div class="page" id="page-tracking">
   <div class="topbar"><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
+  <div style="padding:0 20px 10px"><div style="position:relative">
+    <input id="t-search" type="text" placeholder="🔍 Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px">
+    <span id="t-search-x" onclick="clearSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);cursor:pointer;padding:4px">✕</span>
+  </div></div>
   <div class="months" id="t-months"></div>
   <div class="chips" id="t-chips"></div>
   <div class="txwrap" id="t-list"></div>
@@ -669,6 +674,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
     <div class="mtabs">
       <div class="mtab active" id="mt-inc" onclick="setMTab('income')">Ingreso</div>
       <div class="mtab" id="mt-gasto" onclick="setMTab('gasto')">Gasto</div>
+      <div class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferir</div>
       <div class="mtab" id="mt-shared" onclick="setMTab('shared')">Pendiente</div>
     </div>
     <div class="mbody">
@@ -678,9 +684,16 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
         <div class="fg"><label>Monto (COP)</label><input id="f-m" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
         <div class="fg"><label>Fecha</label><input id="f-dt" type="date"></div>
       </div>
-      <div class="fg"><label>Categoría</label><select id="f-c"></select></div>
+      <div class="fg" id="fg-cat"><label>Categoría</label><select id="f-c"></select></div>
       <div id="tf-income-ac" style="display:none"><div class="fg"><label>Cuenta donde entra</label><select id="f-ac-inc"></select></div></div>
       <div id="tf-gasto"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
+      <div id="tf-transfer" style="display:none">
+        <div class="fgrow">
+          <div class="fg"><label>Desde</label><select id="f-from"></select></div>
+          <div class="fg"><label>Hacia</label><select id="f-to"></select></div>
+        </div>
+        <div style="font-size:11.5px;color:var(--text3);margin:-4px 0 12px">Mueve dinero entre tus cuentas (cajero, pago de tarjeta, etc.). No cuenta como gasto ni ingreso.</div>
+      </div>
       <div id="tf-shared" style="display:none">
         <div class="fgrow">
           <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david">David</option><option id="ch-lina">Lina</option><option>Los dos</option><option>Otro</option></select></div>
@@ -837,7 +850,8 @@ if(!ls.g('mg8',false)){txs=migrateLegacy(txs);ls.s('tx7',txs);ls.s('mg8',true);}
   ['income','expenses','savings'].forEach(function(k){if(cats[k])cats[k].forEach(function(c){if(M[c.icon])c.icon=M[c.icon];});});
   ls.s('ac7',accts);ls.s('ca7',cats);ls.s('icmig7',true);
 })();
-var driveCid=ls.g('dc7',''), driveToken=ls.g('dt7',''), driveFileId=ls.g('df7',''), driveSt='off';
+var DEFAULT_CID='942296139727-uu6nkcaehiqlckrrtok01fqeul9iei6p.apps.googleusercontent.com';
+var driveCid=ls.g('dc7','')||DEFAULT_CID, driveToken=ls.g('dt7',''), driveFileId=ls.g('df7',''), driveSt='off';
 var curY=new Date().getFullYear(), curM=new Date().getMonth(), sumY=new Date().getFullYear();
 var curFilt='all', curFiltExp='all', curFiltSrc='all', editId=null, mTab='tracking', txType='Expenses', cfgType='', cfgEditId=null, cfgIcon='';
 var blurred=ls.g('bl7',false), theme=ls.g('th7','dark'), sumTab='ov';
@@ -916,11 +930,13 @@ function openAcctModal(acctId){
 
   // Get all txs affecting this account
   var related=txs.filter(function(t){
+    if(t.mode==='transfer')return t.fromId===acctId||t.toId===acctId;
     return t.accountId===acctId&&t.mode==='tracking'&&!t.isReimb&&!t.isReimbursed;
   }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 
   var totalInc=0,totalExp=0;
   related.forEach(function(t){
+    if(t.mode==='transfer'){if(t.toId===acctId)totalInc+=t.amount;else totalExp+=t.amount;return;}
     if(t.type==='Income')totalInc+=t.amount;
     else totalExp+=t.amount;
   });
@@ -978,12 +994,13 @@ function openAcctModal(acctId){
     Object.keys(grp).forEach(function(d){
       list.appendChild(el('div',{cls:'txdh',txt:d}));
       grp[d].forEach(function(t){
-        var isInc=t.type==='Income';
+        var isTr=t.mode==='transfer';
+        var isInc=isTr?t.toId===acctId:t.type==='Income';
         var row=el('div',{cls:'tx',click:function(){closeM('m-acct');openTx(t.id);}});
-        row.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
+        row.appendChild(el('div',{cls:'tico',html:isTr?TRANSFER_ICO:icoHTML(cIcon(t.category))}));
         var inf=el('div',{cls:'tinf'});
         inf.appendChild(el('div',{cls:'td',txt:t.description}));
-        var meta=el('div',{cls:'tm',txt:t.category||'Sin categoria'});
+        var meta=el('div',{cls:'tm',txt:isTr?(isInc?'Transferencia desde '+acctNameById(t.fromId):'Transferencia hacia '+acctNameById(t.toId)):(t.category||'Sin categoria')});
         if(t.isShared)meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido',style:'margin-left:4px'}));
         if(t.status==='Paid')meta.appendChild(el('span',{cls:'badge paid',txt:'Pagado',style:'margin-left:4px'}));
         inf.appendChild(meta);
@@ -1154,6 +1171,7 @@ function recalcAllBalances(){
   accts.forEach(function(acct){
     var calc=0;
     txs.forEach(function(t){
+      if(t.mode==='transfer'){if(t.fromId===acct.id)calc-=t.amount;if(t.toId===acct.id)calc+=t.amount;return;}
       if(t.accountId===acct.id&&t.mode==='tracking'){
         // Personal expenses (mode=tracking) always affect balance
         // Linked shared expenses also affect balance (they are copies of paid shared)
@@ -1172,7 +1190,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-09-22 · v9';
+var APP_VERSION='2026-10-02 · v11';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1419,8 +1437,61 @@ function adjApply(){
   a.lastRecon=todayISO();ls.s('tx7',txs);ls.s('ac7',accts);closeM('m-adj');renderAll();openAcctModal(a.id);syncDrive();
 }
 
+
+// ══════ v11: Transferencias · Prestado · Buscador ══════
+var TRANSFER_ICO='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h13l-4-4"/><path d="M17 17H4l4 4"/></svg>';
+function populateTransferSel(){
+  ['f-from','f-to'].forEach(function(id,ix){
+    var s=document.getElementById(id);if(!s)return;var cur=s.value;
+    while(s.firstChild)s.removeChild(s.firstChild);
+    accts.forEach(function(a){var o=document.createElement('option');o.value=a.id;o.textContent=a.name;s.appendChild(o);});
+    if(cur&&findAcct(cur))s.value=cur;else if(accts[ix])s.value=accts[ix].id;
+  });
+}
+function saveTransfer(){
+  var desc=document.getElementById('f-d').value.trim()||'Transferencia';
+  var amount=rawNum(document.getElementById('f-m'));var date=document.getElementById('f-dt').value;
+  var from=document.getElementById('f-from').value,to=document.getElementById('f-to').value;
+  if(!amount||!date){alert('Completa monto y fecha');return;}
+  if(!from||!to||from===to){alert('Elige dos cuentas distintas');return;}
+  pushHistory((editId?'Editar':'Nueva')+' transferencia');
+  var t={id:editId||uid(),mode:'transfer',type:'Transfer',description:desc,amount:amount,date:date,fromId:from,toId:to,category:'Transferencia'};
+  if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
+  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
+}
+function makeTransferEl(t){
+  var div=el('div',{cls:'tx',click:function(){openTx(t.id);}});
+  div.appendChild(el('div',{cls:'tico',html:TRANSFER_ICO}));
+  var inf=el('div',{cls:'tinf'});
+  inf.appendChild(el('div',{cls:'td',txt:t.description}));
+  var meta=el('div',{cls:'tm',txt:acctNameById(t.fromId)+' → '+acctNameById(t.toId)});
+  meta.appendChild(el('span',{cls:'badge',txt:'Transferencia',style:'margin-left:4px;background:var(--bg3);color:var(--text2)'}));
+  inf.appendChild(meta);div.appendChild(inf);
+  div.appendChild(el('div',{cls:'ta',txt:fmt(t.amount),style:'color:var(--text2)'}));
+  return div;
+}
+function renderLent(){
+  var w=document.getElementById('d-lent');if(!w)return;
+  var by={},tot=0;
+  txs.forEach(function(t){if(!t.isAdelanto)return;var p=findTx(t.linkedFrom);var who=p&&p.charge==='Otro'?'Otro':partnerName;by[who]=(by[who]||0)+t.amount;tot+=t.amount;});
+  if(!tot){w.style.display='none';return;}
+  document.getElementById('d-lent-txt').textContent='💸 Prestado · '+Object.keys(by).map(function(k){return k+' '+fmt(by[k]);}).join(' · ');
+  w.style.display='flex';
+}
+var trackQuery='';
+function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function matchQuery(t,q){
+  var hay=normTxt([t.description,t.category,t.account,t.fromId?acctNameById(t.fromId):'',t.toId?acctNameById(t.toId):''].join(' '));
+  return normTxt(q).split(/\s+/).filter(Boolean).every(function(w){
+    if(/^\$?\d[\d.,]*$/.test(w)){var d=w.replace(/\D/g,'');return d.length>0&&String(Math.round(t.amount)).indexOf(d)>=0;}
+    return hay.indexOf(w)>=0;
+  });
+}
+function clearSearch(){trackQuery='';var s=document.getElementById('t-search');if(s)s.value='';renderTracking();}
+
 function renderDashExtras(){
   renderRecsCard();
+  renderLent();
   var nc=noCatTxs(),w=document.getElementById('d-nocat');
   if(w){if(nc.length){var tot=0;nc.forEach(function(t){tot+=t.amount;});
     document.getElementById('d-nocat-txt').textContent='⚠️ '+nc.length+' movimiento'+(nc.length===1?'':'s')+' sin categoría · '+fmt(tot);w.style.display='flex';}
@@ -1509,7 +1580,7 @@ function renderDash(){
   var mk=mkK(curY,curM),budget=budgets[mk]||{};
   var tr=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
   var inc=0,exp=0;
-  tr.forEach(function(t){if(t.isAdjust)return;if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
+  tr.forEach(function(t){if(t.isAdjust||t.isAdelanto)return;if(t.type==='Income')inc+=t.amount;else exp+=t.amount;});
   var avail=inc-exp;
 
   // Month strip
@@ -1649,6 +1720,7 @@ function renderDash(){
 }
 
 function makeTxEl(t){
+  if(t.mode==='transfer')return makeTransferEl(t);
   var isInc=t.type==='Income';
   var div=el('div',{cls:'tx',click:function(){openTx(t.id);}});
   div.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
@@ -1675,9 +1747,11 @@ function makeTxEl(t){
 
 function renderTracking(){
   monthStrip('t-months');
-  var monthAll=mTxs(txs).filter(function(t){return t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb;});
+  var monthAll=mTxs(txs).filter(function(t){return (t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer';});
   var nc=noCatTxs();if(curFilt==='__nocat'&&!nc.length)curFilt='all';
-  var all=curFilt==='__nocat'?nc:monthAll;
+  var q=(trackQuery||'').trim();
+  var sx=document.getElementById('t-search-x');if(sx)sx.style.display=q?'inline':'none';
+  var all=q?txs.filter(function(t){return ((t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer')&&matchQuery(t,q);}):(curFilt==='__nocat'?nc:monthAll);
   var uc=[];monthAll.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
   var tc=clr('t-chips');
   function addChip(label,val){
@@ -1694,11 +1768,12 @@ function renderTracking(){
   var filt=(curFilt==='all'||curFilt==='__nocat')?all:all.filter(function(t){return t.category===curFilt;});
   var srt=filt.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var tl=clr('t-list');
-  if(!srt.length){tl.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'💸'}),el('p',{txt:'Sin movimientos este mes'})]));return;}
+  if(!srt.length){tl.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',txt:'💸'}),el('p',{txt:q?'Sin resultados para «'+q+'»':'Sin movimientos este mes'})]));return;}
+  if(q){var sTot=0;srt.forEach(function(t){if(t.mode!=='transfer')sTot+=(t.type==='Income'?1:-1)*t.amount;});tl.appendChild(el('div',{txt:srt.length+' resultado'+(srt.length===1?'':'s')+' en todos los meses',style:'font-size:12px;font-weight:600;color:var(--text2);padding:2px 4px 8px'}));}
   var grp={};
   srt.forEach(function(t){
     var d=new Date(t.date+'T00:00:00');
-    var k=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
+    var k=d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:q?'numeric':undefined});
     if(!grp[k])grp[k]=[];grp[k].push(t);
   });
   Object.keys(grp).forEach(function(d){
@@ -2497,7 +2572,12 @@ function setMTab(t){
   document.getElementById('tf-income-ac').style.display=(t==='income')?'block':'none';
   document.getElementById('tf-gasto').style.display=(t==='gasto')?'block':'none';
   document.getElementById('tf-shared').style.display=(t==='shared')?'block':'none';
-  if(t==='income')txType='Income';else txType='Expenses';
+  var mtt=document.getElementById('mt-transfer');if(mtt)mtt.classList.toggle('active',t==='transfer');
+  var tft=document.getElementById('tf-transfer');if(tft)tft.style.display=(t==='transfer')?'block':'none';
+  var fgc=document.getElementById('fg-cat');if(fgc)fgc.style.display=(t==='transfer')?'none':'block';
+  var rrw=document.getElementById('rec-row');if(rrw)rrw.style.display=(t==='transfer')?'none':'flex';
+  if(t==='transfer')populateTransferSel();
+  if(t==='income')txType='Income';else if(t==='transfer')txType='Transfer';else txType='Expenses';
   populateCatSel();
 }
 
@@ -2603,6 +2683,14 @@ function openTx(id){
       var parent=null;for(var i=0;i<txs.length;i++){if(txs[i].id===t.linkedFrom){parent=txs[i];break;}}
       if(parent){closeM('m-tx');openTx(parent.id);return;}
     }
+    if(t.mode==='transfer'){
+      setMTab('transfer');
+      document.getElementById('f-d').value=t.description||'';
+      document.getElementById('f-m').value=t.amount.toLocaleString('es-CO');
+      document.getElementById('f-dt').value=t.date;
+      document.getElementById('f-from').value=t.fromId;document.getElementById('f-to').value=t.toId;
+      document.getElementById('m-tx').classList.add('open');return;
+    }
     var openTab;
     if(t.mode==='expenses') openTab='shared';
     else if(t.type==='Income') openTab='income';
@@ -2638,6 +2726,7 @@ function openTx(id){
 
 
 function saveTx(){
+  if(mTab==='transfer'){saveTransfer();return;}
   var desc=document.getElementById('f-d').value.trim();
   var amount=rawNum(document.getElementById('f-m'));
   var date=document.getElementById('f-dt').value;
@@ -2759,7 +2848,7 @@ function importData(e){
   };r.readAsText(file);
 }
 
-function handleDrive(){if(driveCid&&driveToken)syncDrive();else{document.getElementById('drive-cid').value=driveCid||'';document.getElementById('m-drive').classList.add('open');}}
+function handleDrive(){if(driveCid&&driveToken)syncDrive();else if(driveCid)initGAuth();else{document.getElementById('drive-cid').value=driveCid||'';document.getElementById('m-drive').classList.add('open');}}
 function saveDriveCid(){var c=document.getElementById('drive-cid').value.trim();if(!c){alert('Pega tu Client ID');return;}driveCid=c;ls.s('dc7',c);closeM('m-drive');initGAuth();}
 function isMobile(){
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.innerWidth<768;
@@ -2784,7 +2873,7 @@ function startGAuth(){
     // Mobile: use popup token client
     var tokenClient=google.accounts.oauth2.initTokenClient({
       client_id:driveCid,
-      scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
+      scope:'https://www.googleapis.com/auth/drive.file',
       callback:function(resp){
         if(resp.error){driveSt='er';updateDriveUI();return;}
         driveToken=resp.access_token;
@@ -2792,7 +2881,7 @@ function startGAuth(){
         driveSt='sy';updateDriveUI();syncDrive();
       }
     });
-    tokenClient.requestAccessToken({prompt:'consent'});
+    tokenClient.requestAccessToken({prompt:''});
   } else {
     // Desktop: use redirect flow
     var state=Math.random().toString(36).slice(2);
@@ -2801,7 +2890,7 @@ function startGAuth(){
       client_id:driveCid,
       redirect_uri:window.location.origin+window.location.pathname,
       response_type:'token',
-      scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
+      scope:'https://www.googleapis.com/auth/drive.file',
       state:state,
       include_granted_scopes:'true'
     });
