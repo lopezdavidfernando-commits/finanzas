@@ -647,8 +647,10 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
     <div class="mhdr"><h2>Asignar dinero</h2><button class="xbtn" onclick="closeM('m-assign')">✕</button></div>
     <div class="mbody">
       <div id="asg-info" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5"></div>
-      <div class="fg"><label>Monto</label><input id="asg-m" type="text" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="fg"><label>Monto</label><input id="asg-m" type="text" inputmode="numeric" oninput="formatMoneyInput(this);assignPreview()"></div>
       <div class="fg"><label>Rubro</label><select id="asg-cat"></select></div>
+      <div class="fg"><label>Sumar también a ingresos en</label><select id="asg-inc" onchange="assignPreview()"></select></div>
+      <div id="asg-prev" style="font-size:11.5px;color:var(--text3);line-height:1.45;margin:-4px 0 14px"></div>
       <button class="btnp" onclick="assignConfirm()">Asignar</button>
     </div>
   </div>
@@ -1201,7 +1203,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-02 · v12';
+var APP_VERSION='2026-10-03 · v13';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1507,7 +1509,7 @@ function clearSearch(){trackQuery='';var s=document.getElementById('t-search');i
 function concilData(y,m){
   var upTo=function(d){var x=new Date(d+'T00:00:00');return x.getFullYear()<y||(x.getFullYear()===y&&x.getMonth()<=m);};
   var catNames=cats.expenses.concat(cats.savings).map(function(c){return c.name;});
-  var o={cuentas:0,I:0,B:0,Ecat:0,nocat:0,prest:0,adj:0,fut:0};
+  var o={cuentas:0,I:0,B:0,Binc:0,Ecat:0,nocat:0,prest:0,adj:0,fut:0};
   accts.forEach(function(a){o.cuentas+=a.balance||0;});
   txs.forEach(function(t){
     if(t.mode!=='tracking')return;
@@ -1519,9 +1521,13 @@ function concilData(y,m){
     if(catNames.indexOf(t.category)>=0)o.Ecat+=t.amount;else o.nocat+=t.amount;
   });
   Object.keys(budgets).forEach(function(mk){var p=mk.split('-'),by=+p[0],bm=+p[1]-1;
-    if(by<y||(by===y&&bm<=m)){var b=budgets[mk]||{};Object.keys(b).forEach(function(k){if(k.indexOf('e:')===0||k.indexOf('s:')===0)o.B+=b[k];});}});
-  o.disp=o.B-o.Ecat;o.porAsignar=o.I-o.B;
-  o.sinExplicar=o.cuentas-(o.disp+o.porAsignar-o.prest-o.nocat+o.adj+o.fut);
+    if(by<y||(by===y&&bm<=m)){var b=budgets[mk]||{};Object.keys(b).forEach(function(k){if(k.indexOf('e:')===0||k.indexOf('s:')===0)o.B+=b[k];if(k.indexOf('i:')===0)o.Binc+=b[k];});}});
+  o.disp=o.B-o.Ecat;
+  // Por asignar = ingresos reales + ajustes con el banco − lo asignado a gastos y ahorro
+  o.porAsignar=o.I+o.adj-o.B;
+  // Parte que es dinero real fuera del plan de ingresos (debe sumarse a ingresos al asignar)
+  o.fueraPlan=o.I+o.adj-o.Binc;
+  o.sinExplicar=o.cuentas-(o.disp+o.porAsignar-o.prest-o.nocat+o.fut);
   return o;
 }
 var concilOpen=false;
@@ -1541,14 +1547,41 @@ function renderConcil(){
       el('span',{txt:opt.raw?fmt(v):money(v,true),style:'font-weight:700;'+(opt.col?'color:'+opt.col:'')})]);
     if(opt.go)r.addEventListener('click',opt.go);ln.appendChild(r);}
   line('Disponible acumulado',o.disp,{raw:true,go:function(){showPage('budget');}});
-  line(o.porAsignar>=0?'Por asignar':'Te faltan por cubrir',o.porAsignar,{go:function(){showPage('budget');}});
+  line((o.porAsignar>=0?'Por asignar':'Te faltan por cubrir')+(o.adj?' (incl. ajustes)':''),o.porAsignar,{go:function(){showPage('budget');}});
   if(o.prest)line('Prestado (te lo deben)',-o.prest,{go:function(){showPage('expenses');}});
   if(o.nocat)line('Gastos sin categoría',-o.nocat,{go:goNoCat});
-  if(o.adj)line('Ajustes de saldo',o.adj);
   if(Math.abs(o.fut)>=1)line('Movimientos con fecha futura',o.fut);
   line('= Total en tus cuentas',o.cuentas,{raw:true,strong:true,top:true});
   line('Sin explicar',o.sinExplicar,{col:ok?'var(--green)':'var(--red)'});
   if(!ok)ln.appendChild(el('div',{txt:'Hay una diferencia que no corresponde a nada de lo anterior. Revisa si falta registrar algún movimiento o usa «Cuadrar con el banco» en la cuenta.',style:'font-size:11px;color:var(--text3);line-height:1.45;margin-top:4px'}));
+}
+
+
+// ── v13: cuánto del monto asignado se suma también al plan de ingresos ──
+function incomeAddFor(amt){
+  // Primero se usa presupuesto que ya estaba en ingresos pero sin rubro; el resto es dinero fuera del plan
+  var o=concilData(curY,curM);var libre=Math.max(0,o.porAsignar-Math.max(0,o.fueraPlan));
+  var desdeLibre=Math.min(amt,libre);return Math.max(0,Math.min(amt-desdeLibre,Math.max(0,o.fueraPlan)));
+}
+function defaultIncomeCat(){
+  // Ingreso con más excedente acumulado; si no hay, "Otros ingresos" o el último
+  var best=null,bestV=0;
+  cats.income.forEach(function(c){
+    var real=0,bud=0;
+    txs.forEach(function(t){if(t.mode==='tracking'&&t.type==='Income'&&!t.isAdjust&&t.category===c.name){var d=new Date(t.date+'T00:00:00');if(d.getFullYear()<curY||(d.getFullYear()===curY&&d.getMonth()<=curM))real+=t.amount;}});
+    Object.keys(budgets).forEach(function(mk){var p=mk.split('-'),y=+p[0],m=+p[1]-1;if(y<curY||(y===curY&&m<=curM))bud+=(budgets[mk]['i:'+c.id]||0);});
+    if(real-bud>bestV){bestV=real-bud;best=c;}
+  });
+  if(best)return best;
+  for(var i=0;i<cats.income.length;i++)if(cats.income[i].name==='Otros ingresos')return cats.income[i];
+  return cats.income[cats.income.length-1]||null;
+}
+function assignPreview(){
+  var p=document.getElementById('asg-prev');if(!p)return;
+  var amt=rawNum(document.getElementById('asg-m'));var add=incomeAddFor(amt);var sel=document.getElementById('asg-inc');
+  if(!add){p.textContent='Este monto ya estaba en tu plan de ingresos; solo se suma al rubro.';sel.disabled=true;return;}
+  sel.disabled=false;
+  p.textContent=sel.value?'Se sumarán '+fmt(add)+' al ingreso «'+sel.selectedOptions[0].text+'» de '+MONTHS[curM]+', para que el presupuesto quede balanceado.':'No se sumará nada a ingresos (el balance del mes quedará en −'+fmt(add)+').';
 }
 
 var asgMax=0;
@@ -1564,11 +1597,11 @@ function renderUnassigned(){
     w.style.background='var(--greenbg)';
     w.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:baseline'},[
       el('span',{txt:'Por asignar',style:'font-size:13px;font-weight:700'}),el('span',{txt:fmt(v),style:'font-size:18px;font-weight:800;color:var(--green)'})]));
-    w.appendChild(el('div',{txt:'Te entró más de lo que presupuestaste hasta '+MONTHS[curM]+'. Decide a qué rubro de '+MONTHS[curM]+' lo mandas.',style:'font-size:11.5px;color:var(--text2);margin:4px 0 11px;line-height:1.45'}));
+    w.appendChild(el('div',{txt:'Dinero en tus cuentas que aún no está en ningún rubro (ingresos extra'+(o.adj?' y ajustes con el banco':'')+'). Decide a qué rubro de '+MONTHS[curM]+' lo mandas.',style:'font-size:11.5px;color:var(--text2);margin:4px 0 11px;line-height:1.45'}));
     var sav=cats.savings[0];
     w.appendChild(el('div',{style:'display:flex;gap:8px'},[
       el('button',{txt:'Asignar a un rubro',click:function(){openAssign();},style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
-      sav?el('button',{txt:'Mandar a '+sav.name,click:function(){assignTo('s:',sav,v);},style:'flex:1;background:var(--bg2);color:var(--text);border:.5px solid var(--border2);border-radius:10px;padding:10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'}):null]));
+      sav?el('button',{txt:'Mandar a '+sav.name,click:function(){var dc=defaultIncomeCat();assignTo('s:',sav,v,dc?dc.id:'');},style:'flex:1;background:var(--bg2);color:var(--text);border:.5px solid var(--border2);border-radius:10px;padding:10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'}):null]));
   } else {
     w.style.background='var(--amberbg)';
     w.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:baseline'},[
@@ -1581,20 +1614,29 @@ function openAssign(){
   assignCats().forEach(function(x){var o=document.createElement('option');o.value=x.p+x.c.id;o.textContent=x.c.name;s.appendChild(o);});
   document.getElementById('asg-m').value=Number(asgMax).toLocaleString('es-CO');
   document.getElementById('asg-info').textContent='Tienes '+fmt(asgMax)+' por asignar. Se sumará al presupuesto de '+MONTHS[curM]+' '+curY+' del rubro que elijas.';
+  var si=document.getElementById('asg-inc');while(si.firstChild)si.removeChild(si.firstChild);
+  var dc=defaultIncomeCat();
+  cats.income.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;si.appendChild(o);});
+  var no=document.createElement('option');no.value='';no.textContent='No sumar a ingresos';si.appendChild(no);
+  si.value=dc?dc.id:'';assignPreview();
   document.getElementById('m-assign').classList.add('open');
 }
 function assignConfirm(){
   var amt=rawNum(document.getElementById('asg-m'));var key=document.getElementById('asg-cat').value;
   if(!amt){alert('Escribe un monto');return;}
   var p=key.slice(0,2),id=key.slice(2),cat=null;assignCats().forEach(function(x){if(x.c.id===id)cat=x.c;});
-  closeM('m-assign');if(cat)assignTo(p,cat,amt);
+  var incId=document.getElementById('asg-inc').value;
+  closeM('m-assign');if(cat)assignTo(p,cat,amt,incId);
 }
-function assignTo(prefix,cat,amt){
+function assignTo(prefix,cat,amt,incId){
+  var incAdd=incId?incomeAddFor(amt):0;
   var inp=document.getElementById('bi_'+cat.id);
   if(!document.getElementById('page-budget').classList.contains('active')||!inp){showPage('budget');renderBudget();inp=document.getElementById('bi_'+cat.id);}
   if(!inp)return;
   inp.value=Number(rawNum(inp)+amt).toLocaleString('es-CO');
+  if(incAdd){var ii=document.getElementById('bi_'+incId);if(ii)ii.value=Number(rawNum(ii)+incAdd).toLocaleString('es-CO');}
   saveBudget();
+  if(typeof updateBudgetTotals==='function')updateBudgetTotals();
   renderDisponible();if(typeof budgetTab!=='undefined'&&budgetTab==='mes')renderMesDisponible();
   renderUnassigned();renderConcil();
 }
@@ -2307,6 +2349,15 @@ function renderDisponible(){
   t3.appendChild(el('div',{},[el('div',{txt:'Presupuestado',style:'font-size:10px;color:rgba(0,0,0,.5);font-weight:600'}),el('div',{txt:fmt(grandBudg),style:'font-size:13px;font-weight:700;color:#0d0d0d'})]));
   t3.appendChild(el('div',{},[el('div',{txt:'Gastado',style:'font-size:10px;color:rgba(0,0,0,.5);font-weight:600'}),el('div',{txt:fmt(grandExp),style:'font-size:13px;font-weight:700;color:#0d0d0d'})]));
   totalCard.appendChild(t1);totalCard.appendChild(t2);totalCard.appendChild(t3);
+  var co=concilData(curY,curM),gap=Math.round(co.cuentas-grandAvail);
+  var t4=el('div',{style:'margin-top:10px;padding-top:9px;border-top:1px solid rgba(0,0,0,.12)'});
+  t4.appendChild(el('div',{style:'display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#0d0d0d'},[el('span',{txt:'Tus cuentas'}),el('span',{txt:fmt(co.cuentas)})]));
+  var parts=[];
+  if(Math.round(co.porAsignar))parts.push((co.porAsignar>0?'Por asignar ':'Faltan por cubrir ')+fmt(Math.abs(co.porAsignar)));
+  if(co.prest)parts.push('Prestado −'+fmt(co.prest));
+  if(co.nocat)parts.push('Sin categoría −'+fmt(co.nocat));
+  t4.appendChild(el('div',{txt:Math.abs(gap)<1?'✓ Coincide con tus cuentas':('Diferencia: '+parts.join(' · ')),style:'font-size:10.5px;color:rgba(0,0,0,.6);margin-top:3px;line-height:1.4'}));
+  totalCard.appendChild(t4);
   wrap.insertBefore(totalCard,wrap.firstChild);
 }
 
