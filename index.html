@@ -709,7 +709,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
       </div>
       <div id="tf-shared" style="display:none">
         <div class="fgrow">
-          <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david">David</option><option id="ch-lina">Lina</option><option>Los dos</option><option>Otro</option></select></div>
+          <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david" value="David">David</option><option id="ch-lina" value="Lina">Lina</option><option value="Los dos">Los dos</option><option value="Otro">Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
         <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
@@ -1203,7 +1203,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-03 · v13';
+var APP_VERSION='2026-10-04 · v14';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1639,6 +1639,24 @@ function assignTo(prefix,cat,amt,incId){
   if(typeof updateBudgetTotals==='function')updateBudgetTotals();
   renderDisponible();if(typeof budgetTab!=='undefined'&&budgetTab==='mes')renderMesDisponible();
   renderUnassigned();renderConcil();
+}
+
+// ── v14: los gastos guardados con el NOMBRE visible se convierten al código interno ──
+// Código interno: 'David' = dueño de la app, 'Lina' = su pareja (se muestran con los nombres de Ajustes)
+function fixCharges(list,recList){
+  var me=userName||'David',pt=partnerName||'Lina';
+  if(me==='David'&&pt==='Lina')return 0;
+  var n=0;
+  function conv(o){if(!o||!o.charge)return;
+    if(o.charge===me&&me!=='David'){o.charge='David';n++;}
+    else if(o.charge===pt&&pt!=='Lina'){o.charge='Lina';n++;}}
+  // Mapeo simultáneo (evita que un intercambio Lina↔David se aplique dos veces)
+  (list||[]).forEach(function(t){if(t.mode!=='expenses'||!t.charge)return;
+    if(t.charge===me)t._ch='David';else if(t.charge===pt)t._ch='Lina';});
+  (list||[]).forEach(function(t){if(t._ch){if(t._ch!==t.charge)n++;t.charge=t._ch;delete t._ch;}});
+  (recList||[]).forEach(function(r){if(r.kind!=='shared'||!r.charge)return;
+    var nc=r.charge===me?'David':r.charge===pt?'Lina':r.charge;if(nc!==r.charge){r.charge=nc;n++;}});
+  return n;
 }
 
 function renderDashExtras(){
@@ -2951,7 +2969,7 @@ function delCfg(type,id){
 }
 
 function exportData(){
-  var data={txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:new Date().toISOString(),v:8};
+  var data={txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:new Date().toISOString(),v:9};
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='finanzas-'+new Date().toISOString().split('T')[0]+'.json';a.click();
 }
@@ -2959,7 +2977,7 @@ function importData(e){
   var file=e.target.files[0];if(!file)return;
   var r=new FileReader();
   r.onload=function(ev){
-    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
+    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}if(!(d.v>=9)){fixCharges(txs,recs);ls.s('rc7',recs);}accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
   };r.readAsText(file);
 }
 
@@ -3036,7 +3054,7 @@ function syncDrive(){
   driveSt='sy';syncPending=true;updateDriveUI();
   var stamp=new Date().toISOString();
   ls.s('lm7',stamp);
-  var data=JSON.stringify({txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:stamp,v:8});
+  var data=JSON.stringify({txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,at:stamp,v:9});
   var p=driveFileId?updateDF(data):findOrCreate(data);
   p.then(function(){driveSt='ok';syncPending=false;ls.s('dts7',new Date().toISOString());updateDriveUI();}).catch(function(e){
     syncPending=false;
@@ -3087,7 +3105,7 @@ function loadFromDrive(){
     if(localLm&&d.at&&localLm>d.at){
       syncDrive();
     } else {
-      txs=(d.v>=8)?(d.txs||[]):migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
+      txs=(d.v>=8)?(d.txs||[]):migrateLegacy(d.txs);if(d.recs){recs=d.recs;ls.s('rc7',recs);}if(!(d.v>=9)){fixCharges(txs,recs);ls.s('rc7',recs);}accts=d.accts||DA;cats=d.cats||DC;budgets=d.budgets||{};
       ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
       driveSt='ok';updateDriveUI();
       renderAll();
@@ -3128,6 +3146,7 @@ window.addEventListener('beforeunload',function(e){
     return e.returnValue;
   }
 });
+if(!ls.g('mg9',false)){fixCharges(txs,recs);ls.s('tx7',txs);ls.s('rc7',recs);ls.s('mg9',true);}
 checkOAuthCallback();
 renderAll();
 // Drive is backup only - don't overwrite localStorage on startup
