@@ -440,6 +440,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
   <div class="card">
     <div class="chd"><h3>Gastos vs Presupuesto</h3><a onclick="showPage('budget')">Editar</a></div>
     <div class="vbars" id="d-vbars"></div>
+      <div id="d-vbars-legend" style="display:none;gap:14px;justify-content:center;margin-top:10px;font-size:10.5px;color:var(--text3)"><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:var(--lime)"></span>Pagado</span><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--lime) 0 3px,transparent 3px 5px);border:.5px solid var(--border2)"></span>Pendiente por pagar</span></div>
   </div>
   <div class="shdr"><h2>Últimos movimientos</h2><a onclick="showPage('tracking')">Ver todos</a></div>
   <div class="txwrap" id="d-recent"></div>
@@ -1203,7 +1204,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-04 · v14';
+var APP_VERSION='2026-10-04 · v15';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1659,6 +1660,34 @@ function fixCharges(list,recList){
   return n;
 }
 
+// ── v15: gastos pendientes por pagar (tu parte) dentro del presupuesto ──
+function pendShare(t){
+  if(!t||t.mode!=='expenses')return 0;var st=t.status||'Paid';
+  if(t.charge==='David')return st==='Paid'?0:t.amount;
+  if(t.charge==='Los dos')return (st==='Unpaid'||st==='LinaPaidDavidPending')?t.amount/2:0;
+  return 0;
+}
+function pendCat(name,y,m,cum){var s=0;
+  txs.forEach(function(t){if(t.mode!=='expenses'||t.category!==name)return;
+    var d=new Date(t.date+'T00:00:00'),ty=d.getFullYear(),tm=d.getMonth();
+    if(cum?(ty<y||(ty===y&&tm<=m)):(ty===y&&tm===m))s+=pendShare(t);});
+  return s;}
+var STRIPE=function(col){return 'repeating-linear-gradient(45deg,'+col+' 0 4px,transparent 4px 7px)';};
+function splitBar(exp,pend,budg,col){
+  var paidW=budg>0?Math.min(100,exp/budg*100):(exp>0?100:0);
+  var totW=budg>0?Math.min(100,(exp+pend)/budg*100):((exp+pend)>0?100:0);
+  var bg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px;display:flex'});
+  bg.appendChild(el('div',{style:'height:100%;width:'+paidW+'%;background:'+col+';transition:width .5s'}));
+  if(totW>paidW)bg.appendChild(el('div',{style:'height:100%;width:'+(totW-paidW)+'%;background:'+STRIPE(col)+';transition:width .5s'}));
+  return bg;
+}
+function numLine(exp,pend,budg){
+  var row=el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-top:3px;gap:8px'});
+  row.appendChild(el('span',{txt:pend?('Pagado: '+fmt(exp)+' · Pendiente: '+fmt(pend)):('Gastado: '+fmt(exp)),style:'font-size:10px;color:var(--text2)'}));
+  row.appendChild(el('span',{txt:'Presup: '+fmt(budg),style:'font-size:10px;color:var(--text2);white-space:nowrap'}));
+  return row;
+}
+
 function renderDashExtras(){
   renderRecsCard();
   renderLent();
@@ -1810,22 +1839,26 @@ function renderDash(){
         tracked+=t.amount;
     });
     var bkx=budgets[mk]||{};var b=(bkx['e:'+c.id]||bkx[c.name]||0);
-    if(tracked>0||b>0)catData.push({name:c.name,icon:c.icon,tracked:tracked,b:b});
+    var pend=pendCat(c.name,curY,curM,false);
+    if(tracked>0||b>0||pend>0)catData.push({name:c.name,icon:c.icon,tracked:tracked,pend:pend,b:b});
   });
-  catData.sort(function(a,b){var ap=a.b>0?a.tracked/a.b:0,bp=b.b>0?b.tracked/b.b:0;return bp-ap;});
+  catData.sort(function(a,b){var ap=a.b>0?(a.tracked+a.pend)/a.b:0,bp=b.b>0?(b.tracked+b.pend)/b.b:0;return bp-ap;});
   catData=catData.slice(0,8);
-  var maxV=1;catData.forEach(function(c){if(Math.max(c.tracked,c.b)>maxV)maxV=Math.max(c.tracked,c.b);});
+  var maxV=1;catData.forEach(function(c){if(Math.max(c.tracked+c.pend,c.b)>maxV)maxV=Math.max(c.tracked+c.pend,c.b);});
   var BH=110,vb=clr('d-vbars');
   if(!catData.length){vb.appendChild(el('p',{txt:'Sin datos — agrega un presupuesto',style:'font-size:13px;color:var(--text3);padding:16px 0'}));}
   else catData.forEach(function(c){
-    var pct=c.b>0?Math.round((c.tracked/c.b)*100):null;
+    var pct=c.b>0?Math.round(((c.tracked+c.pend)/c.b)*100):null;
     var cls=pct===null?"em":pct>100?"ov":pct>80?"warn":"ok";
     var tH=c.b>0?Math.min(BH,Math.round((c.tracked/c.b)*BH)):Math.round(BH*0.5);
+    var pH=c.b>0?Math.max(0,Math.min(BH,Math.round(((c.tracked+c.pend)/c.b)*BH))-tH):0;
     var bH=BH;
     var pctColor=pct>100?'var(--red)':pct>80?'var(--amber)':'var(--text2)';
     var track=el('div',{cls:'vbt',style:'height:'+BH+'px'});
     if(c.b>0){var line=el('div',{cls:'vbl',style:'bottom:'+bH+'px'});track.appendChild(line);}
     var fill=el('div',{cls:'vbf '+cls,style:'height:'+tH+'px'});track.appendChild(fill);
+    if(pH>0){var pcol={ok:'var(--lime)',warn:'var(--amber)',ov:'var(--red)',em:'var(--bg4)'}[cls];
+      track.appendChild(el('div',{style:'position:absolute;left:0;right:0;bottom:'+tH+'px;height:'+pH+'px;border-radius:'+(tH?'12px 12px 0 0':'12px')+';background:'+STRIPE(pcol)+';transition:height .6s'}));}
     vb.appendChild(el('div',{cls:'vbi'},[
       el('div',{cls:'vbpct',txt:pct!==null?pct+'%':'—',style:'color:'+pctColor}),
       track,
@@ -1833,6 +1866,8 @@ function renderDash(){
       el('div',{cls:'vbnm',txt:c.name})
     ]));
   });
+  var lg=document.getElementById('d-vbars-legend');
+  if(lg){var anyP=catData.some(function(c){return c.pend>0;});lg.style.display=anyP?'flex':'none';}
 
   renderConcil();
 
@@ -2163,9 +2198,10 @@ function renderMesDisponible(){
         if(d.getFullYear()===curY&&d.getMonth()===curM) exp+=t.amount;
       }
     });
-    if(budg>0||exp>0){
-      rows.push({cat:cat,budg:budg,exp:exp,avail:budg-exp});
-      grandBudg+=budg;grandExp+=exp;
+    var pend=pendCat(cat.name,curY,curM,false);
+    if(budg>0||exp>0||pend>0){
+      rows.push({cat:cat,budg:budg,exp:exp,pend:pend,avail:budg-exp-pend});
+      grandBudg+=budg;grandExp+=exp+pend;
     }
   });
 
@@ -2175,16 +2211,16 @@ function renderMesDisponible(){
   }
 
   rows.sort(function(a,b){
-    var pa=a.budg>0?a.exp/a.budg:0;
-    var pb=b.budg>0?b.exp/b.budg:0;
+    var pa=a.budg>0?(a.exp+a.pend)/a.budg:0;
+    var pb=b.budg>0?(b.exp+b.pend)/b.budg:0;
     return pb-pa;
   });
 
   rows.forEach(function(r){
-    var pct=r.budg>0?Math.round(r.exp/r.budg*100):0;
+    var pct=r.budg>0?Math.round((r.exp+r.pend)/r.budg*100):0;
     var isOver=r.avail<0;
     var isExact=(pct===100&&!isOver);
-    var excessPct=isOver?Math.round(r.exp/r.budg*100):0;
+    var excessPct=isOver?Math.round((r.exp+r.pend)/r.budg*100):0;
     var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
     var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
 
@@ -2195,19 +2231,13 @@ function renderMesDisponible(){
       el('span',{txt:isOver?'▲ +'+excessPct+'%':pct+'%',style:'font-size:11px;font-weight:700;color:'+barCol})
     ]));
 
-    var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
-    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+Math.min(pct,100)+'%;background:'+barCol+';transition:width .5s'});
-    barBg.appendChild(barFill);
-    card.appendChild(barBg);
-
-    var numRow=el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-top:3px'});
-    numRow.appendChild(el('span',{txt:'Gastado: '+fmt(r.exp),style:'font-size:10px;color:var(--text2)'}));
-    numRow.appendChild(el('span',{txt:'Presup: '+fmt(r.budg),style:'font-size:10px;color:var(--text2)'}));
-    card.appendChild(numRow);
+    card.appendChild(splitBar(r.exp,r.pend,r.budg,barCol));
+    card.appendChild(numLine(r.exp,r.pend,r.budg));
 
     var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
     availBadge.appendChild(el('span',{txt:isOver?'Excedido':isExact?'Completo':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
     availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
+    if(r.pend)availBadge.appendChild(el('span',{txt:'contando pendientes',style:'font-size:10px;color:var(--text3)'}));
     card.appendChild(availBadge);
     wrap.appendChild(card);
   });
@@ -2285,7 +2315,7 @@ function renderDisponible(){
   // Compute per-category: sum all budgets up to curY/curM minus all tracked expenses up to curY/curM
   var allCats=cats.expenses.concat(cats.savings);
   var rows=[];
-  var grandBudg=0,grandExp=0;
+  var grandBudg=0,grandExp=0,grandPend=0;
 
   allCats.forEach(function(cat){
     var totalBudg=0,totalExp=0;
@@ -2307,8 +2337,9 @@ function renderDisponible(){
         }
       }
     });
-    if(totalBudg>0||totalExp>0){
-      rows.push({cat:cat,budg:totalBudg,exp:totalExp,avail:totalBudg-totalExp});
+    var tPend=pendCat(cat.name,curY,curM,true);grandPend+=tPend;
+    if(totalBudg>0||totalExp>0||tPend>0){
+      rows.push({cat:cat,budg:totalBudg,exp:totalExp,pend:tPend,avail:totalBudg-totalExp-tPend});
       grandBudg+=totalBudg;grandExp+=totalExp;
     }
   });
@@ -2322,27 +2353,22 @@ function renderDisponible(){
   rows.sort(function(a,b){return a.avail-b.avail;});
 
   rows.forEach(function(r){
-    var pct=r.budg>0?Math.min(100,Math.round((r.exp/r.budg)*100)):100;
+    var pct=r.budg>0?Math.min(100,Math.round(((r.exp+r.pend)/r.budg)*100)):100;
     var isOver=r.avail<0;
     var isExact=(pct===100&&!isOver);
     var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
     var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
-    var excessPct=isOver?Math.round(r.exp/r.budg*100):0;
+    var excessPct=isOver?Math.round((r.exp+r.pend)/r.budg*100):0;
 
     // Bar fill
-    var barBg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px'});
-    var barFill=el('div',{style:'height:100%;border-radius:6px;width:'+Math.min(pct,100)+'%;background:'+barCol+';transition:width .5s'});
-    barBg.appendChild(barFill);
-
-    // Numbers row
-    var numRow=el('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-top:3px'});
-    numRow.appendChild(el('span',{txt:'Gastado: '+fmt(r.exp),style:'font-size:10px;color:var(--text2)'}));
-    numRow.appendChild(el('span',{txt:'Presup: '+fmt(r.budg),style:'font-size:10px;color:var(--text2)'}));
+    var barBg=splitBar(r.exp,r.pend,r.budg,barCol);
+    var numRow=numLine(r.exp,r.pend,r.budg);
 
     // Available badge
     var availBadge=el('div',{style:'display:flex;align-items:center;gap:6px;margin-top:4px'});
     availBadge.appendChild(el('span',{txt:isOver?'Excedido':isExact?'Completo':'Disponible',style:'font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em'}));
     availBadge.appendChild(el('span',{txt:fmt(Math.abs(r.avail)),style:'font-size:14px;font-weight:700;color:'+availCol}));
+    if(r.pend)availBadge.appendChild(el('span',{txt:'contando pendientes',style:'font-size:10px;color:var(--text3)'}));
 
 
     var card=el('div',{style:'background:var(--bg2);border-radius:12px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
@@ -2358,7 +2384,7 @@ function renderDisponible(){
   });
 
   // Grand total card
-  var grandAvail=grandBudg-grandExp;
+  var grandAvail=grandBudg-grandExp;  // tarjeta verde: solo lo pagado (cruza con tus cuentas)
   var isOverAll=grandAvail<0;
   var totalCard=el('div',{style:'background:var(--lime);border-radius:12px;padding:14px;margin-bottom:8px'});
   var t1=el('div',{style:'font-size:10px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px',txt:'Total disponible acumulado'});
@@ -2376,6 +2402,12 @@ function renderDisponible(){
   if(co.nocat)parts.push('Sin categoría −'+fmt(co.nocat));
   t4.appendChild(el('div',{txt:Math.abs(gap)<1?'✓ Coincide con tus cuentas':('Diferencia: '+parts.join(' · ')),style:'font-size:10.5px;color:rgba(0,0,0,.6);margin-top:3px;line-height:1.4'}));
   totalCard.appendChild(t4);
+  if(grandPend>0){
+    var t5=el('div',{style:'margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.12);display:flex;justify-content:space-between;gap:8px;font-size:11px;color:rgba(0,0,0,.72)'});
+    t5.appendChild(el('span',{txt:'Pendiente por pagar −'+fmt(grandPend)}));
+    t5.appendChild(el('span',{txt:'Quedaría '+fmt(grandAvail-grandPend),style:'font-weight:700;color:#0d0d0d'}));
+    totalCard.appendChild(t5);
+  }
   wrap.insertBefore(totalCard,wrap.firstChild);
 }
 
