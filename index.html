@@ -713,7 +713,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
           <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david" value="David">David</option><option id="ch-lina" value="Lina">Lina</option><option value="Los dos">Los dos</option><option value="Otro">Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
-        <div class="fg"><label>Estado</label><select id="f-st" onchange="updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
+        <div class="fg"><label>Estado</label><select id="f-st" onchange="this.dataset.touched='1';updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
         <div class="fg" id="payacc-row" style="display:none"><label>De donde salio el dinero?</label><select id="f-payacc"></select></div>
       </div>
       <label id="rec-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--bg2);border-radius:12px;margin-bottom:12px;border:.5px solid var(--border);cursor:pointer"><span><span style="font-size:13px;font-weight:600;display:block">🔁 Repetir cada mes</span><span id="rec-hint" style="font-size:11px;color:var(--text3)">Te pediré aprobarlo cada mes</span></span><input type="checkbox" id="f-rec" style="width:20px;height:20px;accent-color:var(--limedk)"></label>
@@ -1204,7 +1204,7 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-04 · v15';
+var APP_VERSION='2026-10-09 · v16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -2742,6 +2742,8 @@ function setMTab(t){
   var fgc=document.getElementById('fg-cat');if(fgc)fgc.style.display=(t==='transfer')?'none':'block';
   var rrw=document.getElementById('rec-row');if(rrw)rrw.style.display=(t==='transfer')?'none':'flex';
   if(t==='transfer')populateTransferSel();
+  // Movimiento nuevo: al pasar a Pendiente, el estado arranca en «Pendiente» (no recuerda el último usado)
+  if(t==='shared'&&!editId){var fst=document.getElementById('f-st');if(fst){fst.value='Unpaid';updateStatusOptions();}}
   if(t==='income')txType='Income';else if(t==='transfer')txType='Transfer';else txType='Expenses';
   populateCatSel();
 }
@@ -2759,7 +2761,8 @@ function updateStatusOptions(){
   while(stSel.firstChild)stSel.removeChild(stSel.firstChild);
   function addOpt(val,label){var o=document.createElement('option');o.value=val;o.textContent=label;stSel.appendChild(o);}
   if(charge==='Los dos'){
-    addOpt('Unpaid','Pendiente');
+    // Con débito o efectivo la plata ya salió de tu cuenta: tú ya pagaste
+    if(!isRealDebit)addOpt('Unpaid','Pendiente');
     addOpt('DavidPaidLinaPending',userName+' pago - '+partnerName+' pendiente');
     if(!isRealDebit){
       // With credit card, Lina can also pay first
@@ -2770,9 +2773,11 @@ function updateStatusOptions(){
     addOpt('Unpaid','Pendiente');
     addOpt('Paid','Pagado');
   }
+  // Movimiento nuevo y estado no elegido a mano: arranca en «Pendiente» si existe
+  var want=(!editId&&stSel.dataset.touched!=='1')?'Unpaid':currentVal;
   var stillValid=false;
-  for(var i=0;i<stSel.options.length;i++){if(stSel.options[i].value===currentVal){stillValid=true;break;}}
-  stSel.value=stillValid?currentVal:stSel.options[0].value;
+  for(var i=0;i<stSel.options.length;i++){if(stSel.options[i].value===want){stillValid=true;break;}}
+  stSel.value=stillValid?want:stSel.options[0].value;
   updatePayAccVis();
 }
 
@@ -2837,6 +2842,7 @@ function savePartnerName(){
 }
 
 function openTx(id){
+  var fstT=document.getElementById('f-st');if(fstT)fstT.dataset.touched='';
   editId=id;populateAcSel();populateDescList();
   if(id){
     var t=null;for(var i=0;i<txs.length;i++){if(txs[i].id===id){t=txs[i];break;}}
@@ -2880,7 +2886,7 @@ function openTx(id){
     setMTab(defaultTab);
     document.getElementById('f-ch').value='David';
     updateStatusOptions();
-    document.getElementById('f-st').value=(defaultTab==='shared')?'Unpaid':'Paid';
+    document.getElementById('f-st').value='Unpaid';updateStatusOptions();
     if(accts[0]){document.getElementById('f-payacc').value=accts[0].id;document.getElementById('f-ac-inc').value=accts[0].id;}
     updatePayAccVis();
   }
