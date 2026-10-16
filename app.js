@@ -323,6 +323,10 @@ var UIICO={
   mic:'<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21.5"/>',
   calendar:'<rect x="3" y="4.5" width="18" height="17" rx="2"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="3" y1="10" x2="21" y2="10"/>',
   transfer:'<path d="M7 7h13l-4-4"/><path d="M17 17H4l4 4"/>',
+  list:'<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  target:'<circle cx="12" cy="12" r="1"/><path d="M12 7a5 5 0 1 0 5 5"/><path d="M13 3.06A9 9 0 1 0 20.94 11"/><path d="M15 6v3h3l3-3h-3V3z"/><path d="M15 9l-3 3"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  chevleft:'<polyline points="15 18 9 12 15 6"/>',
   dots:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
 };
 function uiI(n,s){var p=UIICO[n]||ICONLIB[n];return p?svgWrap(p,s||18):'';}
@@ -381,7 +385,7 @@ function showPage(p){
   document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
   document.querySelectorAll('nav button').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
-  document.getElementById('nav-'+p).classList.add('active');
+  var nb=document.getElementById('nav-'+p);if(nb)nb.classList.add('active');
   document.getElementById('fab').style.display='flex';
   if(p==='budget')renderBudget();
   renderAll();
@@ -421,7 +425,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.1', APP_DATE='2026-10-16';
+var APP_VERSION='2.2', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -572,7 +576,7 @@ function renderRecsCard(){
   ]));
   due.forEach(function(r){
     var acct=findAcct(r.accountId);
-    var sub=(r.kind==='shared'?'Pendiente · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
+    var sub=(r.kind==='shared'?'Compartido · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
     var inp=el('input',{id:'rq_'+r.id,type:'text',inputmode:'numeric',oninput:'formatMoneyInput(this)',style:'width:96px;text-align:right;padding:7px 8px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px;font-weight:600'});
     inp.value=Number(r.amount||0).toLocaleString('es-CO');
     var row=el('div',{style:'display:flex;align-items:center;gap:8px;padding:9px 0;border-top:.5px solid var(--border)'},[
@@ -602,7 +606,7 @@ function renderRecsSettings(){
   var w=document.getElementById('s-rec-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
   if(!recs.length){w.appendChild(el('div',{txt:'Activa «Repetir cada mes» al crear un movimiento para que aparezca aquí.',style:'padding:14px 16px;font-size:12px;color:var(--text3)'}));return;}
   recs.forEach(function(r){
-    var kindTxt=r.kind==='income'?'Ingreso':r.kind==='shared'?'Pendiente':'Gasto';
+    var kindTxt=r.kind==='income'?'Ingreso':r.kind==='shared'?'Compartido':'Gasto';
     var eb=el('button',{html:uiI('edit',17),'aria-label':'Editar',click:function(){openRecEdit(r.id);}});
     var db=el('button',{html:uiI('trash',17),'aria-label':'Eliminar',click:function(){delRec(r.id);}});
     w.appendChild(el('div',{cls:'srow'},[el('div',{cls:'srico',html:icoHTML(cIcon(r.category))}),

@@ -31,7 +31,7 @@
     </div>
     <div class="dtopbtns">
       <button class="iconbtn" id="eyebtn" onclick="toggleBlur()" aria-label="Ocultar saldos"><i class="uii" data-ui="eye" data-s="19"></i></button>
-      <button class="iconbtn" id="d-themebtn" onclick="setTheme(theme==='dark'?'light':'dark')" aria-label="Cambiar tema"><i class="uii" data-ui="moon" data-s="19"></i></button>
+      <button class="iconbtn" id="d-setbtn" onclick="showPage('settings')" aria-label="Ajustes"><i class="uii" data-ui="settings" data-s="19"></i></button>
     </div>
   </div>
 
@@ -93,7 +93,7 @@
 </div>
 
 <div class="page" id="page-expenses">
-  <div class="topbar"><h1>Pendiente</h1><p>Gastos compartidos por saldar</p></div>
+  <div class="topbar"><h1>Compartidos</h1><p>Gastos compartidos por saldar</p></div>
   <div class="months" id="e-months"></div>
   <div class="kgrid" style="margin-bottom:10px">
     <div class="kpi"><div class="kl" id="kl-dav">David</div><div class="kv cr" id="e-dav">$0</div></div>
@@ -181,7 +181,7 @@
 </div>
 
 <div class="page" id="page-settings">
-  <div class="topbar"><h1>Ajustes</h1><p>Personalización y datos</p></div>
+  <div class="topbar topback"><button class="iconbtn" onclick="showPage('dash')" aria-label="Volver"><i class="uii" data-ui="chevleft" data-s="19"></i></button><div><h1>Ajustes</h1><p>Personalización y datos</p></div></div>
   <div class="sgt" style="padding:12px 20px 6px">Apariencia</div>
   <div class="sg2">
     <div class="srow">
@@ -192,7 +192,7 @@
 
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="users" data-s="17"></i></div>
-      <div class="srt"><div class="srn">Pestaña Pendiente</div><div class="srs">Gastos compartidos con otros</div></div>
+      <div class="srt"><div class="srn">Pestaña Compartidos</div><div class="srs">Gastos compartidos con otros</div></div>
       <button class="btnout" id="s-pend-btn" onclick="togglePendienteTab()">Activada</button>
     </div>
     <div class="srow">
@@ -308,12 +308,12 @@
   </div>
 </div>
 
-<nav><button class="active" id="nav-dash" onclick="showPage('dash')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Inicio<div class="ndot"></div></button>
-  <button id="nav-tracking" onclick="showPage('tracking')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle></svg>Movimientos<div class="ndot"></div></button>
-  <button id="nav-expenses" onclick="showPage('expenses')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Pendiente<div class="ndot"></div></button>
-  <button id="nav-budget" onclick="showPage('budget')"><svg viewBox="0 0 24 24"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>Presup.<div class="ndot"></div></button>
-  <button id="nav-summary" onclick="showPage('summary')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Resumen<div class="ndot"></div></button>
-  <button id="nav-settings" onclick="showPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Ajustes<div class="ndot"></div></button>
+<nav>
+  <button class="active" id="nav-dash" onclick="showPage('dash')"><i class="uii" data-ui="home" data-s="21"></i><span>Inicio</span></button>
+  <button id="nav-tracking" onclick="showPage('tracking')"><i class="uii" data-ui="list" data-s="21"></i><span>Movimientos</span></button>
+  <button id="nav-expenses" onclick="showPage('expenses')"><i class="uii" data-ui="users" data-s="21"></i><span>Compartidos</span></button>
+  <button id="nav-budget" onclick="showPage('budget')"><i class="uii" data-ui="target" data-s="21"></i><span>Presupuesto</span></button>
+  <button id="nav-summary" onclick="showPage('summary')"><i class="uii" data-ui="chart" data-s="21"></i><span>Resumen</span></button>
 </nav>
 
 <div class="mback" id="m-tx">
