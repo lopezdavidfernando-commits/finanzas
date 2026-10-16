@@ -339,7 +339,7 @@
       </div>
 
       <div class="tx-meta">
-        <label class="tx-pill"><i class="uii" data-ui="calendar" data-s="16"></i><span id="tx-dlbl">Hoy</span><input id="f-dt" type="date" oninput="txDateLbl()" aria-label="Fecha"></label>
+        <label class="tx-pill"><i class="uii" data-ui="calendar" data-s="16"></i><span id="tx-dlbl">Hoy</span><input id="f-dt" type="date" oninput="txDateLbl()" onchange="txDateLbl()" onclick="txOpenDate(event)" aria-label="Fecha"></label>
         <label id="tf-gasto" class="tx-pill"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac" aria-label="Cuenta de donde sale"></select></label>
         <label id="tf-income-ac" class="tx-pill" style="display:none"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac-inc" aria-label="Cuenta donde entra"></select></label>
       </div>
@@ -360,7 +360,7 @@
         <div class="fg" id="payacc-row" style="display:none"><label>¿De dónde salió el dinero?</label><select id="f-payacc"></select></div>
       </div>
 
-      <label id="rec-row" class="tx-rec"><span><span class="tx-rec-t"><i class="uii" data-ui="repeat" data-s="15"></i>Repetir cada mes</span><span id="rec-hint" class="tx-rec-s">Te pediré aprobarlo cada mes</span></span><input type="checkbox" id="f-rec" class="tx-switch"></label>
+      <label id="rec-row" class="tx-rec" title="Te pediré aprobarlo cada mes"><span class="tx-rec-t"><i class="uii" data-ui="repeat" data-s="14"></i>Repetir cada mes</span><input type="checkbox" id="f-rec" class="tx-switch"></label>
 
       <div class="txtypes" role="tablist">
         <button type="button" class="mtab active" id="mt-gasto" onclick="setMTab('gasto')">Gasto</button>

@@ -2090,7 +2090,7 @@ function openTx(id){
     document.getElementById('f-d').value=t.description;
     document.getElementById('f-m').value=t.amount.toLocaleString('es-CO');
     document.getElementById('f-dt').value=t.date;
-    setTimeout(function(){document.getElementById('f-c').value=t.category;renderTxCats();},10);
+    setTimeout(function(){document.getElementById('f-c').value=t.category;renderTxCats(true);},10);
     if(t.mode==='tracking'){
       if(t.type==='Income')document.getElementById('f-ac-inc').value=t.accountId||accts[0].id;
       else document.getElementById('f-ac').value=t.accountId||accts[0].id;
@@ -2098,7 +2098,7 @@ function openTx(id){
     else{document.getElementById('f-ch').value=t.charge||'Los dos';updateStatusOptions();document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;updatePayAccVis();}
   } else {
     document.getElementById('delbtn-wrap').style.display='none';
-    document.getElementById('f-d').value='';document.getElementById('f-m').value='';
+    document.getElementById('f-d').value='';document.getElementById('f-m').value='';document.getElementById('f-c').value='';
     document.getElementById('f-dt').value=todayISO();
     var ap=document.querySelector('.page.active');
     var defaultTab=ap&&ap.id==='page-expenses'?'shared':'gasto';
@@ -2118,7 +2118,7 @@ function openTx(id){
 
 
 // ══════ Registro rápido: categorías en cuadrícula, favoritos, sugerencias y voz ══════
-var txCatsAll=false,txRec=null;
+var txRec=null;
 function txAmtW(){var m=document.getElementById('f-m');if(m)m.style.width=Math.max(1,(m.value||m.placeholder).length)+0.5+'ch';}
 function txErr(m){var e=document.getElementById('tx-err');if(e)e.textContent=m||'';}
 function txNorm(s){return normTxt(s).replace(/[^a-z0-9ñ ]/g,' ').replace(/\s+/g,' ').trim();}
@@ -2128,10 +2128,12 @@ function isoAdd(iso,d){var x=new Date(iso+'T00:00:00');x.setDate(x.getDate()+d);
 function txFormRefresh(){
   var ttl={gasto:'Nuevo gasto',income:'Nuevo ingreso',shared:'Gasto compartido',transfer:'Transferencia'};
   var h=document.getElementById('tx-ttl');if(h)h.textContent=editId?'Editar movimiento':(ttl[mTab]||'Nuevo movimiento');
-  txCatsAll=false;txErr('');
+  txErr('');
   var v=document.getElementById('tx-voice');if(v)v.textContent='';
-  clr('tx-sug');renderTxCats();renderTxFavs();txDateLbl();txAmtW();
+  clr('tx-sug');renderTxCats(true);renderTxFavs();txDateLbl();txAmtW();
 }
+// Abre el calendario al tocar la fecha (algunos navegadores no lo abren solos con el campo invisible)
+function txOpenDate(e){var d=document.getElementById('f-dt');if(d&&d.showPicker){try{d.showPicker();if(e)e.preventDefault();}catch(err){}}}
 function txDateLbl(){
   var v=document.getElementById('f-dt').value,l=document.getElementById('tx-dlbl');if(!l)return;
   var t=todayISO();
@@ -2169,22 +2171,24 @@ function txApply(e){
   if(!rawNum(m))m.focus();
 }
 
-function renderTxCats(){
-  var w=clr('tx-cats');if(!w)return;
-  var sel=document.getElementById('f-c').value,use={};
+// Categorías en una sola fila deslizable, las más usadas primero
+function renderTxCats(scrollToSel){
+  var w=document.getElementById('tx-cats');if(!w)return;
+  var keep=w.scrollLeft;clr('tx-cats');
+  var sel=document.getElementById('f-c').value,use={},selEl=null;
   baseTxs().forEach(function(t){if(t.category)use[t.category]=(use[t.category]||0)+1;});
   var list=txCatList().slice().sort(function(a,b){return (use[b.name]||0)-(use[a.name]||0);});
-  var shown=list;
-  if(!txCatsAll&&list.length>8){
-    shown=list.slice(0,7);
-    if(sel&&!shown.some(function(c){return c.name===sel;}))shown=list.slice(0,6).concat(list.filter(function(c){return c.name===sel;}));
-  }
-  shown.forEach(function(c){
-    w.appendChild(el('button',{type:'button',cls:'tx-cat'+(c.name===sel?' on':''),click:function(){txSetCat(sel===c.name?'':c.name);}},
-      [el('span',{cls:'uii',html:icoHTML(c.icon,22)}),el('span',{cls:'tx-cat-n',txt:c.name})]));
+  list.forEach(function(c){
+    var b=el('button',{type:'button',cls:'tx-cat'+(c.name===sel?' on':''),click:function(){txSetCat(sel===c.name?'':c.name);}},
+      [el('span',{cls:'uii',html:icoHTML(c.icon,18)}),el('span',{cls:'tx-cat-n',txt:c.name})]);
+    if(c.name===sel)selEl=b;
+    w.appendChild(b);
   });
-  if(list.length>8)w.appendChild(el('button',{type:'button',cls:'tx-cat',click:function(){txCatsAll=!txCatsAll;renderTxCats();}},
-    [el('span',{cls:'uii',html:uiI(txCatsAll?'chevup':'dots',22)}),el('span',{cls:'tx-cat-n',txt:txCatsAll?'Menos':'Más'})]));
+  // Al tocar una categoría la fila no vuelve al inicio; al abrir, se muestra la elegida
+  // (se repite en el siguiente cuadro porque al abrir, el formulario aún está oculto)
+  function pos(){w.scrollLeft=selEl?Math.max(0,selEl.offsetLeft-w.clientWidth/2+selEl.offsetWidth/2):0;}
+  if(scrollToSel){pos();requestAnimationFrame(pos);}
+  else w.scrollLeft=keep;
 }
 function txSetCat(n){document.getElementById('f-c').value=n;renderTxCats();txErr('');}
 
