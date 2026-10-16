@@ -6,10 +6,12 @@ body{font-family:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 
 /* NAV: floating dark pill */
 nav{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));background:var(--navpill);border:none;border-radius:32px;display:flex;align-items:center;z-index:100;padding:7px;gap:2px;box-shadow:0 14px 36px rgba(0,0,0,.32)}
-nav button{flex:1;min-width:0;border:none;background:none;padding:7px 2px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8d877f;font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:background .2s,color .2s;border-radius:24px;white-space:nowrap;overflow:hidden}
-nav button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+nav button{flex:1;min-width:0;border:none;background:none;padding:11px 2px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:0;color:#8d877f;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;transition:background .2s,color .2s;border-radius:24px;white-space:nowrap;overflow:hidden}
+nav button span{display:none}
 nav button svg{width:21px;height:21px;stroke-width:1.85}
-nav button.active{background:#fff;color:#161310}
+/* Solo la pestaña activa muestra su nombre, a la derecha del ícono */
+nav button.active{flex:0 0 auto;background:#fff;color:#161310;gap:8px;padding:11px 16px}
+nav button.active span{display:inline}
 .ndot{display:none}
 
 .page{display:none}.page.active{display:block;animation:fi .2s ease}
@@ -87,7 +89,7 @@ nav button.active{background:#fff;color:#161310}
 .chip{flex-shrink:0;padding:8px 16px;border-radius:22px;font-size:13px;font-weight:600;border:1px solid var(--bord2);background:var(--bg2);cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .15s;box-shadow:var(--shadowsm)}
 .chip.active{background:var(--lime);color:#161310;border-color:var(--lime)}
 
-.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);right:max(16px, calc(50vw - 224px));width:60px;height:60px;border-radius:50%;background:var(--lime);border:none;color:#161310;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;box-shadow:0 10px 26px rgba(200,241,53,.42);transition:transform .12s;font-weight:500}
+.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);right:max(16px, calc(50vw - 224px));width:60px;height:60px;border-radius:50%;background:var(--lime);border:none;color:#161310;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;box-shadow:0 10px 26px rgba(200,241,53,.42);transition:transform .12s;font-weight:500}
 .fab:active{transform:scale(.9)}
 
 .mback{display:none;position:fixed;inset:0;background:rgba(10,8,6,.6);backdrop-filter:blur(2px);z-index:200;align-items:flex-end}
