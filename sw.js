@@ -1,7 +1,7 @@
 // Service worker: permite abrir la app sin internet.
 // Estrategia "primero la red": con conexión siempre se carga la última versión publicada;
 // la copia guardada solo se usa sin conexión. Así las actualizaciones llegan solas.
-var CACHE = 'finanzas-v1';
+var CACHE = 'finanzas-v2';
 var SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
@@ -35,7 +35,10 @@ self.addEventListener('fetch', function (e) {
   // Todo lo demás de otros dominios (Drive, login de Google) pasa directo, sin guardar
   if (url.origin !== self.location.origin) return;
 
-  e.respondWith(fetch(req).then(function (res) {
+  // cache: 'no-cache' → siempre pregunta al servidor si hay versión nueva (sin esperar los 10 min de GitHub).
+  // Se arma una petición nueva con la URL: pasar opciones a una navegación directamente lanza error.
+  var fresh = new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' });
+  e.respondWith(fetch(fresh).then(function (res) {
     if (res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
     return res;
   }).catch(function () {

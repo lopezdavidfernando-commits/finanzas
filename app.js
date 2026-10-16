@@ -420,7 +420,8 @@ function recalcAllBalances(){
 
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
-var APP_VERSION='2026-10-09 · v16';
+// Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
+var APP_VERSION='2.1', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1806,7 +1807,7 @@ function renderSummary(){
 function renderSettings(){
   renderHistory();
   renderRecsSettings();
-  var av=document.getElementById('app-version');if(av)av.textContent='Versión '+APP_VERSION;
+  var av=document.getElementById('app-version');if(av)av.textContent='Versión '+APP_VERSION+' · '+fmtDateCO(APP_DATE);
   var ag=clr('s-ag');
   accts.forEach(function(a,i){
     var card=el('div',{cls:'abig',style:'cursor:pointer'});
@@ -2651,6 +2652,14 @@ if(driveToken){setTimeout(syncDrive,500);}
 if(/[?&]nuevo=1/.test(window.location.search)){
   window.history.replaceState({},'',window.location.pathname);
   openTx(null);
+}
+
+// Tocar la versión en Ajustes: busca una versión nueva y recarga
+function checkUpdate(){
+  var av=document.getElementById('app-version');if(av)av.textContent='Buscando actualización…';
+  var done=function(){location.reload();};
+  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update();}).then(done,done);
+  else done();
 }
 
 // App instalable: service worker para abrir sin internet y recibir actualizaciones
