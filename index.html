@@ -26,12 +26,12 @@
       <div class="dlogo">$</div>
       <div>
         <div class="hg">Buenos días,</div>
-        <div class="hn" id="hero-name">David 👋</div>
+        <div class="hn" id="hero-name">David</div>
       </div>
     </div>
     <div class="dtopbtns">
-      <button class="iconbtn" id="eyebtn" onclick="toggleBlur()">👁</button>
-      <button class="iconbtn" id="d-themebtn" onclick="setTheme(theme==='dark'?'light':'dark')">🌙</button>
+      <button class="iconbtn" id="eyebtn" onclick="toggleBlur()" aria-label="Ocultar saldos"><i class="uii" data-ui="eye" data-s="19"></i></button>
+      <button class="iconbtn" id="d-themebtn" onclick="setTheme(theme==='dark'?'light':'dark')" aria-label="Cambiar tema"><i class="uii" data-ui="moon" data-s="19"></i></button>
     </div>
   </div>
 
@@ -64,11 +64,11 @@
   <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2)">
     <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleConcil()">
       <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Conciliación</div>
-      <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="font-size:10px;color:var(--text3)">▼</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="display:flex;color:var(--text3)"><i class="uii" data-ui="chevdown" data-s="14"></i></span></div>
     </div>
     <div id="d-concil-lines" style="display:none;margin-top:8px"></div>
   </div>
-  <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">✕ Cancelar</button></div>
+  <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">Cancelar</button></div>
   <div class="shdr"><h2>Cuentas</h2><a onclick="showPage('settings')">Gestionar</a></div>
   <div class="accts" id="d-accts"></div>
   <div class="card">
@@ -83,8 +83,9 @@
 <div class="page" id="page-tracking">
   <div class="topbar"><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
   <div style="padding:0 20px 10px"><div style="position:relative">
-    <input id="t-search" type="text" placeholder="🔍 Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px">
-    <span id="t-search-x" onclick="clearSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);cursor:pointer;padding:4px">✕</span>
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);display:flex;pointer-events:none"><i class="uii" data-ui="search" data-s="17"></i></span>
+    <input id="t-search" type="text" placeholder="Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 38px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px">
+    <span id="t-search-x" onclick="clearSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);cursor:pointer;padding:4px"><i class="uii" data-ui="x" data-s="16"></i></span>
   </div></div>
   <div class="months" id="t-months"></div>
   <div class="chips" id="t-chips"></div>
@@ -110,10 +111,10 @@
   <div class="txwrap" id="e-list"></div>
   <div style="padding:8px 20px 24px">
     <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);cursor:pointer">
-      <span style="font-size:13px;font-weight:600;color:var(--text2)">✓ Pagados</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:7px"><i class="uii" data-ui="checkcircle" data-s="17"></i>Pagados</span>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="e-paid-count" style="font-size:12px;font-weight:700;color:var(--green)">0</span>
-        <span id="e-paid-arrow" style="font-size:11px;color:var(--text3)">▼</span>
+        <span id="e-paid-arrow" style="display:flex;color:var(--text3)"><i class="uii" data-ui="chevdown" data-s="14"></i></span>
       </div>
     </div>
     <div id="e-paid-list" style="display:none;margin-top:6px"></div>
@@ -124,17 +125,17 @@
   <div class="topbar"><h1>Presupuesto</h1><p>Cuánto planeas gastar</p></div>
   <div class="months" id="b-months"></div>
   <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:14px;background:var(--bg2);border:.5px solid var(--border)"></div>
-  <div class="bpsect">💰 Ingresos</div><div id="b-inc"></div>
+  <div class="bpsect"><i class="uii" data-ui="coins" data-s="15"></i>Ingresos</div><div id="b-inc"></div>
   <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ingresos</span>
     <span id="b-inc-total-val" style="font-size:15px;font-weight:700;color:var(--green)">$0</span>
   </div>
-  <div class="bpsect">💸 Gastos</div><div id="b-exp"></div>
+  <div class="bpsect"><i class="uii" data-ui="wallet" data-s="15"></i>Gastos</div><div id="b-exp"></div>
   <div id="b-exp-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total gastos</span>
     <span id="b-exp-total-val" style="font-size:15px;font-weight:700;color:var(--red)">$0</span>
   </div>
-  <div class="bpsect">🏦 Ahorro</div><div id="b-sav"></div>
+  <div class="bpsect"><i class="uii" data-ui="bank" data-s="15"></i>Ahorro</div><div id="b-sav"></div>
   <div id="b-sav-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ahorro</span>
     <span id="b-sav-total-val" style="font-size:15px;font-weight:700;color:var(--blue)">$0</span>
@@ -184,28 +185,28 @@
   <div class="sgt" style="padding:12px 20px 6px">Apariencia</div>
   <div class="sg2">
     <div class="srow">
-      <div class="srico">🎨</div>
+      <div class="srico"><i class="uii" data-ui="palette" data-s="17"></i></div>
       <div class="srt"><div class="srn">Tema</div><div class="srs">Fondo de la aplicación</div></div>
       <div class="thtogg"><button id="th-dk" onclick="setTheme('dark')" style="display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Oscuro</button><button id="th-lt" onclick="setTheme('light')" style="display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Claro</button></div>
     </div>
 
     <div class="srow">
-      <div class="srico">🤝</div>
+      <div class="srico"><i class="uii" data-ui="users" data-s="17"></i></div>
       <div class="srt"><div class="srn">Pestaña Pendiente</div><div class="srs">Gastos compartidos con otros</div></div>
       <button class="btnout" id="s-pend-btn" onclick="togglePendienteTab()">Activada</button>
     </div>
     <div class="srow">
-      <div class="srico">👁</div>
+      <div class="srico"><i class="uii" data-ui="eye" data-s="17"></i></div>
       <div class="srt"><div class="srn">Ocultar saldos</div><div class="srs">Esconde los montos</div></div>
       <button class="btnout" id="s-hide-btn" onclick="toggleBlur()">Activar</button>
     </div>
     <div class="srow">
-      <div class="srico">😀</div>
+      <div class="srico"><i class="uii" data-ui="user" data-s="17"></i></div>
       <div class="srt"><div class="srn">Tu nombre</div><div class="srs">Como te saluda la app</div></div>
       <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="David" oninput="saveUserName()">
     </div>
     <div class="srow">
-      <div class="srico">😊</div>
+      <div class="srico"><i class="uii" data-ui="heart" data-s="17"></i></div>
       <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
       <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="Lina" oninput="savePartnerName()">
     </div>
@@ -213,7 +214,7 @@
   <div class="sgt" style="padding:12px 20px 6px">Google Drive</div>
   <div class="sg2">
     <div class="srow">
-      <div class="srico">☁️</div>
+      <div class="srico"><i class="uii" data-ui="cloud" data-s="17"></i></div>
       <div class="srt"><div class="srn" id="s-drn">Sin conexión</div><div class="srs" id="s-drs">Datos solo en este celular</div></div>
       <button class="btnout" id="s-drb" onclick="handleDrive()">Conectar</button>
     </div>
@@ -221,11 +222,11 @@
   <div class="sgt" style="padding:12px 20px 6px">Respaldo manual</div>
   <div class="sg2">
     <div class="srow" onclick="exportData()" style="cursor:pointer">
-      <div class="srico">📤</div><div class="srt"><div class="srn">Exportar datos</div><div class="srs">Descargar respaldo JSON</div></div>
+      <div class="srico"><i class="uii" data-ui="download" data-s="17"></i></div><div class="srt"><div class="srn">Exportar datos</div><div class="srs">Descargar respaldo JSON</div></div>
     </div>
     <div class="srow" style="cursor:pointer;position:relative">
       <input type="file" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="importData(event)">
-      <div class="srico">📥</div><div class="srt"><div class="srn">Importar datos</div><div class="srs">Restaurar desde respaldo</div></div>
+      <div class="srico"><i class="uii" data-ui="upload" data-s="17"></i></div><div class="srt"><div class="srn">Importar datos</div><div class="srs">Restaurar desde respaldo</div></div>
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Historial de cambios</div>
@@ -251,7 +252,7 @@
 <div class="mback" id="m-bulk" style="align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
     <div style="padding:20px">
-      <div style="font-size:30px;text-align:center;margin-bottom:8px">✅</div>
+      <div style="display:flex;justify-content:center;margin-bottom:8px;color:var(--green)"><i class="uii" data-ui="checkcircle" data-s="34"></i></div>
       <div style="font-size:16px;font-weight:700;margin-bottom:6px;text-align:center">Marcar como pagados</div>
       <div id="bulk-desc" style="font-size:13px;color:var(--text2);line-height:1.5;text-align:center"></div>
       <div id="bulk-acc-row" class="fg" style="display:none;margin-top:14px"><label>¿De dónde salió el dinero?</label><select id="bulk-acc"></select></div>
@@ -266,7 +267,7 @@
 <div class="mback" id="m-adj">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2>Cuadrar con el banco</h2><button class="xbtn" onclick="closeM('m-adj')">✕</button></div>
+    <div class="mhdr"><h2>Cuadrar con el banco</h2><button class="xbtn" onclick="closeM('m-adj')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <div id="adj-acct" style="font-size:13px;color:var(--text2);margin-bottom:12px"></div>
       <div class="fg"><label>Saldo que muestra el banco</label><input id="adj-bank" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this);adjCompute()"></div>
@@ -279,7 +280,7 @@
 <div class="mback" id="m-assign">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2>Asignar dinero</h2><button class="xbtn" onclick="closeM('m-assign')">✕</button></div>
+    <div class="mhdr"><h2>Asignar dinero</h2><button class="xbtn" onclick="closeM('m-assign')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <div id="asg-info" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;line-height:1.5"></div>
       <div class="fg"><label>Monto</label><input id="asg-m" type="text" inputmode="numeric" oninput="formatMoneyInput(this);assignPreview()"></div>
@@ -294,7 +295,7 @@
 <div class="mback" id="m-rec">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2>Movimiento recurrente</h2><button class="xbtn" onclick="closeM('m-rec')">✕</button></div>
+    <div class="mhdr"><h2>Movimiento recurrente</h2><button class="xbtn" onclick="closeM('m-rec')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <div class="fg"><label>Descripción</label><input id="rec-d" type="text"></div>
       <div class="fgrow">
@@ -318,23 +319,31 @@
 <div class="mback" id="m-tx">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2 id="tx-ttl">Nuevo movimiento</h2><button class="xbtn" onclick="closeM('m-tx')">✕</button></div>
-    <div class="mtabs">
-      <div class="mtab active" id="mt-inc" onclick="setMTab('income')">Ingreso</div>
-      <div class="mtab" id="mt-gasto" onclick="setMTab('gasto')">Gasto</div>
-      <div class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferir</div>
-      <div class="mtab" id="mt-shared" onclick="setMTab('shared')">Pendiente</div>
-    </div>
+    <div class="mhdr"><h2 id="tx-ttl">Nuevo gasto</h2><button class="xbtn" onclick="closeM('m-tx')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
 
-      <div class="fg"><label>Descripción</label><input id="f-d" type="text" placeholder="Ej: Mercado Plaza" autocomplete="off" list="desc-list"><datalist id="desc-list"></datalist></div>
-      <div class="fgrow">
-        <div class="fg"><label>Monto (COP)</label><input id="f-m" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
-        <div class="fg"><label>Fecha</label><input id="f-dt" type="date"></div>
+      <div class="tx-amt"><span>$</span><input id="f-m" type="text" placeholder="0" inputmode="numeric" autocomplete="off" aria-label="Monto" oninput="formatMoneyInput(this);txAmtW();txErr('')"></div>
+      <div id="tx-err" class="tx-err"></div>
+
+      <div class="tx-desc">
+        <input id="f-d" type="text" placeholder="¿En qué? Ej: Uber, mercado…" autocomplete="off" aria-label="Descripción" oninput="txSuggest()" onchange="txTyped()" onkeydown="if(event.key==='Enter'){event.preventDefault();txTyped();this.blur();}">
+        <button type="button" id="tx-mic" class="tx-mic" onclick="txVoice()" aria-label="Dictar por voz"><i class="uii" data-ui="mic" data-s="19"></i></button>
       </div>
-      <div class="fg" id="fg-cat"><label>Categoría</label><select id="f-c"></select></div>
-      <div id="tf-income-ac" style="display:none"><div class="fg"><label>Cuenta donde entra</label><select id="f-ac-inc"></select></div></div>
-      <div id="tf-gasto"><div class="fg"><label>Cuenta</label><select id="f-ac"></select></div></div>
+      <div id="tx-voice" class="tx-voice"></div>
+      <div id="tx-sug" class="tx-row"></div>
+      <div id="tx-favs" class="tx-row"></div>
+
+      <div id="fg-cat">
+        <div id="tx-cats" class="tx-cats"></div>
+        <select id="f-c" style="display:none" aria-hidden="true" tabindex="-1"></select>
+      </div>
+
+      <div class="tx-meta">
+        <label class="tx-pill"><i class="uii" data-ui="calendar" data-s="16"></i><span id="tx-dlbl">Hoy</span><input id="f-dt" type="date" oninput="txDateLbl()" aria-label="Fecha"></label>
+        <label id="tf-gasto" class="tx-pill"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac" aria-label="Cuenta de donde sale"></select></label>
+        <label id="tf-income-ac" class="tx-pill" style="display:none"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac-inc" aria-label="Cuenta donde entra"></select></label>
+      </div>
+
       <div id="tf-transfer" style="display:none">
         <div class="fgrow">
           <div class="fg"><label>Desde</label><select id="f-from"></select></div>
@@ -347,13 +356,21 @@
           <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david" value="David">David</option><option id="ch-lina" value="Lina">Lina</option><option value="Los dos">Los dos</option><option value="Otro">Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
-        <div class="fg"><label>Estado</label><select id="f-st" onchange="this.dataset.touched='1';updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pago - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pago - David pendiente</option></select></div>
-        <div class="fg" id="payacc-row" style="display:none"><label>De donde salio el dinero?</label><select id="f-payacc"></select></div>
+        <div class="fg"><label>Estado</label><select id="f-st" onchange="this.dataset.touched='1';updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pagó - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pagó - David pendiente</option></select></div>
+        <div class="fg" id="payacc-row" style="display:none"><label>¿De dónde salió el dinero?</label><select id="f-payacc"></select></div>
       </div>
-      <label id="rec-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--bg2);border-radius:12px;margin-bottom:12px;border:.5px solid var(--border);cursor:pointer"><span><span style="font-size:13px;font-weight:600;display:block">🔁 Repetir cada mes</span><span id="rec-hint" style="font-size:11px;color:var(--text3)">Te pediré aprobarlo cada mes</span></span><input type="checkbox" id="f-rec" style="width:20px;height:20px;accent-color:var(--limedk)"></label>
+
+      <label id="rec-row" class="tx-rec"><span><span class="tx-rec-t"><i class="uii" data-ui="repeat" data-s="15"></i>Repetir cada mes</span><span id="rec-hint" class="tx-rec-s">Te pediré aprobarlo cada mes</span></span><input type="checkbox" id="f-rec" class="tx-switch"></label>
+
+      <div class="txtypes" role="tablist">
+        <button type="button" class="mtab active" id="mt-gasto" onclick="setMTab('gasto')">Gasto</button>
+        <button type="button" class="mtab" id="mt-inc" onclick="setMTab('income')">Ingreso</button>
+        <button type="button" class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</button>
+        <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferencia</button>
+      </div>
       <button class="btnp" onclick="saveTx()">Guardar</button>
       <div id="delbtn-wrap" style="display:none;margin-top:12px;padding:12px 0 0;border-top:.5px solid var(--border)">
-        <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()">🗑 Eliminar movimiento</button>
+        <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()"><span style="display:inline-flex;align-items:center;gap:7px"><i class="uii" data-ui="trash" data-s="16"></i>Eliminar movimiento</span></button>
       </div>
     </div>
   </div>
@@ -362,16 +379,12 @@
 <div class="mback" id="m-cfg">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2 id="cfg-ttl">Nueva cuenta</h2><button class="xbtn" onclick="closeM('m-cfg')">✕</button></div>
+    <div class="mhdr"><h2 id="cfg-ttl">Nueva cuenta</h2><button class="xbtn" onclick="closeM('m-cfg')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <div class="fg"><label id="cfg-lbl">Nombre</label><input id="cfg-n" type="text"></div>
       <div class="fg">
         <label>Ícono</label>
         <div id="cfg-grid" class="icogrid"></div>
-        <div style="display:flex;align-items:center;gap:9px;margin-top:10px">
-          <span style="font-size:11.5px;color:var(--text2);font-weight:600">o usa un emoji</span>
-          <input id="cfg-ic" type="text" maxlength="4" placeholder="💳" style="width:62px;text-align:center" oninput="onEmojiInput()">
-        </div>
       </div>
       <div class="fg" id="cfg-br" style="display:none"><label>Saldo actual (COP)</label><input id="cfg-b" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
       <button class="btnp" onclick="saveCfg()">Guardar</button>
@@ -382,7 +395,7 @@
 <div class="mback" id="m-drive">
   <div class="msh">
     <div class="mhnd"></div>
-    <div class="mhdr"><h2>Conectar Google Drive</h2><button class="xbtn" onclick="closeM('m-drive')">✕</button></div>
+    <div class="mhdr"><h2>Conectar Google Drive</h2><button class="xbtn" onclick="closeM('m-drive')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:16px">Para guardar automáticamente en Drive necesitas un <strong style="color:var(--text)">Client ID de Google</strong> (gratis, 5 min).</p>
       <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.8">
@@ -399,7 +412,7 @@
 <div class="mback" id="m-confirm" style="align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
     <div style="padding:20px;text-align:center">
-      <div style="font-size:32px;margin-bottom:10px">🗑️</div>
+      <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--red)"><i class="uii" data-ui="trash" data-s="32"></i></div>
       <div style="font-size:16px;font-weight:700;margin-bottom:6px" id="confirm-title">Eliminar movimiento</div>
       <div style="font-size:13px;color:var(--text2);line-height:1.5" id="confirm-desc">Esta accion no se puede deshacer (pero puedes revertir desde el historial).</div>
     </div>
@@ -416,7 +429,7 @@
     <div class="mhnd"></div>
     <div class="mhdr">
       <h2 id="acct-modal-title">Bancolombia</h2>
-      <button class="xbtn" onclick="closeM('m-acct')">✕</button>
+      <button class="xbtn" onclick="closeM('m-acct')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button>
     </div>
     <div style="padding:14px 20px;border-bottom:.5px solid var(--border)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
@@ -427,7 +440,7 @@
       <div id="acct-modal-calc" style="font-size:11px;color:var(--text2);margin-top:3px"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
         <span id="acct-modal-recon" style="font-size:11px;color:var(--text3)"></span>
-        <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap">🏦 Cuadrar con el banco</button>
+        <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px"><i class="uii" data-ui="bank" data-s="14"></i>Cuadrar con el banco</button>
       </div>
     </div>
     <div style="display:flex;border-bottom:.5px solid var(--border)">
