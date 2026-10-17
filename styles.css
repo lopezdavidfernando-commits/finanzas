@@ -3,7 +3,7 @@
 /* Modo claro: fondo #F9F9FB casi blanco, tarjetas blancas y sombra casi nula (referencia del usuario) */
 [data-theme=light]{--navbg:rgba(255,255,255,.86);--navfg:#8e8e93;--accbg:#e9f5bd;--accfg:#4f6608;--bg:#f9f9fb;--bg2:#ffffff;--bg3:#f3f3f6;--bg4:#e5e5ea;--text:#1c1c1e;--text2:#8e8e93;--text3:#c7c7cc;--border:rgba(60,60,67,.08);--bord2:rgba(60,60,67,.14);--inp:#f3f3f6;--navpill:#161310;--shadow:0 1px 3px rgba(0,0,0,.035);--shadowsm:0 1px 2px rgba(0,0,0,.03);--limetint:#edf7c4;--lav:#ece7fb;--peach:#fde6cf;--mint:#d7f3e1;--sky:#dceaff;--limetx:#6f8c0f}
 :root{--lime:#c8f135;--limedk:#6f8c0f;--limebg:rgba(200,241,53,.16);--green:#22c55e;--greenbg:rgba(34,197,94,.13);--green-bg:rgba(34,197,94,.13);--red:#ef4444;--redbg:rgba(239,68,68,.12);--red-bg:rgba(239,68,68,.12);--amber:#f59e0b;--amberbg:rgba(245,158,11,.13);--blue:#60a5fa;--r:16px}
-body{font-family:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:160px;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s;max-width:480px;margin:0 auto}
+body{font-family:Urbanist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:160px;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s;max-width:480px;margin:0 auto}
 
 /* NAV: floating dark pill */
 nav{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));background:var(--navbg);border:1px solid var(--bord2);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-radius:32px;display:flex;align-items:center;z-index:100;padding:7px;gap:2px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
@@ -440,3 +440,32 @@ b,strong{font-weight:600}
 
 /* Lo que queda (derecha) nunca se parte en dos renglones */
 .bud-cat .bud-cat-ft span:last-child{white-space:nowrap;flex-shrink:0}
+
+/* ── v2.16: más aire entre secciones y dentro de las tarjetas ── */
+.dtop{padding-bottom:14px}
+.topbar{padding-bottom:18px}
+.shdr{padding:30px 22px 12px}
+.card{margin:0 20px 16px;padding:20px 18px}
+.dhero{padding:16px 22px 8px}
+.hprog-t{margin-top:9px}
+.hsum{margin-top:24px}
+.dmonth.dmonth-below{margin:22px 0 0}
+.dlist{padding:6px 16px}
+.dlist-row,.dacct-row{padding:14px 0}
+.dacct{padding:16px 18px}
+.dbud-sum{margin:-4px 2px 16px}
+.txwrap .tx{padding:15px 16px;margin-bottom:10px}
+.txdh{padding:18px 2px 9px}
+.sg2{margin:0 20px 14px}
+.sgt{padding:22px 22px 8px}
+.srow{padding:15px 16px}
+.bud-hero{padding:22px 20px 18px}
+.bud-more{margin-top:12px}
+.bud-month{margin:22px 0 8px}
+.bud-seg{margin:0 20px 14px}
+.bud-cats{padding:4px 18px}
+.bud-cat{padding:16px 0}
+#m-tx .tx-meta{margin:18px 0}
+#m-tx .tx-cats{margin-top:16px}
+/* Columnas de Inicio: nombre en una sola línea; si no cabe, termina en «…» */
+.vbnm{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:unset;max-width:100%}
