@@ -80,14 +80,18 @@
 </div>
 
 <div class="page" id="page-tracking">
-  <div class="topbar"><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
+  <div class="topbar bud-top"><div><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
+    <label class="dmonth">
+      <span id="t-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="t-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
+    </label>
+  </div>
   <div style="padding:0 20px 10px"><div style="position:relative">
     <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);display:flex;pointer-events:none"><i class="uii" data-ui="search" data-s="17"></i></span>
     <input id="t-search" type="text" placeholder="Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 38px;border-radius:6px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:16px">
     <span id="t-search-x" onclick="clearSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);cursor:pointer;padding:4px"><i class="uii" data-ui="x" data-s="16"></i></span>
   </div></div>
-  <div class="months" id="t-months"></div>
-  <div class="chips" id="t-chips"></div>
+  <div class="chips ichips" id="t-chips"></div>
   <div class="txwrap" id="t-list"></div>
 </div>
 
