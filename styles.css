@@ -1,6 +1,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [data-theme=dark]{--navbg:rgba(42,41,37,.86);--navfg:#8a857d;--accbg:rgba(200,241,53,.15);--accfg:#c8f135;--bg:#0d0d0c;--bg2:#191917;--bg3:#201f1d;--bg4:#2a2925;--text:#f3f1ec;--text2:#8a857d;--text3:#56524c;--border:rgba(255,255,255,.06);--bord2:rgba(255,255,255,.11);--inp:#201f1d;--navpill:#232220;--shadow:0 6px 22px rgba(0,0,0,.45);--shadowsm:0 3px 12px rgba(0,0,0,.4);--limetint:rgba(200,241,53,.13);--lav:rgba(170,150,250,.16);--peach:rgba(251,160,90,.16);--mint:rgba(74,222,128,.15);--sky:rgba(96,165,250,.16);--limetx:#c8f135}
-[data-theme=light]{--navbg:rgba(255,255,255,.86);--navfg:#9a948b;--accbg:#e9f5bd;--accfg:#4f6608;--bg:#eeedea;--bg2:#ffffff;--bg3:#f4f3f0;--bg4:#e8e7e3;--text:#17110d;--text2:#8d877f;--text3:#bdb8b0;--border:rgba(0,0,0,.05);--bord2:rgba(0,0,0,.09);--inp:#f4f3f0;--navpill:#161310;--shadow:0 6px 22px rgba(30,26,22,.06);--shadowsm:0 3px 12px rgba(30,26,22,.05);--limetint:#edf7c4;--lav:#ece7fb;--peach:#fde6cf;--mint:#d7f3e1;--sky:#dceaff;--limetx:#6f8c0f}
+/* Modo claro estilo iOS: fondo #F2F2F7 con tarjetas blancas y grises neutros de Apple */
+[data-theme=light]{--navbg:rgba(255,255,255,.86);--navfg:#8e8e93;--accbg:#e9f5bd;--accfg:#4f6608;--bg:#f2f2f7;--bg2:#ffffff;--bg3:#f2f2f7;--bg4:#e5e5ea;--text:#1c1c1e;--text2:#8e8e93;--text3:#c7c7cc;--border:rgba(60,60,67,.08);--bord2:rgba(60,60,67,.14);--inp:#f2f2f7;--navpill:#161310;--shadow:0 4px 18px rgba(0,0,0,.05);--shadowsm:0 1px 3px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.03);--limetint:#edf7c4;--lav:#ece7fb;--peach:#fde6cf;--mint:#d7f3e1;--sky:#dceaff;--limetx:#6f8c0f}
 :root{--lime:#c8f135;--limedk:#6f8c0f;--limebg:rgba(200,241,53,.16);--green:#22c55e;--greenbg:rgba(34,197,94,.13);--green-bg:rgba(34,197,94,.13);--red:#ef4444;--redbg:rgba(239,68,68,.12);--red-bg:rgba(239,68,68,.12);--amber:#f59e0b;--amberbg:rgba(245,158,11,.13);--blue:#60a5fa;--r:16px}
 body{font-family:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:160px;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s;max-width:480px;margin:0 auto}
 
@@ -378,3 +379,6 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 .hsum-i.out{background:var(--redbg);color:var(--red)}
 .hsum-i.sav{background:var(--limebg);color:var(--limetx)}
 .hsum b{display:block;font-size:15.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:filter .2s}
+
+/* El riel de la barra va directo sobre el fondo: necesita un gris más marcado */
+.dhero .hprog{background:var(--bg4)}
