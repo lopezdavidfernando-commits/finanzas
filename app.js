@@ -428,7 +428,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.16', APP_DATE='2026-10-16';
+var APP_VERSION='2.17', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1062,7 +1062,7 @@ function renderDash(){
   var lent=0;txs.forEach(function(t){if(t.isAdelanto)lent+=t.amount;});
   var nc=noCatTxs(),ncTot=0;nc.forEach(function(t){ncTot+=t.amount;});
   var rv=clr('d-review'),items=[];
-  if(pend>0&&showPendiente)items.push({ic:'users',t:'Compartidos por saldar',v:fmtb(pend),go:function(){showPage('expenses');}});
+  if(pend>0&&showPendiente)items.push({ic:'users',t:'Compartidos',v:fmtb(pend),go:function(){showPage('expenses');}});
   if(lent>0&&showPendiente)items.push({ic:'cash',t:'Te deben (adelantos)',v:fmtb(lent),go:function(){showPage('expenses');}});
   if(nc.length)items.push({ic:'tag',t:nc.length+' sin categoría',v:fmtb(ncTot),go:goNoCat,warn:true});
   items.forEach(function(it){
