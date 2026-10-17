@@ -429,7 +429,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.19', APP_DATE='2026-10-16';
+var APP_VERSION='2.20', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1483,7 +1483,6 @@ function renderBudgetView(){
   rows.forEach(function(r){gB+=r.budg;gE+=r.exp;gP+=r.pend;});
   var gA=gB-gE;
   var v=document.getElementById('b-acum');if(v){v.textContent=fmtb(gA);v.style.color=gA<0?'var(--red)':'var(--text)';}
-  var s=document.getElementById('b-acum-s');if(s)s.textContent='Presupuestado '+fmtb(gB)+' · Gastado '+fmtb(gE);
 
   // Detalle: todos los números
   var lb=document.getElementById('b-det-lbl');if(lb)lb.textContent=budDetOpen?'Ocultar detalle':'Ver detalle';
@@ -1510,9 +1509,11 @@ function renderBudgetView(){
   var cur=budMonth(curY,curM),left=cur.B-cur.S;
   var mlw=clr('b-month-line');
   if(mlw){
-    mlw.appendChild(el('span',{txt:'Gastado en '+MONTHS[curM].toLowerCase()}));
-    var rt=el('span');rt.appendChild(el('b',{txt:fmtb(cur.S)}));rt.appendChild(el('span',{txt:cur.B?' de '+fmtb(cur.B):''}));mlw.appendChild(rt);
-    if(cur.B)mlw.appendChild(el('span',{cls:'bud-left',txt:left>=0?fmtb(left)+' quedan':'Te pasaste '+fmtb(-left),style:'color:'+(left>=0?'var(--text2)':'var(--red)')}));
+    // Etiqueta pequeña, monto destacado con «de $X» en gris, y lo que queda como etiqueta de color
+    var lft=el('div',{cls:'bm-l'},[el('div',{cls:'bm-lbl',txt:'Gastado en '+MONTHS[curM].toLowerCase()}),
+      el('div',{cls:'bm-v'},[el('span',{txt:fmtb(cur.S)}),cur.B?el('small',{txt:'de '+fmtb(cur.B)}):null])]);
+    mlw.appendChild(lft);
+    if(cur.B)mlw.appendChild(el('span',{cls:'bm-badge '+(left>=0?'ok':'over'),txt:left>=0?'Quedan '+fmtb(left):'Te pasaste '+fmtb(-left)}));
   }
   var ch=clr('b-chart');
   if(ch){
