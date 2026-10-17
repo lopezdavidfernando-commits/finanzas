@@ -328,6 +328,8 @@ var UIICO={
   settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   chevleft:'<polyline points="15 18 9 12 15 6"/>',
   chevright:'<polyline points="9 18 15 12 9 6"/>',
+  arrowur:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  arrowdr:'<line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 8 17 17 8 17"/>',
   dots:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
 };
 function uiI(n,s){var p=UIICO[n]||ICONLIB[n];return p?svgWrap(p,s||18):'';}
@@ -426,7 +428,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.9', APP_DATE='2026-10-16';
+var APP_VERSION='2.10', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -570,15 +572,15 @@ function renderRecsCard(){
   while(w.firstChild)w.removeChild(w.firstChild);
   var due=recsDue();if(!due.length){w.style.display='none';return;}
   w.style.display='block';
-  var card=el('div',{style:'background:var(--bg2);border-radius:16px;border:.5px solid var(--border);padding:14px'});
+  var card=el('div',{style:'background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:14px'});
   card.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'},[
     el('div',{style:'font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px'},[el('span',{cls:'uii',html:uiI('repeat',16)}),el('span',{txt:due.length+' recurrente'+(due.length===1?'':'s')+' por aprobar'})]),
-    due.length>1?el('button',{txt:'Aprobar todos',click:recApproveAll,style:'background:var(--lime);color:#111;border:none;border-radius:10px;padding:7px 11px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer'}):null
+    due.length>1?el('button',{txt:'Aprobar todos',click:recApproveAll,style:'background:var(--lime);color:#111;border:none;border-radius:4px;padding:7px 11px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer'}):null
   ]));
   due.forEach(function(r){
     var acct=findAcct(r.accountId);
     var sub=(r.kind==='shared'?'Compartido · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
-    var inp=el('input',{id:'rq_'+r.id,type:'text',inputmode:'numeric',oninput:'formatMoneyInput(this)',style:'width:96px;text-align:right;padding:7px 8px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px;font-weight:600'});
+    var inp=el('input',{id:'rq_'+r.id,type:'text',inputmode:'numeric',oninput:'formatMoneyInput(this)',style:'width:96px;text-align:right;padding:7px 8px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px;font-weight:600'});
     inp.value=Number(r.amount||0).toLocaleString('es-CO');
     var row=el('div',{style:'display:flex;align-items:center;gap:8px;padding:9px 0;border-top:.5px solid var(--border)'},[
       el('div',{cls:'bpico',html:icoHTML(cIcon(r.category))}),
@@ -641,8 +643,8 @@ function renderBudgetBanner(){
   bn.appendChild(el('div',{txt:'Este mes no tiene presupuesto',style:'font-size:14px;font-weight:700;margin-bottom:3px'}));
   bn.appendChild(el('div',{txt:'Puedes usar el de '+pm.name+' como base y cambiar solo lo necesario.',style:'font-size:12px;color:var(--text2);margin-bottom:11px'}));
   bn.appendChild(el('div',{style:'display:flex;gap:8px'},[
-    el('button',{txt:'Usar el de '+pm.name+' ('+fmt(tot)+')',click:copyPrevBudget,style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
-    el('button',{txt:'En blanco',click:dismissBudgetBanner,style:'background:var(--bg3);color:var(--text2);border:none;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'})
+    el('button',{txt:'Usar el de '+pm.name+' ('+fmt(tot)+')',click:copyPrevBudget,style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:4px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
+    el('button',{txt:'En blanco',click:dismissBudgetBanner,style:'background:var(--bg3);color:var(--text2);border:none;border-radius:4px;padding:10px 12px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'})
   ]));
   bn.style.display='block';
 }
@@ -658,7 +660,7 @@ function adjCompute(){
   while(r.firstChild)r.removeChild(r.firstChild);
   var diff=adjDiff();
   function line(l,v,col){return el('div',{style:'display:flex;justify-content:space-between;padding:5px 0;font-size:13px'},[el('span',{txt:l,style:'color:var(--text2)'}),el('span',{txt:v,style:'font-weight:700;'+(col?'color:'+col:'')})]);}
-  var box=el('div',{style:'background:var(--bg3);border-radius:12px;padding:10px 12px'});
+  var box=el('div',{style:'background:var(--bg3);border-radius:6px;padding:10px 12px'});
   box.appendChild(line('Saldo en la app',fmt(a.balance||0)));
   if(diff===null){r.appendChild(box);btn.textContent='Escribe el saldo del banco';btn.style.opacity='.5';return;}
   box.appendChild(line('Saldo en el banco',fmt(rawNum(document.getElementById('adj-bank')))));
@@ -823,8 +825,8 @@ function renderUnassigned(){
     w.appendChild(el('div',{txt:'Dinero en tus cuentas que aún no está en ningún rubro (ingresos extra'+(o.adj?' y ajustes con el banco':'')+'). Decide a qué rubro de '+MONTHS[curM]+' lo mandas.',style:'font-size:11.5px;color:var(--text2);margin:4px 0 11px;line-height:1.45'}));
     var sav=cats.savings[0];
     w.appendChild(el('div',{style:'display:flex;gap:8px'},[
-      el('button',{txt:'Asignar a un rubro',click:function(){openAssign();},style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
-      sav?el('button',{txt:'Mandar a '+sav.name,click:function(){var dc=defaultIncomeCat();assignTo('s:',sav,v,dc?dc.id:'');},style:'flex:1;background:var(--bg2);color:var(--text);border:.5px solid var(--border2);border-radius:10px;padding:10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'}):null]));
+      el('button',{txt:'Asignar a un rubro',click:function(){openAssign();},style:'flex:1;background:var(--lime);color:#111;border:none;border-radius:4px;padding:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer'}),
+      sav?el('button',{txt:'Mandar a '+sav.name,click:function(){var dc=defaultIncomeCat();assignTo('s:',sav,v,dc?dc.id:'');},style:'flex:1;background:var(--bg2);color:var(--text);border:.5px solid var(--border2);border-radius:4px;padding:10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer'}):null]));
   } else {
     w.style.background='var(--amberbg)';
     w.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:baseline'},[
@@ -898,7 +900,7 @@ var STRIPE=function(col){return 'repeating-linear-gradient(45deg,'+col+' 0 4px,t
 function splitBar(exp,pend,budg,col){
   var paidW=budg>0?Math.min(100,exp/budg*100):(exp>0?100:0);
   var totW=budg>0?Math.min(100,(exp+pend)/budg*100):((exp+pend)>0?100:0);
-  var bg=el('div',{style:'background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;margin-top:6px;display:flex'});
+  var bg=el('div',{style:'background:var(--bg3);border-radius:2px;height:6px;overflow:hidden;margin-top:6px;display:flex'});
   bg.appendChild(el('div',{style:'height:100%;width:'+paidW+'%;background:'+col+';transition:width .5s'}));
   if(totW>paidW)bg.appendChild(el('div',{style:'height:100%;width:'+(totW-paidW)+'%;background:'+STRIPE(col)+';transition:width .5s'}));
   return bg;
@@ -1110,7 +1112,7 @@ function renderDash(){
     var track=el('div',{cls:'vbt',style:'height:'+BH+'px'});
     track.appendChild(el('div',{cls:'vbf '+cls,style:'height:'+tH+'px'}));
     if(pH>0){var pcol={ok:'var(--lime)',warn:'var(--amber)',ov:'var(--red)',em:'var(--bg4)'}[cls];
-      track.appendChild(el('div',{style:'position:absolute;left:0;right:0;bottom:'+tH+'px;height:'+pH+'px;border-radius:'+(tH?'12px 12px 0 0':'12px')+';background:'+STRIPE(pcol)+';transition:height .6s'}));}
+      track.appendChild(el('div',{style:'position:absolute;left:0;right:0;bottom:'+tH+'px;height:'+pH+'px;border-radius:'+(tH?'6px 6px 0 0':'6px')+';background:'+STRIPE(pcol)+';transition:height .6s'}));}
     var col=el('div',{cls:'vbi'+(dashBudSel===c.name?' sel':''),click:function(){dashBudSel=dashBudSel===c.name?'':c.name;renderDash();}},[
       el('div',{cls:'vbpct',txt:pct!==null?pct+'%':'—',style:'color:'+pctColor}),
       track,
@@ -1479,7 +1481,7 @@ function renderMesDisponible(){
     var barCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--lime)';
     var availCol=isOver?'var(--red)':isExact?'var(--blue)':pct>80?'var(--amber)':'var(--green)';
 
-    var card=el('div',{style:'background:var(--bg2);border-radius:14px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:10px'});
+    var card=el('div',{style:'background:var(--bg2);border-radius:8px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:10px'});
     card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
       el('span',{html:icoHTML(r.cat.icon,16),style:'font-size:16px;display:flex;align-items:center;color:var(--text2)'}),
       el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
@@ -1498,7 +1500,7 @@ function renderMesDisponible(){
   });
 
   // Grand total
-  var tot=el('div',{style:'margin-top:8px;padding:12px 14px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center'});
+  var tot=el('div',{style:'margin-top:8px;padding:12px 14px;background:var(--bg2);border-radius:8px;border:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center'});
   tot.appendChild(el('span',{txt:'Total mes',style:'font-size:12px;font-weight:600;color:var(--text2)'}));
   var grandAvail=grandBudg-grandExp;
   var grandCol=grandAvail<0?'var(--red)':'var(--green)';
@@ -1626,7 +1628,7 @@ function renderDisponible(){
     if(r.pend)availBadge.appendChild(el('span',{txt:'contando pendientes',style:'font-size:10px;color:var(--text3)'}));
 
 
-    var card=el('div',{style:'background:var(--bg2);border-radius:12px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
+    var card=el('div',{style:'background:var(--bg2);border-radius:6px;border:.5px solid var(--border);padding:12px 14px;margin-bottom:8px'});
     card.appendChild(el('div',{style:'display:flex;align-items:center;gap:8px'},[
       el('span',{html:icoHTML(r.cat.icon,16),style:'font-size:16px;display:flex;align-items:center;color:var(--text2)'}),
       el('span',{txt:r.cat.name,style:'font-size:13px;font-weight:600;flex:1'}),
@@ -1641,7 +1643,7 @@ function renderDisponible(){
   // Grand total card
   var grandAvail=grandBudg-grandExp;  // tarjeta verde: solo lo pagado (cruza con tus cuentas)
   var isOverAll=grandAvail<0;
-  var totalCard=el('div',{style:'background:var(--lime);border-radius:12px;padding:14px;margin-bottom:8px'});
+  var totalCard=el('div',{style:'background:var(--lime);border-radius:6px;padding:14px;margin-bottom:8px'});
   var t1=el('div',{style:'font-size:10px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px',txt:'Total disponible acumulado'});
   var t2=el('div',{style:'font-size:28px;font-weight:800;color:'+(isOverAll?'#dc2626':'#0d0d0d')+';letter-spacing:-1px',txt:(isOverAll?'−':'')+fmt(Math.abs(grandAvail))});
   var t3=el('div',{style:'display:flex;gap:16px;margin-top:8px'});

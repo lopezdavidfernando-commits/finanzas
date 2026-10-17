@@ -21,7 +21,6 @@
 
 
 <div class="page active" id="page-dash">
-  <div class="dashbg"></div>
   <div class="dtop">
     <div class="dbrand">
       <div class="dlogo">$</div>
@@ -39,19 +38,19 @@
 
   <!-- Resumen del mes: sin caja, sobre el fondo -->
   <div class="dhero">
-    <label class="dmonth">
-      <span id="d-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
-      <select id="d-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
-    </label>
     <div class="dhero-l">Disponible del mes</div>
     <div class="dhero-v" id="d-avl">$0</div>
     <div class="hprog"><i id="d-prog"></i></div>
     <div class="hprog-t" id="d-prog-t"></div>
-    <div class="hstats3">
-      <div><span>Ingresos</span><b id="d-inc">$0</b></div>
-      <div><span>Gastos</span><b id="d-exp">$0</b></div>
-      <div><span>Ahorro</span><b id="d-sav">$0</b></div>
+    <div class="hsum">
+      <div><span class="hsum-l"><span class="hsum-i in"><i class="uii" data-ui="arrowur" data-s="12"></i></span>Ingresos</span><b id="d-inc">$0</b></div>
+      <div><span class="hsum-l"><span class="hsum-i out"><i class="uii" data-ui="arrowdr" data-s="12"></i></span>Gastos</span><b id="d-exp">$0</b></div>
+      <div><span class="hsum-l"><span class="hsum-i sav"><i class="uii" data-ui="coins" data-s="12"></i></span>Ahorro</span><b id="d-sav">$0</b></div>
     </div>
+    <label class="dmonth dmonth-below">
+      <span id="d-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="d-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
+    </label>
   </div>
 
   <div id="d-recs" style="display:none;margin:12px 20px 0"></div>
@@ -84,7 +83,7 @@
   <div class="topbar"><h1>Movimientos</h1><p>Todos tus ingresos y gastos</p></div>
   <div style="padding:0 20px 10px"><div style="position:relative">
     <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);display:flex;pointer-events:none"><i class="uii" data-ui="search" data-s="17"></i></span>
-    <input id="t-search" type="text" placeholder="Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 38px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px">
+    <input id="t-search" type="text" placeholder="Buscar en todos los meses…" autocomplete="off" oninput="trackQuery=this.value;renderTracking()" style="width:100%;box-sizing:border-box;padding:11px 38px 11px 38px;border-radius:6px;border:.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px">
     <span id="t-search-x" onclick="clearSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);cursor:pointer;padding:4px"><i class="uii" data-ui="x" data-s="16"></i></span>
   </div></div>
   <div class="months" id="t-months"></div>
@@ -110,7 +109,7 @@
   <div style="display:flex;justify-content:flex-end;gap:16px;padding:2px 22px 6px"><span id="sel-all" onclick="selectAllVisible()" style="display:none;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer">Seleccionar todos</span><span id="sel-toggle" onclick="toggleSelMode()" style="font-size:13px;font-weight:700;color:var(--limedk);cursor:pointer">Seleccionar</span></div>
   <div class="txwrap" id="e-list"></div>
   <div style="padding:8px 20px 24px">
-    <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);cursor:pointer">
+    <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:8px;border:.5px solid var(--border);cursor:pointer">
       <span style="font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:7px"><i class="uii" data-ui="checkcircle" data-s="17"></i>Pagados</span>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="e-paid-count" style="font-size:12px;font-weight:700;color:var(--green)">0</span>
@@ -124,32 +123,32 @@
 <div class="page" id="page-budget">
   <div class="topbar"><h1>Presupuesto</h1><p>Cuánto planeas gastar</p></div>
   <div class="months" id="b-months"></div>
-  <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:14px;background:var(--bg2);border:.5px solid var(--border)"></div>
+  <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:8px;background:var(--bg2);border:.5px solid var(--border)"></div>
   <div class="bpsect"><i class="uii" data-ui="coins" data-s="15"></i>Ingresos</div><div id="b-inc"></div>
-  <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+  <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:4px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ingresos</span>
     <span id="b-inc-total-val" style="font-size:15px;font-weight:700;color:var(--green)">$0</span>
   </div>
   <div class="bpsect"><i class="uii" data-ui="wallet" data-s="15"></i>Gastos</div><div id="b-exp"></div>
-  <div id="b-exp-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+  <div id="b-exp-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:4px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total gastos</span>
     <span id="b-exp-total-val" style="font-size:15px;font-weight:700;color:var(--red)">$0</span>
   </div>
   <div class="bpsect"><i class="uii" data-ui="bank" data-s="15"></i>Ahorro</div><div id="b-sav"></div>
-  <div id="b-sav-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:10px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+  <div id="b-sav-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:4px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700;color:var(--text2)">Total ahorro</span>
     <span id="b-sav-total-val" style="font-size:15px;font-weight:700;color:var(--blue)">$0</span>
   </div>
-  <div id="b-balance-card" style="margin:4px 20px 12px;background:var(--bg2);border-radius:14px;border:.5px solid var(--border);padding:16px">
+  <div id="b-balance-card" style="margin:4px 20px 12px;background:var(--bg2);border-radius:8px;border:.5px solid var(--border);padding:16px">
     <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Balance del mes (Ingresos − Gastos − Ahorro)</div>
     <div id="b-balance-val" style="font-size:28px;font-weight:800;letter-spacing:-1px">$0</div>
     <div id="b-balance-sub" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
   </div>
   <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
-  <div id="b-unassigned" style="display:none;margin:12px 20px 0;padding:14px;border-radius:14px;border:.5px solid var(--border)"></div>
+  <div id="b-unassigned" style="display:none;margin:12px 20px 0;padding:14px;border-radius:8px;border:.5px solid var(--border)"></div>
   <div style="display:flex;gap:8px;padding:12px 20px 0">
-    <button id="btab-acum" onclick="setBudgetTab('acum')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--lime);color:#000">Acumulado</button>
-    <button id="btab-mes" onclick="setBudgetTab('mes')" style="flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2)">Este mes</button>
+    <button id="btab-acum" onclick="setBudgetTab('acum')" style="flex:1;padding:8px;border-radius:4px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--lime);color:#000">Acumulado</button>
+    <button id="btab-mes" onclick="setBudgetTab('mes')" style="flex:1;padding:8px;border-radius:4px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2)">Este mes</button>
   </div>
   <div id="b-avail-wrap" style="padding:0 20px 24px"></div>
   <div id="b-mes-wrap" style="padding:0 20px 24px;display:none"></div>
@@ -203,12 +202,12 @@
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="user" data-s="17"></i></div>
       <div class="srt"><div class="srn">Tu nombre</div><div class="srs">Como te saluda la app</div></div>
-      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="David" oninput="saveUserName()">
+      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="David" oninput="saveUserName()">
     </div>
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="heart" data-s="17"></i></div>
       <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
-      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:8px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="Lina" oninput="savePartnerName()">
+      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:13px" placeholder="Lina" oninput="savePartnerName()">
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Google Drive</div>
@@ -247,10 +246,10 @@
 
 <button class="fab" id="fab" onclick="openTx(null)">+</button>
 
-<div id="sel-bar" style="display:none;position:fixed;left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:120;background:var(--navpill);color:#fff;border-radius:18px;padding:10px 10px 10px 16px;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3)"><span id="sel-count" style="flex:1;font-size:13px;font-weight:600">0 seleccionados</span><button id="sel-pay" onclick="bulkPayAsk()" style="background:var(--lime);color:#111;border:none;border-radius:12px;padding:10px 14px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer">Marcar pagado</button></div>
+<div id="sel-bar" style="display:none;position:fixed;left:max(14px, calc(50vw - 210px));right:max(14px, calc(50vw - 210px));bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:120;background:var(--navpill);color:#fff;border-radius:12px;padding:10px 10px 10px 16px;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3)"><span id="sel-count" style="flex:1;font-size:13px;font-weight:600">0 seleccionados</span><button id="sel-pay" onclick="bulkPayAsk()" style="background:var(--lime);color:#111;border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer">Marcar pagado</button></div>
 
 <div class="mback" id="m-bulk" style="align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
+  <div style="background:var(--bg2);border-radius:14px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
     <div style="padding:20px">
       <div style="display:flex;justify-content:center;margin-bottom:8px;color:var(--green)"><i class="uii" data-ui="checkcircle" data-s="34"></i></div>
       <div style="font-size:16px;font-weight:700;margin-bottom:6px;text-align:center">Marcar como pagados</div>
@@ -370,7 +369,7 @@
 
       <button class="btnp" onclick="saveTx()">Guardar</button>
       <div id="delbtn-wrap" style="display:none;margin-top:12px;padding:12px 0 0;border-top:.5px solid var(--border)">
-        <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()"><span style="display:inline-flex;align-items:center;gap:7px"><i class="uii" data-ui="trash" data-s="16"></i>Eliminar movimiento</span></button>
+        <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:6px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()"><span style="display:inline-flex;align-items:center;gap:7px"><i class="uii" data-ui="trash" data-s="16"></i>Eliminar movimiento</span></button>
       </div>
     </div>
   </div>
@@ -398,7 +397,7 @@
     <div class="mhdr"><h2>Conectar Google Drive</h2><button class="xbtn" onclick="closeM('m-drive')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
       <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:16px">Para guardar automáticamente en Drive necesitas un <strong style="color:var(--text)">Client ID de Google</strong> (gratis, 5 min).</p>
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.8">
+      <div style="background:var(--bg3);border-radius:4px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.8">
         <div style="font-size:11px;font-weight:700;color:var(--lime);margin-bottom:6px">Pasos:</div>
         1. Ve a console.cloud.google.com<br>2. Crea proyecto Finanzas David<br>3. APIs &gt; Credenciales &gt; OAuth &gt; App web<br>4. Activa Google Drive API<br>5. Pega el Client ID abajo
       </div>
@@ -410,7 +409,7 @@
 
 <!-- MODAL: CONFIRM DELETE -->
 <div class="mback" id="m-confirm" style="align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
+  <div style="background:var(--bg2);border-radius:14px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
     <div style="padding:20px;text-align:center">
       <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--red)"><i class="uii" data-ui="trash" data-s="32"></i></div>
       <div style="font-size:16px;font-weight:700;margin-bottom:6px" id="confirm-title">Eliminar movimiento</div>
@@ -440,11 +439,11 @@
       <div id="acct-modal-calc" style="font-size:11px;color:var(--text2);margin-top:3px"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
         <span id="acct-modal-recon" style="font-size:11px;color:var(--text3)"></span>
-        <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px"><i class="uii" data-ui="bank" data-s="14"></i>Cuadrar con el banco</button>
+        <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:4px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px"><i class="uii" data-ui="bank" data-s="14"></i>Cuadrar con el banco</button>
       </div>
     </div>
     <div style="padding:12px 20px 0">
-  <div id="d-concil" style="margin:0 0 4px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2)">
+  <div id="d-concil" style="margin:0 0 4px;padding:12px 14px;border-radius:6px;border:.5px solid var(--border);background:var(--bg2)">
     <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleConcil()">
       <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Conciliación</div>
       <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="display:flex;color:var(--text3)"><i class="uii" data-ui="chevdown" data-s="14"></i></span></div>
@@ -463,7 +462,7 @@
       </div>
     </div>
     <!-- Conciliador bancario -->
-    <div style="margin:12px 16px;background:var(--bg3);border-radius:12px;padding:12px;border:.5px solid var(--border2)">
+    <div style="margin:12px 16px;background:var(--bg3);border-radius:6px;padding:12px;border:.5px solid var(--border2)">
       <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Conciliador bancario</div>
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:12px;color:var(--text2)">Débitos reales de la cuenta</span>
