@@ -323,6 +323,12 @@
     <div class="mhdr"><h2 id="tx-ttl">Nuevo gasto</h2><button class="xbtn" onclick="closeM('m-tx')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
     <div class="mbody">
 
+      <div class="txtypes txtypes-top" role="tablist">
+        <button type="button" class="mtab active" id="mt-gasto" onclick="setMTab('gasto')">Gasto</button>
+        <button type="button" class="mtab" id="mt-inc" onclick="setMTab('income')">Ingreso</button>
+        <button type="button" class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</button>
+        <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferencia</button>
+      </div>
       <div class="tx-amt"><span>$</span><input id="f-m" type="text" placeholder="0" inputmode="numeric" autocomplete="off" aria-label="Monto" oninput="formatMoneyInput(this);txAmtW();txErr('')"></div>
       <div id="tx-err" class="tx-err"></div>
 
@@ -363,12 +369,6 @@
 
       <label id="rec-row" class="tx-rec" title="Te pediré aprobarlo cada mes"><span class="tx-rec-t"><i class="uii" data-ui="repeat" data-s="14"></i>Repetir cada mes</span><input type="checkbox" id="f-rec" class="tx-switch"></label>
 
-      <div class="txtypes" role="tablist">
-        <button type="button" class="mtab active" id="mt-gasto" onclick="setMTab('gasto')">Gasto</button>
-        <button type="button" class="mtab" id="mt-inc" onclick="setMTab('income')">Ingreso</button>
-        <button type="button" class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</button>
-        <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferencia</button>
-      </div>
       <button class="btnp" onclick="saveTx()">Guardar</button>
       <div id="delbtn-wrap" style="display:none;margin-top:12px;padding:12px 0 0;border-top:.5px solid var(--border)">
         <button style="width:100%;background:var(--red-bg);color:var(--red);border:.5px solid rgba(248,113,113,.4);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="delTx()"><span style="display:inline-flex;align-items:center;gap:7px"><i class="uii" data-ui="trash" data-s="16"></i>Eliminar movimiento</span></button>

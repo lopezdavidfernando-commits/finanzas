@@ -319,3 +319,7 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 /* Botones secundarios de Inicio (ojo, tema): sin fondo, para que Ajustes resalte */
 .iconbtn.ghost{background:none;border-color:transparent;box-shadow:none;color:var(--text2);width:36px}
 .iconbtn.ghost:active{background:var(--bg3)}
+
+/* Tipo de movimiento arriba, lo primero que se elige */
+#m-tx .txtypes-top{margin:0 0 10px}
+#m-tx .rec-gap,#m-tx #rec-row{margin-bottom:12px}
