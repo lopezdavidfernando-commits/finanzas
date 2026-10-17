@@ -121,8 +121,48 @@
 </div>
 
 <div class="page" id="page-budget">
-  <div class="topbar"><h1>Presupuesto</h1><p>Cuánto planeas gastar</p></div>
-  <div class="months" id="b-months"></div>
+  <div class="topbar bud-top">
+    <h1>Presupuesto</h1>
+    <label class="dmonth">
+      <span id="b-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="b-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
+    </label>
+  </div>
+
+  <!-- Disponible acumulado + gráfica de los últimos meses -->
+  <div class="card bud-hero">
+    <div class="bud-hero-hd">
+      <div>
+        <div class="bud-l">Disponible acumulado</div>
+        <div class="bud-v" id="b-acum">$0</div>
+        <div class="bud-s" id="b-acum-s"></div>
+      </div>
+      <button class="iconbtn" onclick="openBudEdit()" aria-label="Editar presupuesto"><i class="uii" data-ui="edit" data-s="17"></i></button>
+    </div>
+    <button class="bud-more" onclick="toggleBudDet()"><span id="b-det-lbl">Ver detalle</span><span id="b-det-arr"><i class="uii" data-ui="chevdown" data-s="14"></i></span></button>
+    <div id="b-det" class="bud-det" style="display:none"></div>
+    <div class="bud-month" id="b-month-line"></div>
+    <div id="b-chart"></div>
+  </div>
+
+  <div id="b-unassigned" style="display:none;margin:0 20px 10px;padding:13px 14px;border-radius:14px"></div>
+
+  <div class="shdr"><h2>Categorías</h2></div>
+  <div class="seg bud-seg">
+    <button id="btab-mes" class="active" onclick="setBudgetTab('mes')">Este mes</button>
+    <button id="btab-acum" onclick="setBudgetTab('acum')">Acumulado</button>
+  </div>
+  <div class="card bud-cats" id="b-cats"></div>
+
+  <div style="padding:4px 20px 24px"><button class="bud-editbtn" onclick="openBudEdit()"><i class="uii" data-ui="edit" data-s="16"></i><span id="b-edit-lbl">Editar presupuesto</span></button></div>
+</div>
+
+<!-- Ventana: editar presupuesto del mes -->
+<div class="mback" id="m-bud">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="b-edit-ttl">Editar presupuesto</h2><button class="xbtn" onclick="closeM('m-bud')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div style="padding-top:8px">
   <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:8px;background:var(--bg2);border:.5px solid var(--border)"></div>
   <div class="bpsect"><i class="uii" data-ui="coins" data-s="15"></i>Ingresos</div><div id="b-inc"></div>
   <div id="b-inc-total" style="margin:0 20px 8px;background:var(--bg2);border-radius:4px;border:.5px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
@@ -145,13 +185,8 @@
     <div id="b-balance-sub" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
   </div>
   <div style="padding:10px 20px 8px"><button class="btnp" id="savebdg" onclick="saveBudget()">Guardar presupuesto</button></div>
-  <div id="b-unassigned" style="display:none;margin:12px 20px 0;padding:14px;border-radius:8px;border:.5px solid var(--border)"></div>
-  <div style="display:flex;gap:8px;padding:12px 20px 0">
-    <button id="btab-acum" onclick="setBudgetTab('acum')" style="flex:1;padding:8px;border-radius:4px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--lime);color:#000">Acumulado</button>
-    <button id="btab-mes" onclick="setBudgetTab('mes')" style="flex:1;padding:8px;border-radius:4px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2)">Este mes</button>
+    </div>
   </div>
-  <div id="b-avail-wrap" style="padding:0 20px 24px"></div>
-  <div id="b-mes-wrap" style="padding:0 20px 24px;display:none"></div>
 </div>
 
 <div class="page" id="page-summary">
