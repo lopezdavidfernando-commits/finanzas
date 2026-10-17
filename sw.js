@@ -3,7 +3,7 @@
 // la copia guardada solo se usa sin conexión. Así las actualizaciones llegan solas.
 var CACHE = 'finanzas-v2';
 var SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.json',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/logo-mask.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }));

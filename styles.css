@@ -507,3 +507,6 @@ b,strong{font-weight:600}
 .bm-v{white-space:normal}
 .bm-v span{white-space:nowrap}
 .bm-badge{margin:0}
+
+/* Logo de la app en el saludo: la forma se pinta con el color del tema */
+.dlogo-mark{display:block;width:22px;height:23px;background:var(--accfg);-webkit-mask:url(icons/logo-mask.png) center/contain no-repeat;mask:url(icons/logo-mask.png) center/contain no-repeat}
