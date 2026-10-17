@@ -426,7 +426,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.8', APP_DATE='2026-10-16';
+var APP_VERSION='2.9', APP_DATE='2026-10-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1012,6 +1012,17 @@ function renderDashAccts(){
       el('b',{txt:fmtb(a.balance||0)}),el('span',{cls:'dacct-arr',html:uiI('chevright',15)})]));
   });
 }
+// Lista de meses para el selector de Inicio: desde el primer movimiento (mínimo 6 meses atrás) hasta 2 adelante
+function dashMonths(){
+  var first=null;baseTxs().forEach(function(t){if(t.date&&(!first||t.date<first))first=t.date;});
+  var now=new Date(),end=new Date(now.getFullYear(),now.getMonth()+2,1);
+  var start=new Date(now.getFullYear(),now.getMonth()-6,1);
+  if(first){var f=new Date(+first.slice(0,4),+first.slice(5,7)-1,1);if(f<start)start=f;}
+  var sel=new Date(curY,curM,1);if(sel<start)start=sel;if(sel>end)end=sel;
+  var out=[];for(var d=new Date(end);d>=start;d.setMonth(d.getMonth()-1))out.push({y:d.getFullYear(),m:d.getMonth()});
+  return out;
+}
+function pickMonth(v){var p=String(v||'').split('-'),y=+p[0],m=+p[1];if(!p[1]||isNaN(y)||isNaN(m))return;curY=y;curM=m;renderAll();}
 function dashGreeting(){var h=new Date().getHours();return h<12?'Buenos días,':h<19?'Buenas tardes,':'Buenas noches,';}
 
 function renderDash(){
@@ -1024,7 +1035,9 @@ function renderDash(){
 
   // Resumen del mes
   var ml=document.getElementById('d-mlbl');if(ml)ml.textContent=mLbl();
-  var av=document.getElementById('d-avl');av.textContent=fmtb(avail);av.style.color=avail>=0?'var(--green)':'var(--red)';
+  var ms=clr('d-msel');
+  if(ms){dashMonths().forEach(function(o){var op=document.createElement('option');op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y;ms.appendChild(op);});ms.value=curY+'-'+curM;}
+  var av=document.getElementById('d-avl');av.textContent=fmtb(avail);av.style.color=avail>=0?'var(--text)':'var(--red)';
   document.getElementById('d-inc').textContent=fmtb(inc);
   document.getElementById('d-exp').textContent=fmtb(exp);
   var savNames={};cats.savings.forEach(function(c){savNames[c.name]=1;});

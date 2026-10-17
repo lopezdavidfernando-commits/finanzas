@@ -21,6 +21,7 @@
 
 
 <div class="page active" id="page-dash">
+  <div class="dashbg"></div>
   <div class="dtop">
     <div class="dbrand">
       <div class="dlogo">$</div>
@@ -36,24 +37,20 @@
     </div>
   </div>
 
-  <!-- Resumen del mes -->
-  <div class="herowrap">
-    <div class="herog">
-      <div class="herogbg"></div>
-      <div class="hmonth">
-        <button onclick="cm(-1)" aria-label="Mes anterior"><i class="uii" data-ui="chevleft" data-s="18"></i></button>
-        <span id="d-mlbl"></span>
-        <button onclick="cm(1)" aria-label="Mes siguiente"><i class="uii" data-ui="chevright" data-s="18"></i></button>
-      </div>
-      <div class="heroglbl">Disponible del mes</div>
-      <div class="hval2" id="d-avl">$0</div>
-      <div class="hprog"><i id="d-prog"></i></div>
-      <div class="hprog-t" id="d-prog-t"></div>
-      <div class="hstats3">
-        <div><span>Ingresos</span><b id="d-inc">$0</b></div>
-        <div><span>Gastos</span><b id="d-exp">$0</b></div>
-        <div><span>Ahorro</span><b id="d-sav">$0</b></div>
-      </div>
+  <!-- Resumen del mes: sin caja, sobre el fondo -->
+  <div class="dhero">
+    <label class="dmonth">
+      <span id="d-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="d-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
+    </label>
+    <div class="dhero-l">Disponible del mes</div>
+    <div class="dhero-v" id="d-avl">$0</div>
+    <div class="hprog"><i id="d-prog"></i></div>
+    <div class="hprog-t" id="d-prog-t"></div>
+    <div class="hstats3">
+      <div><span>Ingresos</span><b id="d-inc">$0</b></div>
+      <div><span>Gastos</span><b id="d-exp">$0</b></div>
+      <div><span>Ahorro</span><b id="d-sav">$0</b></div>
     </div>
   </div>
 

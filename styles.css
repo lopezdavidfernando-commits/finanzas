@@ -355,3 +355,15 @@ body.mono-icons .srico,body.mono-icons .vbico{filter:grayscale(1) brightness(0);
 .vbi{cursor:pointer}
 .vbi.sel .vbt{box-shadow:0 0 0 2px var(--text3)}
 .vbi.sel .vbnm{color:var(--text)}
+
+/* ── Inicio v2.9: resumen sin caja, mes en lista, degradado suave ── */
+#page-dash{position:relative}
+.dashbg{position:absolute;top:0;left:0;right:0;height:420px;background:linear-gradient(180deg,var(--limetint) 0%,transparent 100%);pointer-events:none;z-index:0}
+#page-dash>*:not(.dashbg){position:relative;z-index:1}
+.dhero{padding:10px 22px 6px}
+.dmonth{position:relative;display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:20px;padding:8px 13px 8px 15px;font-size:13.5px;font-weight:700;box-shadow:var(--shadowsm);cursor:pointer;margin-bottom:16px}
+.dmonth .uii{color:var(--text2)}
+.dmonth select{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px}
+.dhero-l{font-size:14px;color:var(--text2);font-weight:600}
+.dhero-v{font-size:44px;font-weight:800;letter-spacing:-1.8px;line-height:1.08;margin:2px 0 16px;transition:filter .2s}
+.dhero .hstats3>div{background:var(--bg2);box-shadow:var(--shadowsm)}
