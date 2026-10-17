@@ -25,7 +25,7 @@
     <div class="dbrand">
       <div class="dlogo">$</div>
       <div>
-        <div class="hg">Buenos días,</div>
+        <div class="hg" id="d-greet">Hola,</div>
         <div class="hn" id="hero-name">David</div>
       </div>
     </div>
@@ -36,47 +36,49 @@
     </div>
   </div>
 
-  <div class="months" id="d-months"></div>
-
+  <!-- Resumen del mes -->
   <div class="herowrap">
     <div class="herog">
       <div class="herogbg"></div>
-      <div class="heroghd">
-        <div class="herogico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21 12V8H6a2 2 0 0 1 0-4h13"></path><path d="M3 6v12a2 2 0 0 0 2 2h16v-4"></path><path d="M18 12a2 2 0 0 0 0 4h3v-4z"></path></svg></div>
-        <div>
-          <div class="herogttl">Balance de <span id="d-mlbl"></span></div>
-          <div class="herogsub">Tu resumen del mes</div>
-        </div>
+      <div class="hmonth">
+        <button onclick="cm(-1)" aria-label="Mes anterior"><i class="uii" data-ui="chevleft" data-s="18"></i></button>
+        <span id="d-mlbl"></span>
+        <button onclick="cm(1)" aria-label="Mes siguiente"><i class="uii" data-ui="chevright" data-s="18"></i></button>
       </div>
-      <div class="herogrow">
-        <div><div class="heroglbl">Ingresos</div><div class="herognum" id="d-inc">$0</div></div>
-        <div style="text-align:right"><div class="heroglbl">Gastos</div><div class="herognum" id="d-exp">$0</div></div>
+      <div class="heroglbl">Disponible del mes</div>
+      <div class="hval2" id="d-avl">$0</div>
+      <div class="hprog"><i id="d-prog"></i></div>
+      <div class="hprog-t" id="d-prog-t"></div>
+      <div class="hstats3">
+        <div><span>Ingresos</span><b id="d-inc">$0</b></div>
+        <div><span>Gastos</span><b id="d-exp">$0</b></div>
+        <div><span>Ahorro</span><b id="d-sav">$0</b></div>
       </div>
-      <div class="herogbar"><div class="herogknob" id="d-knob"><span>$</span></div></div>
-      <div class="herogfoot"><span class="heroglbl">Disponible</span><span class="herogavl" id="d-avl">$0</span></div>
     </div>
   </div>
 
-  <div class="kpis" id="d-kpis"></div>
-
-  <div id="d-lent" onclick="showPage('expenses')" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:.5px solid var(--border);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-lent-txt" style="font-size:12.5px;font-weight:600;color:var(--text2)"></span><span style="font-size:12px;font-weight:700;color:var(--text3);white-space:nowrap">Ver ›</span></div>
-  <div id="d-recs" style="display:none;margin:0 20px 10px"></div>
-  <div id="d-nocat" onclick="goNoCat()" style="display:none;margin:0 20px 10px;padding:11px 14px;border-radius:12px;background:var(--amberbg);border:.5px solid rgba(245,158,11,.35);cursor:pointer;align-items:center;justify-content:space-between;gap:10px"><span id="d-nocat-txt" style="font-size:12.5px;font-weight:600;color:var(--amber)"></span><span style="font-size:12px;font-weight:700;color:var(--amber);white-space:nowrap">Revisar ›</span></div>
-  <div id="d-concil" style="margin:0 20px 10px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2)">
-    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleConcil()">
-      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Conciliación</div>
-      <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="display:flex;color:var(--text3)"><i class="uii" data-ui="chevdown" data-s="14"></i></span></div>
-    </div>
-    <div id="d-concil-lines" style="display:none;margin-top:8px"></div>
+  <div id="d-recs" style="display:none;margin:12px 20px 0"></div>
+  <div id="d-review-wrap" style="display:none">
+    <div class="shdr"><h2>Para revisar</h2></div>
+    <div class="card dlist" id="d-review"></div>
   </div>
-  <div class="dbar"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">Cancelar</button></div>
-  <div class="shdr"><h2>Cuentas</h2><a onclick="showPage('settings')">Gestionar</a></div>
-  <div class="accts" id="d-accts"></div>
+
+  <div class="shdr"><h2>Presupuesto</h2><a onclick="showPage('budget')">Ver todo</a></div>
   <div class="card">
-    <div class="chd"><h3>Gastos vs Presupuesto</h3><a onclick="showPage('budget')">Editar</a></div>
+    <div class="dbud-sum" id="d-bud-sum"></div>
     <div class="vbars" id="d-vbars"></div>
-      <div id="d-vbars-legend" style="display:none;gap:14px;justify-content:center;margin-top:10px;font-size:10.5px;color:var(--text3)"><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:var(--lime)"></span>Pagado</span><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--lime) 0 3px,transparent 3px 5px);border:.5px solid var(--border2)"></span>Pendiente por pagar</span></div>
+    <div class="dbud-det" id="d-bud-det"></div>
+    <div id="d-vbars-legend" style="display:none;gap:14px;justify-content:center;margin-top:10px;font-size:10.5px;color:var(--text3)"><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:var(--lime)"></span>Pagado</span><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--lime) 0 3px,transparent 3px 5px);border:.5px solid var(--border2)"></span>Pendiente por pagar</span></div>
   </div>
+
+  <div class="card dacct" onclick="toggleDashAccts()">
+    <div class="dacct-hd"><span class="dacct-ic"><i class="uii" data-ui="wallet" data-s="18"></i></span><span class="dacct-t">En tus cuentas</span><b id="d-acct-tot">$0</b><span id="d-acct-arr" class="dacct-arr"><i class="uii" data-ui="chevdown" data-s="16"></i></span></div>
+    <div id="d-accts" class="dacct-list" style="display:none"></div>
+  </div>
+
+  <!-- Drive solo aparece aquí si falla la sincronización -->
+  <div class="dbar" id="d-drivebar" style="display:none"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">Cancelar</button></div>
+
   <div class="shdr"><h2>Últimos movimientos</h2><a onclick="showPage('tracking')">Ver todos</a></div>
   <div class="txwrap" id="d-recent"></div>
 </div>
@@ -443,6 +445,15 @@
         <span id="acct-modal-recon" style="font-size:11px;color:var(--text3)"></span>
         <button onclick="openAdjust()" style="background:var(--lime);color:#111;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px"><i class="uii" data-ui="bank" data-s="14"></i>Cuadrar con el banco</button>
       </div>
+    </div>
+    <div style="padding:12px 20px 0">
+  <div id="d-concil" style="margin:0 0 4px;padding:12px 14px;border-radius:12px;border:.5px solid var(--border);background:var(--bg2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleConcil()">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Conciliación</div>
+      <div style="display:flex;align-items:center;gap:8px"><span id="d-concil-status" style="font-size:11.5px;font-weight:700">—</span><span id="d-concil-arrow" style="display:flex;color:var(--text3)"><i class="uii" data-ui="chevdown" data-s="14"></i></span></div>
+    </div>
+    <div id="d-concil-lines" style="display:none;margin-top:8px"></div>
+  </div>
     </div>
     <div style="display:flex;border-bottom:.5px solid var(--border)">
       <div style="flex:1;padding:12px 16px;text-align:center;border-right:.5px solid var(--border)">
