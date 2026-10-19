@@ -331,6 +331,7 @@ var UIICO={
   arrowur:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
   arrowdr:'<line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 8 17 17 8 17"/>',
   grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   dots:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
 };
 function uiI(n,s){var p=UIICO[n]||ICONLIB[n];return p?svgWrap(p,s||18):'';}
@@ -429,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.22', APP_DATE='2026-10-16';
+var APP_VERSION='2.23', APP_DATE='2026-10-18';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1435,6 +1436,7 @@ function setBudgetTab(tab){
 function toggleBudDet(){budDetOpen=!budDetOpen;renderBudgetView();}
 function openBudEdit(){
   var t=document.getElementById('b-edit-ttl');if(t)t.textContent='Presupuesto de '+MONTHS[curM].toLowerCase()+' '+curY;
+  var hp=document.getElementById('b-edit-help');if(hp)hp.textContent='Escribe cuánto planeas recibir, gastar y ahorrar en '+MONTHS[curM].toLowerCase()+' en cada categoría. Con esto la app te muestra cuánto te queda en cada una.';
   renderBudget();document.getElementById('m-bud').classList.add('open');
 }
 function fmtShort(n){var a=Math.abs(n),s=n<0?'-':'';
@@ -1476,7 +1478,13 @@ function renderBudgetView(){
   var ml=document.getElementById('b-mlbl');if(ml)ml.textContent=mLbl();
   var ms=clr('b-msel');
   if(ms){dashMonths().forEach(function(o){var op=document.createElement('option');op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y;ms.appendChild(op);});ms.value=curY+'-'+curM;}
-  var el2=document.getElementById('b-edit-lbl');if(el2)el2.textContent='Editar presupuesto de '+MONTHS[curM].toLowerCase();
+  var el2=document.getElementById('b-edit-lbl');if(el2)el2.textContent='Definir presupuesto de '+MONTHS[curM].toLowerCase();
+  // Fila explicada para definir el presupuesto del mes (más clara que un lápiz suelto)
+  var pl=clr('b-plan'),mB=budMonth(curY,curM).B,mn=MONTHS[curM].toLowerCase();
+  if(pl){pl.classList.toggle('empty',!mB);
+    pl.appendChild(el('span',{cls:'bud-plan-ic',html:uiI('edit',17)}));
+    pl.appendChild(el('span',{cls:'bud-plan-t'},[el('b',{txt:'Presupuesto de '+mn}),el('small',{txt:mB?'Tus límites de gasto por categoría':'Aún no lo defines · toca aquí'})]));
+    pl.appendChild(el('span',{cls:'bud-plan-arr',html:uiI('chevright',15)}));}
 
   // Disponible acumulado (solo lo pagado; cruza con tus cuentas)
   var rows=budRows(true),gB=0,gE=0,gP=0;
@@ -2653,6 +2661,34 @@ function checkUpdate(){
   var done=function(){location.reload();};
   if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update();}).then(done,done);
   else done();
+}
+
+// ── Abrir directo en Nuevo gasto (Ajustes) ──
+var quickAdd=ls.g('qa7',false),hiddenAt=0;
+function applyQuickAddBtn(){var b=document.getElementById('s-qa-btn');if(b)b.textContent=quickAdd?'Activado':'Desactivado';}
+function toggleQuickAdd(){quickAdd=!quickAdd;ls.s('qa7',quickAdd);applyQuickAddBtn();}
+applyQuickAddBtn();
+if(quickAdd&&!document.getElementById('m-tx').classList.contains('open'))openTx(null);
+// En el iPhone la app suele quedar en segundo plano: al volver tras 5 min, también abre el formulario
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){hiddenAt=Date.now();return;}
+  if(quickAdd&&hiddenAt&&Date.now()-hiddenAt>5*60*1000&&!document.querySelector('.mback.open'))openTx(null);
+});
+
+// ── Borrar todos los datos: dos confirmaciones (ventana + escribir BORRAR) ──
+function askReset(){
+  showConfirm('Borrar todos los datos','Se borrarán tus movimientos, cuentas, categorías, presupuestos y ajustes de este celular. Te recomendamos exportar un respaldo antes. La copia en Google Drive no se borra: si vuelves a conectarla, recuperas tus datos.',function(){
+    var i=document.getElementById('reset-inp');i.value='';document.getElementById('reset-err').textContent='';
+    document.getElementById('m-reset').classList.add('open');setTimeout(function(){i.focus();},50);
+  });
+}
+function doReset(){
+  var v=(document.getElementById('reset-inp').value||'').trim().toUpperCase();
+  if(v!=='BORRAR'){document.getElementById('reset-err').textContent='Escribe BORRAR para confirmar';return;}
+  // Desconectar Drive antes de limpiar para que nada vuelva a escribir ni a traer datos
+  syncPending=false;driveToken='';
+  try{localStorage.clear();}catch(e){}
+  location.replace(location.pathname);
 }
 
 // App instalable: service worker para abrir sin internet y recibir actualizaciones

@@ -141,12 +141,12 @@
         <div class="bud-l">Disponible acumulado</div>
         <div class="bud-v" id="b-acum">$0</div>
       </div>
-      <button class="iconbtn" onclick="openBudEdit()" aria-label="Editar presupuesto"><i class="uii" data-ui="edit" data-s="17"></i></button>
     </div>
     <button class="bud-more" onclick="toggleBudDet()"><span id="b-det-lbl">Ver detalle</span><span id="b-det-arr"><i class="uii" data-ui="chevdown" data-s="14"></i></span></button>
     <div id="b-det" class="bud-det" style="display:none"></div>
     <div class="bud-month" id="b-month-line"></div>
     <div id="b-chart"></div>
+    <button class="bud-plan" id="b-plan" onclick="openBudEdit()"></button>
   </div>
 
   <div id="b-unassigned" style="display:none;margin:0 20px 10px;padding:13px 14px;border-radius:14px"></div>
@@ -166,6 +166,7 @@
   <div class="msh">
     <div class="mhnd"></div>
     <div class="mhdr"><h2 id="b-edit-ttl">Editar presupuesto</h2><button class="xbtn" onclick="closeM('m-bud')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="bud-help" id="b-edit-help"></div>
     <div style="padding-top:8px">
   <div id="b-copy-banner" style="display:none;margin:4px 20px 12px;padding:14px;border-radius:8px;background:var(--bg2);border:.5px solid var(--border)"></div>
   <div class="bpsect"><i class="uii" data-ui="coins" data-s="15"></i>Ingresos</div><div id="b-inc"></div>
@@ -249,6 +250,14 @@
       <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Lina" oninput="savePartnerName()">
     </div>
   </div>
+  <div class="sgt" style="padding:12px 20px 6px">Registro rápido</div>
+  <div class="sg2">
+    <div class="srow">
+      <div class="srico"><i class="uii" data-ui="plus" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Abrir directo en Nuevo gasto</div><div class="srs">Al abrir la app sale el formulario listo para registrar</div></div>
+      <button class="btnout" id="s-qa-btn" onclick="toggleQuickAdd()">Desactivado</button>
+    </div>
+  </div>
   <div class="sgt" style="padding:12px 20px 6px">Google Drive</div>
   <div class="sg2">
     <div class="srow">
@@ -280,6 +289,13 @@
   <div class="sg2" id="s-ce-wrap"></div>
   <div class="sgt" style="padding:12px 20px 6px">Categorías de ahorro</div>
   <div class="sg2" id="s-cs-wrap"></div>
+  <div class="sgt" style="padding:12px 20px 6px">Zona de riesgo</div>
+  <div class="sg2">
+    <div class="srow" onclick="askReset()" style="cursor:pointer">
+      <div class="srico" style="color:var(--red)"><i class="uii" data-ui="trash" data-s="17"></i></div>
+      <div class="srt"><div class="srn" style="color:var(--red)">Borrar todos los datos</div><div class="srs">Deja la app como recién instalada en este celular</div></div>
+    </div>
+  </div>
   <div style="text-align:center;padding:18px 20px 110px;cursor:pointer" onclick="checkUpdate()"><div id="app-version" style="font-size:14px;font-weight:500;color:var(--text2)">Versión</div><div style="font-size:12.5px;color:var(--text3);margin-top:3px">Toca para buscar actualización</div></div>
 </div>
 
@@ -447,6 +463,23 @@
 </div>
 
 <!-- MODAL: CONFIRM DELETE -->
+<!-- MODAL: confirmación final para borrar todo -->
+<div class="mback" id="m-reset" style="align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border-radius:14px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
+    <div style="padding:20px;text-align:center">
+      <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--red)"><i class="uii" data-ui="alert" data-s="32"></i></div>
+      <div style="font-size:18.5px;font-weight:600;margin-bottom:6px">Confirmación final</div>
+      <div style="font-size:15px;color:var(--text2);line-height:1.5">Escribe <b>BORRAR</b> para eliminar todos los datos de este celular. Esta acción no se puede deshacer.</div>
+      <input id="reset-inp" type="text" autocomplete="off" autocapitalize="characters" placeholder="BORRAR" oninput="document.getElementById('reset-err').textContent=''" style="margin-top:14px;width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid var(--bord2);background:var(--inp);color:var(--text);font-family:inherit;font-size:16px;text-align:center;letter-spacing:1px">
+      <div id="reset-err" style="min-height:18px;margin-top:6px;font-size:13px;color:var(--red)"></div>
+    </div>
+    <div style="display:flex;border-top:.5px solid var(--border)">
+      <button onclick="closeM('m-reset')" style="flex:1;padding:14px;border:none;border-right:.5px solid var(--border);background:none;color:var(--text2);font-size:17px;font-weight:500;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button onclick="doReset()" style="flex:1;padding:14px;border:none;background:none;color:var(--red);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">Borrar todo</button>
+    </div>
+  </div>
+</div>
+
 <div class="mback" id="m-confirm" style="align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--bg2);border-radius:14px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
     <div style="padding:20px;text-align:center">
