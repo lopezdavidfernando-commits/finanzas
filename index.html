@@ -23,7 +23,8 @@
 <div class="page active" id="page-dash">
   <div class="dtop">
     <div class="dbrand">
-      <div class="dlogo"><span class="dlogo-mark" aria-hidden="true"></span></div>
+      <button class="dlogo" id="d-avatar" onclick="pickAvatar()" aria-label="Cambiar foto de perfil"><span class="dlogo-mark" aria-hidden="true"></span></button>
+      <input type="file" id="avatar-inp" accept="image/*" style="display:none" onchange="onAvatarFile(event)">
       <div>
         <div class="hg" id="d-greet">Hola,</div>
         <div class="hn" id="hero-name">David</div>
@@ -237,6 +238,11 @@
       <div class="srico"><i class="uii" data-ui="eye" data-s="17"></i></div>
       <div class="srt"><div class="srn">Ocultar saldos</div><div class="srs">Esconde los montos</div></div>
       <button class="btnout" id="s-hide-btn" onclick="toggleBlur()">Activar</button>
+    </div>
+    <div class="srow">
+      <span class="dlogo s-avatar" id="s-avatar"><span class="dlogo-mark" aria-hidden="true"></span></span>
+      <div class="srt"><div class="srn">Foto de perfil</div><div class="srs">Junto al saludo</div></div>
+      <div style="display:flex;gap:6px"><button class="btnout" id="s-av-del" onclick="removeAvatar()" style="display:none">Quitar</button><button class="btnout" onclick="pickAvatar()">Cambiar</button></div>
     </div>
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="user" data-s="17"></i></div>

@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.24', APP_DATE='2026-10-18';
+var APP_VERSION='2.25', APP_DATE='2026-10-18';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -2663,6 +2663,35 @@ function checkUpdate(){
   if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update();}).then(done,done);
   else done();
 }
+
+// ── Foto de perfil (reemplaza el logo junto al saludo; se guarda solo en este celular) ──
+var avatar=ls.g('av7','');
+function applyAvatar(){
+  ['d-avatar','s-avatar'].forEach(function(id){var d=document.getElementById(id);if(!d)return;
+    d.classList.toggle('has-photo',!!avatar);d.style.backgroundImage=avatar?'url('+avatar+')':'';});
+  var del=document.getElementById('s-av-del');if(del)del.style.display=avatar?'':'none';
+}
+function pickAvatar(){var i=document.getElementById('avatar-inp');if(i)i.click();}
+function onAvatarFile(e){
+  var f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      // Recorte cuadrado al centro y reducción a 256 px (≈20 KB) para no llenar el almacenamiento
+      var S=256,side=Math.min(img.naturalWidth,img.naturalHeight),c=document.createElement('canvas');c.width=S;c.height=S;
+      c.getContext('2d').drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,S,S);
+      var url=c.toDataURL('image/jpeg',0.85);
+      if(!ls.s('av7',url))return;
+      avatar=url;applyAvatar();
+    };
+    img.onerror=function(){alert('No se pudo leer esa imagen. Intenta con otra foto.');};
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(f);
+}
+function removeAvatar(){avatar='';ls.s('av7','');applyAvatar();}
+applyAvatar();
 
 // ── Abrir directo en Nuevo gasto (Ajustes) ──
 var quickAdd=ls.g('qa7',false),hiddenAt=0;

@@ -532,3 +532,11 @@ b,strong{font-weight:600}
 .acccard-ic{width:36px;height:36px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .acccard-n{font-size:14px;color:var(--text2);font-weight:400;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acccard-v{font-size:19px;font-weight:600;letter-spacing:-.4px;white-space:nowrap;transition:filter .2s}
+
+/* Foto de perfil en lugar del logo */
+button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
+.dlogo.has-photo{background-color:var(--bg3);background-size:cover;background-position:center;border-radius:50%}
+.dlogo.has-photo .dlogo-mark{display:none}
+.s-avatar{width:34px;height:34px;border-radius:10px}
+.s-avatar .dlogo-mark{width:17px;height:18px}
+.s-avatar.has-photo{border-radius:50%}
