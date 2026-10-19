@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.23', APP_DATE='2026-10-18';
+var APP_VERSION='2.24', APP_DATE='2026-10-18';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1005,14 +1005,15 @@ var dashAcctOpen=false,dashBudSel='';
 function toggleDashAccts(){dashAcctOpen=!dashAcctOpen;renderDashAccts();}
 function renderDashAccts(){
   var tot=0;accts.forEach(function(a){tot+=a.balance||0;});
-  var t=document.getElementById('d-acct-tot');if(t)t.textContent=fmtb(tot);
-  var ar=document.getElementById('d-acct-arr');if(ar)ar.innerHTML=uiI(dashAcctOpen?'chevup':'chevdown',16);
+  var t=document.getElementById('d-acct-tot');if(t){t.textContent='Total '+fmtb(tot);t.style.color=tot<0?'var(--red)':'';}
   var ac=clr('d-accts');if(!ac)return;
-  ac.style.display=dashAcctOpen?'':'none';
+  // Una tarjeta por cuenta; se deslizan hacia el lado y al tocarlas se abre su detalle
   accts.forEach(function(a){
-    ac.appendChild(el('div',{cls:'dacct-row',click:function(e){e.stopPropagation();openAcctModal(a.id);}},[
-      el('span',{cls:'dacct-ic',html:icoHTML(a.icon,17)}),el('span',{cls:'dacct-t',txt:a.name}),
-      el('b',{txt:fmtb(a.balance||0)}),el('span',{cls:'dacct-arr',html:uiI('chevright',15)})]));
+    var bal=a.balance||0;
+    ac.appendChild(el('button',{type:'button',cls:'acccard',click:function(){openAcctModal(a.id);}},[
+      el('span',{cls:'acccard-ic',html:icoHTML(a.icon,18)}),
+      el('span',{cls:'acccard-n',txt:a.name}),
+      el('span',{cls:'acccard-v',txt:fmtb(bal),style:bal<0?'color:var(--red)':''})]));
   });
 }
 // Lista de meses para el selector de Inicio: desde el primer movimiento (mínimo 6 meses atrás) hasta 2 adelante

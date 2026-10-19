@@ -523,3 +523,12 @@ b,strong{font-weight:600}
 .bud-plan.empty{border-color:var(--lime);background:var(--limetint)}
 .bud-plan.empty .bud-plan-ic{background:var(--lime);color:#161310}
 .bud-help{margin:6px 20px 4px;padding:12px 14px;border-radius:12px;background:var(--bg2);font-size:14px;line-height:1.45;color:var(--text2)}
+
+/* Inicio: cuentas en tarjetas deslizables */
+.shdr-tot{font-size:15px;color:var(--text2);font-weight:500;white-space:nowrap}
+.accrow{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 20px 6px;scroll-snap-type:x mandatory;scroll-padding:0 20px;-webkit-overflow-scrolling:touch}
+.accrow::-webkit-scrollbar{display:none}
+.acccard{flex:0 0 auto;width:152px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;border:none;border-radius:14px;background:var(--bg2);box-shadow:var(--shadowsm);color:var(--text);font-family:inherit;text-align:left;cursor:pointer}
+.acccard-ic{width:36px;height:36px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.acccard-n{font-size:14px;color:var(--text2);font-weight:400;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acccard-v{font-size:19px;font-weight:600;letter-spacing:-.4px;white-space:nowrap;transition:filter .2s}
