@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.25', APP_DATE='2026-10-18';
+var APP_VERSION='2.26', APP_DATE='2026-10-18';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -654,7 +654,9 @@ function renderBudgetBanner(){
 // ── 1. Cuadrar con el banco ──
 function openAdjust(){var a=findAcct(currentAcctId);if(!a)return;
   document.getElementById('adj-acct').textContent=a.name+(a.lastRecon?' · cuadrada por última vez el '+fmtDateCO(a.lastRecon):' · nunca se ha cuadrado');
-  document.getElementById('adj-bank').value='';adjCompute();document.getElementById('m-adj').classList.add('open');}
+  document.getElementById('adj-bank').value='';adjCompute();document.getElementById('m-adj').classList.add('open');
+  // Cursor listo en la casilla del saldo del banco
+  setTimeout(function(){document.getElementById('adj-bank').focus();},60);}
 function adjDiff(){var a=findAcct(currentAcctId);var inp=document.getElementById('adj-bank');
   if(!a||!inp.value.trim())return null;return rawNum(inp)-Math.round(a.balance||0);}
 function adjCompute(){

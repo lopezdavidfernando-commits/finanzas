@@ -540,3 +540,9 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .s-avatar{width:34px;height:34px;border-radius:10px}
 .s-avatar .dlogo-mark{width:17px;height:18px}
 .s-avatar.has-photo{border-radius:50%}
+
+/* Ventanas que se abren encima de otra: «Cuadrar con el banco» sobre la cuenta,
+   y las confirmaciones siempre encima de todo (antes quedaban detrás) */
+#m-adj{z-index:210}
+#m-confirm{z-index:230}
+#m-reset{z-index:240}
