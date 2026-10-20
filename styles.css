@@ -576,3 +576,22 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 #d-vbars .vbnm{font-size:10.5px}
 #d-vbars{gap:12px}
 #d-vbars .vbi{flex-basis:50px}
+
+/* ── Compartidos v2.31 ── */
+.ehero .hsum{margin-top:18px}
+.e-note{font-size:12px;color:var(--text3);margin-top:12px}
+.esrc{gap:8px;padding:0 20px 4px}
+.srcchip{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:none;border-radius:20px;background:var(--bg2);box-shadow:var(--shadowsm);color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.srcchip .uii{color:var(--text2)}
+.srcchip b{font-weight:600}
+.srcchip.zero{color:var(--text3)}
+.srcchip.zero b{font-weight:400}
+.srcchip.active{background:var(--text);color:var(--bg2)}
+.srcchip.active .uii{color:var(--bg2)}
+.e-paybtn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:16px;padding:7px 12px;background:var(--text);color:var(--bg2);font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.e-paybtn.on{background:var(--bg3);color:var(--text)}
+.eseg{margin:0 20px 12px}
+.eseg button{flex:1;border:none;border-radius:8px;padding:9px 2px;background:none;color:var(--text2);font-family:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.eseg button.active{background:var(--bg2);color:var(--text);font-weight:500;box-shadow:var(--shadowsm)}
+.e-amt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.e-tag{font-size:11.5px;padding:2px 8px;border-radius:8px;background:var(--amberbg);color:var(--amber);white-space:nowrap}

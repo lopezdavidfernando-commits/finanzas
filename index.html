@@ -97,21 +97,33 @@
 </div>
 
 <div class="page" id="page-expenses">
-  <div class="topbar"><h1>Compartidos</h1><p>Gastos compartidos por saldar</p></div>
-  <div class="months" id="e-months"></div>
-  <div class="kgrid" style="margin-bottom:10px">
-    <div class="kpi"><div class="kl" id="kl-dav">David</div><div class="kv cr" id="e-dav">$0</div></div>
-    <div class="kpi"><div class="kl" id="kl-lin">Lina</div><div class="kv cb" id="e-lin">$0</div></div>
-    <div class="kpi"><div class="kl">Otro</div><div class="kv ca" id="e-otr">$0</div></div>
-    <div class="kpi"><div class="kl">Total</div><div class="kv cl" id="e-tot">$0</div></div>
+  <div class="topbar">
+    <h1>Compartidos</h1>
+    <label class="tmonth">
+      <span id="e-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="e-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
+    </label>
   </div>
-  <div class="card">
-    <div class="chd"><h3>Pendiente por origen</h3></div>
-    <div id="e-source-body"></div>
+
+  <!-- Resumen: todo a la vista sin tocar nada -->
+  <div class="dhero ehero">
+    <div class="dhero-l" id="e-head-l">Lina te debe</div>
+    <div class="dhero-v" id="e-head-v">$0</div>
+    <div class="hsum">
+      <div><span class="hsum-l" id="kl-dav">Tú por pagar</span><b id="e-dav">$0</b></div>
+      <div><span class="hsum-l">Otro</span><b id="e-otr">$0</b></div>
+      <div><span class="hsum-l">Total</span><b id="e-tot">$0</b></div>
+    </div>
+    <div class="e-note">Suma lo pendiente de todos los meses</div>
+    <span id="e-lin" style="display:none"></span><span id="kl-lin" style="display:none"></span>
   </div>
-  <div class="chips" id="e-chips"></div>
-  <div class="chips" id="e-src-chips" style="padding-top:0"></div>
-  <div style="display:flex;justify-content:flex-end;gap:16px;padding:2px 22px 6px"><span id="sel-all" onclick="selectAllVisible()" style="display:none;font-size:15px;font-weight:500;color:var(--text2);cursor:pointer">Seleccionar todos</span><span id="sel-toggle" onclick="toggleSelMode()" style="font-size:15px;font-weight:500;color:var(--limedk);cursor:pointer">Seleccionar</span></div>
+
+  <div class="shdr"><h2>Por medio de pago</h2></div>
+  <div class="chips esrc" id="e-src-chips"></div>
+
+  <div class="shdr"><h2>Gastos de <span id="e-mname"></span></h2><button class="e-paybtn" onclick="toggleSelMode()" id="sel-toggle"><i class="uii" data-ui="checkcircle" data-s="16"></i><span>Marcar pagados</span></button></div>
+  <div class="seg eseg" id="e-chips"></div>
+  <div style="display:flex;justify-content:flex-end;gap:16px;padding:2px 22px 6px"><span id="sel-all" onclick="selectAllVisible()" style="display:none;font-size:15px;font-weight:500;color:var(--text2);cursor:pointer">Seleccionar todos</span><span id="sel-toggle-old" onclick="toggleSelMode()" hidden style="font-size:15px;font-weight:500;color:var(--limedk);cursor:pointer">Seleccionar</span></div>
   <div class="txwrap" id="e-list"></div>
   <div style="padding:8px 20px 24px">
     <div id="e-paid-toggle" onclick="toggleEPaid()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:8px;border:.5px solid var(--border);cursor:pointer">

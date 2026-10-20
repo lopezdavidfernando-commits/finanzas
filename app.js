@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.30', APP_DATE='2026-10-20';
+var APP_VERSION='2.31', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -505,7 +505,7 @@ function selectAllVisible(){
 function updateSelBar(){
   var bar=document.getElementById('sel-bar'),fab=document.getElementById('fab');
   var tg=document.getElementById('sel-toggle'),sa=document.getElementById('sel-all');
-  if(tg)tg.textContent=selMode?'Cancelar':'Seleccionar';
+  if(tg){var tsp=tg.querySelector('span');if(tsp)tsp.textContent=selMode?'Cancelar':'Marcar pagados';else tg.textContent=selMode?'Cancelar':'Seleccionar';tg.classList.toggle('on',selMode);}
   if(sa)sa.style.display=selMode?'inline':'none';
   if(!bar)return;
   if(!selMode){bar.style.display='none';if(fab)fab.style.display='flex';return;}
@@ -943,7 +943,7 @@ function renderAll(){
   // Update charge select options with current names
   var chDavid=document.getElementById('ch-david');if(chDavid)chDavid.textContent=userName;
   var chLina=document.getElementById('ch-lina');if(chLina)chLina.textContent=partnerName;
-  var klDav=document.getElementById('kl-dav');if(klDav)klDav.textContent=userName;
+  var klDav=document.getElementById('kl-dav');if(klDav)klDav.textContent='Tú por pagar';
   var klLin=document.getElementById('kl-lin');if(klLin)klLin.textContent=partnerName;
   var sb=document.getElementById('s-hide-btn');if(sb)sb.textContent=blurred?'Desactivar':'Activar';
   var eb=document.getElementById('eyebtn');if(eb)eb.innerHTML=uiI(blurred?'eyeoff':'eye',19);
@@ -1303,70 +1303,54 @@ function renderPaidExpenses(){
   if(listEl)listEl.style.display=ePaidOpen?'block':'none';
 }
 
+// Partes pendientes de un gasto compartido: cuánto debe cada uno
+function shareParts(t){
+  var d=0,l=0,o=0;
+  if(t.charge==='David')d=t.amount;else if(t.charge==='Lina')l=t.amount;else if(t.charge==='Otro')o=t.amount;
+  else if(t.charge==='Los dos'){d=t.amount/2;l=t.amount/2;}
+  if(t.status==='Paid'){d=0;l=0;o=0;}else if(t.status==='DavidPaidLinaPending')d=0;else if(t.status==='LinaPaidDavidPending')l=0;
+  return {d:d,l:l,o:o};
+}
 function renderExpenses(){
-  
-  monthStrip('e-months');
+  // Mes en lista (con cuántos pendientes tiene cada mes)
+  var eml=document.getElementById('e-mlbl');if(eml)eml.textContent=mLbl();
+  var emn=document.getElementById('e-mname');if(emn)emn.textContent=MONTHS[curM].toLowerCase();
+  var ems=clr('e-msel');
+  if(ems){var pc={};txs.forEach(function(t){if(t.mode==='expenses'&&t.status!=='Paid'){var k=t.date.slice(0,7);pc[k]=(pc[k]||0)+1;}});
+    dashMonths().forEach(function(o){var op=document.createElement('option'),n=pc[mkK(o.y,o.m)]||0;op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y+(n?' · '+n+' pendiente'+(n===1?'':'s'):'');ems.appendChild(op);});ems.value=curY+'-'+curM;}
+
+  // Resumen: todo lo pendiente de cualquier mes
+  var dav=0,lin=0,otr=0;
+  txs.forEach(function(t){if(t.mode!=='expenses'||t.status==='Paid')return;var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
+  var tot=dav+lin+otr;
+  var hl=document.getElementById('e-head-l'),hv=document.getElementById('e-head-v');
+  if(hl&&hv){
+    if(lin>0){hl.textContent=partnerName+' te debe';hv.textContent=fmtb(lin);hv.style.color='';}
+    else if(tot>0){hl.textContent='Por saldar';hv.textContent=fmtb(tot);hv.style.color='';}
+    else{hl.textContent='Todo al día';hv.textContent='$0';hv.style.color='var(--green)';}
+  }
+  document.getElementById('e-dav').textContent=fmtb(dav);
+  document.getElementById('e-lin').textContent=fmtb(lin);
+  document.getElementById('e-otr').textContent=fmtb(otr);
+  document.getElementById('e-tot').textContent=fmtb(tot);
+
+  // Gastos pendientes del mes elegido
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
-  var dav=0,lin=0,otr=0,tot=0,srcEfe=0,srcCred=0,srcDeb=0;
-  var srcEfeDav=0,srcEfeLin=0,srcCredDav=0,srcCredLin=0,srcDebDav=0,srcDebLin=0;
-  var srcEfeOtr=0,srcCredOtr=0,srcDebOtr=0;
-  all.forEach(function(t){
-    var bDav=0,bLin=0,bOtr=0;
-    if(t.charge==='David')bDav=t.amount;
-    else if(t.charge==='Lina')bLin=t.amount;
-    else if(t.charge==='Otro')bOtr=t.amount;
-    else if(t.charge==='Los dos'){bDav=t.amount/2;bLin=t.amount/2;}
-    if(t.status==='Paid'){bDav=0;bLin=0;bOtr=0;}
-    else if(t.status==='DavidPaidLinaPending'){bDav=0;}
-    else if(t.status==='LinaPaidDavidPending'){bLin=0;}
-    dav+=bDav;lin+=bLin;otr+=bOtr;
-    var pending=bDav+bLin+bOtr;
-    tot+=pending;
-    if(t.source==='Efectivo'){srcEfe+=pending;srcEfeDav+=bDav;srcEfeLin+=bLin;srcEfeOtr+=bOtr;}
-    else if(t.source==='Tarjeta crédito'){srcCred+=pending;srcCredDav+=bDav;srcCredLin+=bLin;srcCredOtr+=bOtr;}
-    else if(t.source==='Tarjeta débito'){srcDeb+=pending;srcDebDav+=bDav;srcDebLin+=bLin;srcDebOtr+=bOtr;}
-  });
-  document.getElementById('e-dav').textContent=fmt(dav);
-  document.getElementById('e-lin').textContent=fmt(lin);
-  document.getElementById('e-otr').textContent=fmt(otr);
-  document.getElementById('e-tot').textContent=fmt(tot);
-  var srcWrap=clr('e-source-body');
-  [
-    ['@cash','Efectivo',srcEfe,srcEfeDav,srcEfeLin,srcEfeOtr],
-    ['@card','Tarjeta crédito',srcCred,srcCredDav,srcCredLin,srcCredOtr],
-    ['@bank','Tarjeta débito',srcDeb,srcDebDav,srcDebLin,srcDebOtr]
-  ].forEach(function(d){
-    var row=el('div',{cls:'bprow',style:'margin:0 0 5px;align-items:flex-start;padding-top:10px;padding-bottom:10px'});
-    row.appendChild(el('div',{cls:'bpico',html:icoHTML(d[0])}));
-    var subsRow=el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:3px'});
-    subsRow.appendChild(el('span',{txt:userName+': '+fmt(d[3]),style:'font-size:11.5px;color:var(--text2);font-weight:500'}));
-    subsRow.appendChild(el('span',{txt:partnerName+': '+fmt(d[4]),style:'font-size:11.5px;color:var(--text2);font-weight:500'}));
-    subsRow.appendChild(el('span',{txt:'Otro: '+fmt(d[5]),style:'font-size:11.5px;color:var(--text2);font-weight:500'}));
-    var nameWrap=el('div',{cls:'bpnm'},[el('div',{txt:d[1]}),subsRow]);
-    row.appendChild(nameWrap);
-    row.appendChild(el('div',{txt:fmt(d[2]),style:'font-size:16px;font-weight:500'}));
-    srcWrap.appendChild(row);
-  });
-    // Source filter chips
+
+  // Medios de pago: total del mes, siempre visible; tocar uno filtra la lista
+  var bySrc={};all.forEach(function(t){var p=shareParts(t);bySrc[t.source]=(bySrc[t.source]||0)+p.d+p.l+p.o;});
   var esc=clr('e-src-chips');
-  [['Todos','all'],['Efectivo','Efectivo'],['Crédito','Tarjeta crédito'],['Débito','Tarjeta débito']].forEach(function(d){
-    var chip=el('div',{cls:'chip'+(curFiltSrc===d[1]?' active':''),txt:d[0]});
-    chip.style.fontSize='11px';
-    chip.style.padding='4px 10px';
-    chip.addEventListener('click',function(){
-      document.querySelectorAll('#e-src-chips .chip').forEach(function(x){x.classList.remove('active');});
-      chip.classList.add('active');curFiltSrc=d[1];renderExpenses();
-    });
+  [['Tarjeta crédito','Crédito','@card'],['Efectivo','Efectivo','@cash'],['Tarjeta débito','Débito','@bank']].forEach(function(d){
+    var v=bySrc[d[0]]||0,on=curFiltSrc===d[0];
+    var chip=el('button',{type:'button',cls:'srcchip'+(on?' active':'')+(v?'':' zero'),click:function(){curFiltSrc=on?'all':d[0];renderExpenses();}},
+      [el('span',{cls:'uii',html:icoHTML(d[2],16)}),el('span',{txt:d[1]}),el('b',{txt:fmtb(v)})]);
     esc.appendChild(chip);
   });
+
+  // Por persona
   var ec=clr('e-chips');
-  [['Todos','all'],[userName,'David'],[partnerName,'Lina'],['Otro','Otro'],['Los dos','Los dos']].forEach(function(d){
-    var chip=el('div',{cls:'chip'+(curFiltExp===d[1]?' active':''),txt:d[0]});
-    chip.addEventListener('click',function(){
-      document.querySelectorAll('#e-chips .chip').forEach(function(x){x.classList.remove('active');});
-      chip.classList.add('active');curFiltExp=d[1];renderExpenses();setTimeout(function(){renderPaidExpenses();},250);
-    });
-    ec.appendChild(chip);
+  [['Todos','all'],['Yo','David'],[partnerName,'Lina'],['Los dos','Los dos'],['Otro','Otro']].forEach(function(d){
+    ec.appendChild(el('button',{type:'button',cls:curFiltExp===d[1]?'active':'',txt:d[0],click:function(){curFiltExp=d[1];renderExpenses();setTimeout(function(){renderPaidExpenses();},250);}}));
   });
   // Apply source filter on top of person filter
   // Main list shows pending + partial paid (not fully paid)
@@ -1399,27 +1383,18 @@ function renderExpenses(){
 
   srt.forEach(function(t){
     var row=makeTxEl(t);
-    // If filtered by person, replace amount with their share + show total below
-    if(curFiltExp==='David'||curFiltExp==='Lina'){
-      var isLosDos=(t.charge==='Los dos');
-      var share=isLosDos?t.amount/2:t.amount;
-      var amtEl=row.querySelector('.ta');
-      if(amtEl){
-        var shareDiv=document.createElement('div');
-        shareDiv.style.cssText='text-align:right';
-        var shareAmt=document.createElement('div');
-        shareAmt.className='ta exp';
-        shareAmt.textContent='−'+fmt(share);
-        shareDiv.appendChild(shareAmt);
-        if(isLosDos){
-          var totalTxt=document.createElement('div');
-          totalTxt.style.cssText='font-size:11.5px;color:var(--text3);margin-top:1px';
-          totalTxt.textContent='Total: '+fmt(t.amount);
-          shareDiv.appendChild(totalTxt);
-        }
-        row.replaceChild(shareDiv,amtEl);
-      }
-    }
+    (function(){var meta=row.querySelector('.tm');if(meta){meta.querySelectorAll('.badge').forEach(function(b){b.remove();});var sn={'Tarjeta crédito':'Crédito','Tarjeta débito':'Débito'}[t.source]||t.source||'';var dd=new Date(t.date+'T00:00:00');meta.textContent=(sn?sn+' · ':'')+dd.getDate()+' '+MO[dd.getMonth()].toLowerCase();}
+      var p=shareParts(t),tag='';
+      if(t.charge==='Los dos'&&p.d&&p.l)tag=fmtb(p.d)+' c/u';
+      else if(p.l)tag=partnerName+' debe'+(t.charge==='Los dos'?' '+fmtb(p.l):'');
+      else if(p.d)tag='Tú debes'+(t.charge==='Los dos'?' '+fmtb(p.d):'');
+      else if(p.o)tag='Otro debe';
+      // Filtrado por persona: el monto es lo que le toca a esa persona
+      var shown=t.amount,who=curFiltExp==='David'?p.d:curFiltExp==='Lina'?p.l:0;
+      if(who&&who!==t.amount){shown=who;tag='De '+fmtb(t.amount);}
+      var amt=row.querySelector('.ta');
+      if(amt){var w=el('div',{cls:'e-amt'});amt.parentNode.replaceChild(w,amt);amt.classList.remove('exp');amt.textContent=fmtb(shown);w.appendChild(amt);if(tag)w.appendChild(el('span',{cls:'e-tag',txt:tag}));}
+    })();
     if(selMode){
       row=row.cloneNode(true);row.setAttribute('data-selid',t.id);var on=!!selIds[t.id];
       var ck=el('div',{txt:on?'✓':'',style:'width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-right:2px;'+(on?'background:var(--lime);color:#111':'border:1.5px solid var(--border2)')});
