@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.27', APP_DATE='2026-10-20';
+var APP_VERSION='2.28', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -2622,7 +2622,8 @@ function updateDriveUI(){
     var ts2=ls.g('dts7',''),hh=ts2?new Date(ts2).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'}):'';
     var cls=driveSt==='ok'?'ok':driveSt==='sy'?'sy':driveSt==='er'?'er':'off';
     sd.className='dsync-dot '+cls;sw.className='dsync '+cls;
-    st.textContent=cls==='ok'?('Guardado en Drive'+(hh?' · '+hh:'')):cls==='sy'?'Guardando en Drive…':cls==='er'?'Error con Drive · toca para reconectar':(driveToken?'Conectado a Drive':'Sin conectar a Drive · toca para conectar');
+    st.textContent=cls==='ok'?'Guardado':cls==='sy'?'Guardando…':cls==='er'?'Reconectar':(driveToken?'Drive':'Sin Drive');
+    sw.title=cls==='ok'?('Guardado en Google Drive'+(hh?' a las '+hh:'')):cls==='er'?'Error con Google Drive: toca para reconectar':cls==='off'?'Toca para conectar Google Drive':'Guardando en Google Drive';
   }
   if(!dot)return;
   if(driveSt==='ok'){dot.className='ddot ok';var ts=ls.g('dts7','');txt.textContent='Sincronizado'+(ts?' · '+new Date(ts).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'');if(btn)btn.textContent='Sync';if(sn)sn.textContent='Google Drive conectado';if(ss)ss.textContent='Datos seguros en la nube';if(sb)sb.textContent='Sync';}

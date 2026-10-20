@@ -26,7 +26,7 @@
       <button class="dlogo" id="d-avatar" onclick="pickAvatar()" aria-label="Cambiar foto de perfil"><span class="dlogo-mark" aria-hidden="true"></span></button>
       <input type="file" id="avatar-inp" accept="image/*" style="display:none" onchange="onAvatarFile(event)">
       <div>
-        <div class="hg" id="d-greet">Hola,</div>
+        <div class="hg hg-row"><span id="d-greet">Hola,</span><button class="dsync" id="d-sync" onclick="handleDrive()" aria-label="Estado de Google Drive"><span class="dsync-dot" id="d-sync-dot"></span><span id="d-sync-txt">Sin Drive</span></button></div>
         <div class="hn" id="hero-name">David</div>
       </div>
     </div>
@@ -36,8 +36,6 @@
       <button class="iconbtn" id="d-setbtn" onclick="showPage('settings')" aria-label="Ajustes"><i class="uii" data-ui="settings" data-s="19"></i></button>
     </div>
   </div>
-
-  <button class="dsync" id="d-sync" onclick="handleDrive()"><span class="dsync-dot" id="d-sync-dot"></span><span id="d-sync-txt">Sin conectar a Drive</span></button>
 
   <!-- Resumen del mes: sin caja, sobre el fondo -->
   <div class="dhero">
