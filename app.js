@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.32', APP_DATE='2026-10-20';
+var APP_VERSION='2.33', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1337,10 +1337,14 @@ function renderExpenses(){
   [['Efectivo','@cash'],['Tarjeta crédito','@card'],['Tarjeta débito','@bank']].forEach(function(d){
     var td=0,tl=0,to=0;all.forEach(function(t){if(t.source!==d[0])return;var p=shareParts(t);td+=p.d;tl+=p.l;to+=p.o;});
     var on=curFiltSrc===d[0];
-    var subs=el('div',{cls:'esrc-subs'},[el('span',{txt:userName+': '+fmtb(td)}),el('span',{txt:partnerName+': '+fmtb(tl)}),el('span',{txt:'Otro: '+fmtb(to)})]);
+    var sum=td+tl+to;
+    var subs=el('div',{cls:'esrc-subs'},[el('span',{cls:'pd',txt:userName+': '+fmtb(td)}),el('span',{cls:'pl',txt:partnerName+': '+fmtb(tl)}),el('span',{cls:'po',txt:'Otro: '+fmtb(to)})]);
+    // Barrita de reparto con el color de cada persona
+    var bar=el('div',{cls:'esrc-bar'});
+    if(sum)[[td,'pd'],[tl,'pl'],[to,'po']].forEach(function(x){if(x[0])bar.appendChild(el('i',{cls:x[1],style:'width:'+(x[0]/sum*100)+'%'}));});
     sw.appendChild(el('div',{cls:'esrc-row'+(on?' active':''),click:function(){curFiltSrc=on?'all':d[0];renderExpenses();}},[
       el('span',{cls:'bpico',html:icoHTML(d[1])}),
-      el('div',{cls:'esrc-n'},[el('div',{txt:d[0]}),subs]),
+      el('div',{cls:'esrc-n'},[el('div',{txt:d[0]}),sum?bar:null,subs]),
       el('b',{txt:fmtb(td+tl+to)})]));
   });
 
