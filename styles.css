@@ -546,3 +546,11 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 #m-adj{z-index:210}
 #m-confirm{z-index:230}
 #m-reset{z-index:240}
+
+/* Indicador de Drive arriba en Inicio */
+.dsync{display:inline-flex;align-items:center;gap:7px;margin:0 22px 2px;padding:5px 11px 5px 9px;border:none;border-radius:14px;background:var(--bg2);box-shadow:var(--shadowsm);font-family:inherit;font-size:13px;font-weight:400;color:var(--text2);cursor:pointer}
+.dsync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.dsync-dot.ok{background:var(--green)}
+.dsync-dot.sy{background:var(--amber);animation:pu 1s infinite}
+.dsync-dot.er{background:var(--red)}
+.dsync.er{color:var(--red)}

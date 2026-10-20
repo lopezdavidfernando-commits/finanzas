@@ -37,6 +37,8 @@
     </div>
   </div>
 
+  <button class="dsync" id="d-sync" onclick="handleDrive()"><span class="dsync-dot" id="d-sync-dot"></span><span id="d-sync-txt">Sin conectar a Drive</span></button>
+
   <!-- Resumen del mes: sin caja, sobre el fondo -->
   <div class="dhero">
     <div class="dhero-l">Disponible del mes</div>
@@ -253,6 +255,13 @@
       <div class="srico"><i class="uii" data-ui="heart" data-s="17"></i></div>
       <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
       <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Lina" oninput="savePartnerName()">
+    </div>
+  </div>
+  <div class="sg2" id="s-install" style="display:none">
+    <div class="srow" onclick="installApp()" style="cursor:pointer">
+      <div class="srico"><i class="uii" data-ui="download" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Instalar app</div><div class="srs">Agrégala a la pantalla de inicio</div></div>
+      <button class="btnout">Instalar</button>
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Registro rápido</div>

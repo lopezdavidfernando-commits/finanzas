@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.26', APP_DATE='2026-10-18';
+var APP_VERSION='2.27', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -2615,7 +2615,15 @@ function updateDriveUI(){
   var cb=document.getElementById('dbtn-cancel');if(cb)cb.style.display=(driveSt==='sy')?'inline':'none';
   var dot=document.getElementById('ddot'),txt=document.getElementById('dtxt'),btn=document.getElementById('dbtn');
   var sn=document.getElementById('s-drn'),ss=document.getElementById('s-drs'),sb=document.getElementById('s-drb');
-  var dbar=document.getElementById('d-drivebar');if(dbar)dbar.style.display=(driveSt==='er')?'flex':'none';
+  var dbar=document.getElementById('d-drivebar');if(dbar)dbar.style.display='none';
+  // Indicador arriba en Inicio
+  var sd=document.getElementById('d-sync-dot'),st=document.getElementById('d-sync-txt'),sw=document.getElementById('d-sync');
+  if(sd&&st){
+    var ts2=ls.g('dts7',''),hh=ts2?new Date(ts2).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'}):'';
+    var cls=driveSt==='ok'?'ok':driveSt==='sy'?'sy':driveSt==='er'?'er':'off';
+    sd.className='dsync-dot '+cls;sw.className='dsync '+cls;
+    st.textContent=cls==='ok'?('Guardado en Drive'+(hh?' · '+hh:'')):cls==='sy'?'Guardando en Drive…':cls==='er'?'Error con Drive · toca para reconectar':(driveToken?'Conectado a Drive':'Sin conectar a Drive · toca para conectar');
+  }
   if(!dot)return;
   if(driveSt==='ok'){dot.className='ddot ok';var ts=ls.g('dts7','');txt.textContent='Sincronizado'+(ts?' · '+new Date(ts).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'');if(btn)btn.textContent='Sync';if(sn)sn.textContent='Google Drive conectado';if(ss)ss.textContent='Datos seguros en la nube';if(sb)sb.textContent='Sync';}
   else if(driveSt==='sy'){dot.className='ddot sy';txt.textContent='Guardando...';if(btn)btn.textContent='...';}
@@ -2722,6 +2730,12 @@ function doReset(){
   try{localStorage.clear();}catch(e){}
   location.replace(location.pathname);
 }
+
+// Botón «Instalar app» (Android/Chrome): aparece solo cuando el navegador permite instalar
+var installEvt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installEvt=e;var s=document.getElementById('s-install');if(s)s.style.display='';});
+window.addEventListener('appinstalled',function(){installEvt=null;var s=document.getElementById('s-install');if(s)s.style.display='none';});
+function installApp(){if(!installEvt)return;installEvt.prompt();installEvt.userChoice.then(function(){installEvt=null;var s=document.getElementById('s-install');if(s)s.style.display='none';});}
 
 // App instalable: service worker para abrir sin internet y recibir actualizaciones
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
