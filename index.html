@@ -105,21 +105,19 @@
     </label>
   </div>
 
-  <!-- Resumen: todo a la vista sin tocar nada -->
-  <div class="dhero ehero">
-    <div class="dhero-l" id="e-head-l">Lina te debe</div>
-    <div class="dhero-v" id="e-head-v">$0</div>
-    <div class="hsum">
-      <div><span class="hsum-l" id="kl-dav">Tú por pagar</span><b id="e-dav">$0</b></div>
-      <div><span class="hsum-l">Otro</span><b id="e-otr">$0</b></div>
-      <div><span class="hsum-l">Total</span><b id="e-tot">$0</b></div>
-    </div>
-    <div class="e-note">Suma lo pendiente de todos los meses</div>
-    <span id="e-lin" style="display:none"></span><span id="kl-lin" style="display:none"></span>
+  <!-- Resumen: las cuatro cifras con el mismo peso -->
+  <div class="egrid">
+    <div><span class="hsum-l" id="kl-dav">Tú por pagar</span><b id="e-dav">$0</b></div>
+    <div><span class="hsum-l" id="kl-lin">Lina debe</span><b id="e-lin">$0</b></div>
+    <div><span class="hsum-l">Otro</span><b id="e-otr">$0</b></div>
+    <div><span class="hsum-l">Total</span><b id="e-tot">$0</b></div>
   </div>
+  <div class="e-note">Suma lo pendiente de todos los meses</div>
 
-  <div class="shdr"><h2>Por medio de pago</h2></div>
-  <div class="chips esrc" id="e-src-chips"></div>
+  <div class="card esrc-card">
+    <div class="chd"><h3>Pendiente por origen</h3><span class="mu-s" id="e-src-mes"></span></div>
+    <div id="e-source-body"></div>
+  </div>
 
   <div class="shdr"><h2>Gastos de <span id="e-mname"></span></h2><button class="e-paybtn" onclick="toggleSelMode()" id="sel-toggle"><i class="uii" data-ui="checkcircle" data-s="16"></i><span>Marcar pagados</span></button></div>
   <div class="seg eseg" id="e-chips"></div>
