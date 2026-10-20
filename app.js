@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.28', APP_DATE='2026-10-20';
+var APP_VERSION='2.29', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1096,7 +1096,8 @@ function renderDash(){
     sm.appendChild(el('span',{txt:' de '+fmtb(totBud)+' · '}));
     sm.appendChild(el('b',{txt:tp+'%',style:'color:'+(tp>100?'var(--red)':tp>85?'var(--amber)':'var(--text)')}));
   }}
-  var BH=104,vb=clr('d-vbars');
+  var BH=112,vb=clr('d-vbars');
+  catData=catData.slice(0,10);
   if(dashBudSel&&!catData.some(function(c){return c.name===dashBudSel;}))dashBudSel='';
   function showDet(c){
     var d=clr('d-bud-det');if(!d)return;
@@ -1118,10 +1119,10 @@ function renderDash(){
     if(pH>0){var pcol={ok:'var(--lime)',warn:'var(--amber)',ov:'var(--red)',em:'var(--bg4)'}[cls];
       track.appendChild(el('div',{style:'position:absolute;left:0;right:0;bottom:'+tH+'px;height:'+pH+'px;border-radius:'+(tH?'6px 6px 0 0':'6px')+';background:'+STRIPE(pcol)+';transition:height .6s'}));}
     var col=el('div',{cls:'vbi'+(dashBudSel===c.name?' sel':''),click:function(){dashBudSel=dashBudSel===c.name?'':c.name;renderDash();}},[
-      el('div',{cls:'vbpct',txt:pct!==null?pct+'%':'—',style:'color:'+pctColor}),
       track,
-      el('div',{cls:'vbico',html:icoHTML(c.icon)}),
-      el('div',{cls:'vbnm',txt:c.name})
+      el('div',{cls:'vbico',html:icoHTML(c.icon,16)}),
+      el('div',{cls:'vbpct',txt:pct!==null?pct+'%':'—',style:'color:'+pctColor}),
+      el('div',{cls:'vbnm',txt:c.name.length>6?c.name.slice(0,4).trim()+'.':c.name,title:c.name})
     ]);
     vb.appendChild(col);
   });

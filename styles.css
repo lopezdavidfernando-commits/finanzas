@@ -556,3 +556,14 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .dsync-dot.sy{background:var(--amber);animation:pu 1s infinite}
 .dsync-dot.er{background:var(--red)}
 .dsync.er{color:var(--red)}
+
+/* Inicio: barras delgadas (hasta 10 sin deslizar), ícono, % y nombre pequeño debajo */
+#d-vbars{gap:6px;overflow:visible;align-items:stretch}
+#d-vbars .vbi{flex:1 1 0;min-width:0;gap:4px}
+#d-vbars .vbt{width:100%;max-width:26px;border-radius:8px;background:var(--bg3)}
+#d-vbars .vbf{border-radius:8px}
+#d-vbars .vbico{margin-top:4px;color:var(--text2);display:flex}
+#d-vbars .vbpct{font-size:11px;font-weight:600;line-height:1}
+#d-vbars .vbnm{font-size:9.5px;max-width:100%;color:var(--text3);letter-spacing:-.2px}
+#d-vbars .vbi.sel .vbt{box-shadow:0 0 0 2px var(--text3)}
+#d-vbars .vbnm{text-overflow:clip;font-size:10px}
