@@ -567,3 +567,12 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 #d-vbars .vbnm{font-size:9.5px;max-width:100%;color:var(--text3);letter-spacing:-.2px}
 #d-vbars .vbi.sel .vbt{box-shadow:0 0 0 2px var(--text3)}
 #d-vbars .vbnm{text-overflow:clip;font-size:10px}
+
+/* Barras con aire: columnas de ancho fijo que se deslizan (~5 a la vista) */
+#d-vbars{gap:14px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:2px 18px 4px;scroll-snap-type:x proximity;scroll-padding:0 18px}
+#d-vbars::-webkit-scrollbar{display:none}
+#d-vbars .vbi{flex:0 0 52px;scroll-snap-align:start}
+#d-vbars .vbt{max-width:30px}
+#d-vbars .vbnm{font-size:10.5px}
+#d-vbars{gap:12px}
+#d-vbars .vbi{flex-basis:50px}

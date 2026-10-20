@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.29', APP_DATE='2026-10-20';
+var APP_VERSION='2.30', APP_DATE='2026-10-20';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1122,7 +1122,7 @@ function renderDash(){
       track,
       el('div',{cls:'vbico',html:icoHTML(c.icon,16)}),
       el('div',{cls:'vbpct',txt:pct!==null?pct+'%':'—',style:'color:'+pctColor}),
-      el('div',{cls:'vbnm',txt:c.name.length>6?c.name.slice(0,4).trim()+'.':c.name,title:c.name})
+      el('div',{cls:'vbnm',txt:c.name.length>8?c.name.slice(0,6).trim()+'.':c.name,title:c.name})
     ]);
     vb.appendChild(col);
   });
