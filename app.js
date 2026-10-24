@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.36', APP_DATE='2026-10-20';
+var APP_VERSION='2.37', APP_DATE='2026-10-23';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -936,9 +936,9 @@ function renderAll(){
   renderSummary();renderSettings();
   populateAcSel();setTheme(theme);applyBlur();updateDriveUI();setIconStyle(iconStyle);
   var hn=document.getElementById('hero-name');if(hn)hn.textContent=userName;
-  var un=document.getElementById('s-username');if(un)un.value=userName;
+  var un=document.getElementById('s-username');if(un&&document.activeElement!==un)un.value=userName;
   var nb=document.getElementById('nav-brand-name');if(nb)nb.textContent=userName;
-  var pn=document.getElementById('s-partnername');if(pn)pn.value=partnerName;
+  var pn=document.getElementById('s-partnername');if(pn&&document.activeElement!==pn)pn.value=partnerName;
   applyPendienteTab();
   // Update charge select options with current names
   var chDavid=document.getElementById('ch-david');if(chDavid)chDavid.textContent=userName;
@@ -2007,10 +2007,13 @@ function updatePayAccVis(){
   if(row)row.style.display=show?'block':'none';
 }
 
-function saveUserName(){
-  var v=document.getElementById('s-username').value.trim()||'David';
+// Nombres: se guardan mientras escribes, pero sin reescribir la casilla (antes borraba
+// los espacios y no dejaba vaciarla). Si al salir queda vacía, vuelve el nombre anterior.
+function saveUserName(fin){
+  var inp=document.getElementById('s-username'),v=inp.value.trim();
+  if(!v){if(fin)inp.value=userName;return;}
   userName=v;ls.s('un7',userName);
-  var hn=document.getElementById('hero-name');if(hn)hn.textContent=userName;
+  if(fin)inp.value=v;
   renderAll();
 }
 
@@ -2036,9 +2039,11 @@ function applyPendienteTab(){
     setMTab('gasto');
   }
 }
-function savePartnerName(){
-  var v=document.getElementById('s-partnername').value.trim()||'Lina';
+function savePartnerName(fin){
+  var inp=document.getElementById('s-partnername'),v=inp.value.trim();
+  if(!v){if(fin)inp.value=partnerName;return;}
   partnerName=v;ls.s('pn7',partnerName);
+  if(fin)inp.value=v;
   renderAll();
 }
 

@@ -257,12 +257,12 @@
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="user" data-s="17"></i></div>
       <div class="srt"><div class="srn">Tu nombre</div><div class="srs">Como te saluda la app</div></div>
-      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="David" oninput="saveUserName()">
+      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="David" oninput="saveUserName()" onblur="saveUserName(true)">
     </div>
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="heart" data-s="17"></i></div>
       <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
-      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Lina" oninput="savePartnerName()">
+      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Lina" oninput="savePartnerName()" onblur="savePartnerName(true)">
     </div>
   </div>
   <div class="sg2" id="s-install" style="display:none">
