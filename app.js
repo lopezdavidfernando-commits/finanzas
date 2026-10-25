@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.37', APP_DATE='2026-10-23';
+var APP_VERSION='2.38', APP_DATE='2026-10-25';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1964,15 +1964,25 @@ function updateStatusOptions(){
   if(charge==='Los dos'){
     // Con débito o efectivo la plata ya salió de tu cuenta: tú ya pagaste
     if(!isRealDebit)addOpt('Unpaid','Pendiente');
-    addOpt('DavidPaidLinaPending',userName+' pago - '+partnerName+' pendiente');
+    addOpt('DavidPaidLinaPending',userName+' pagó - '+partnerName+' pendiente');
     if(!isRealDebit){
       // With credit card, Lina can also pay first
-      addOpt('LinaPaidDavidPending',partnerName+' pago - '+userName+' pendiente');
+      addOpt('LinaPaidDavidPending',partnerName+' pagó - '+userName+' pendiente');
     }
     addOpt('Paid','Pagado');
+  } else if(charge==='David'&&isRealDebit){
+    // Tu gasto en efectivo o débito: la plata ya salió de tu cuenta, no queda pendiente
+    addOpt('Paid','Pagado (sale de tu cuenta)');
   } else {
-    addOpt('Unpaid','Pendiente');
-    addOpt('Paid','Pagado');
+    addOpt('Unpaid',isRealDebit?((charge==='Otro'?'Otro':partnerName)+' te debe'):'Pendiente');
+    addOpt('Paid',isRealDebit?'Ya te pagó':'Pagado');
+  }
+  // Efectivo: la cuenta de donde sale es la de efectivo
+  var paySel=document.getElementById('f-payacc');
+  if(paySel&&!editId){
+    var isEfe=function(id){var a=findAcct(id);return !!a&&normTxt(a.name).indexOf('efectivo')>=0;};
+    if(src==='Efectivo'){for(var k=0;k<accts.length;k++){if(isEfe(accts[k].id)){paySel.value=accts[k].id;break;}}}
+    else if(src==='Tarjeta débito'&&isEfe(paySel.value)){for(var k2=0;k2<accts.length;k2++){if(!isEfe(accts[k2].id)){paySel.value=accts[k2].id;break;}}}
   }
   // Movimiento nuevo y estado no elegido a mano: arranca en «Pendiente» si existe
   var want=(!editId&&stSel.dataset.touched!=='1')?'Unpaid':currentVal;
@@ -2637,6 +2647,16 @@ window.addEventListener('beforeunload',function(e){
   }
 });
 if(!ls.g('mg9',false)){fixCharges(txs,recs);ls.s('tx7',txs);ls.s('rc7',recs);ls.s('mg9',true);}
+// v2.38: un gasto tuyo pagado en efectivo o débito ya salió de tu cuenta: no puede quedar pendiente
+(function(){
+  if(ls.g('mg10',false))return;
+  var efe=null;accts.forEach(function(a){if(!efe&&normTxt(a.name).indexOf('efectivo')>=0)efe=a.id;});
+  function fix(o){if(o.charge!=='David'||(o.source!=='Efectivo'&&o.source!=='Tarjeta débito'))return;
+    if(o.status==='Unpaid'||!o.status){o.status='Paid';if(!o.payAccountId&&o.source==='Efectivo'&&efe)o.payAccountId=efe;}}
+  txs.forEach(function(t){if(t.mode==='expenses')fix(t);});
+  recs.forEach(function(r){if(r.kind==='shared')fix(r);});
+  ls.s('tx7',txs);ls.s('rc7',recs);ls.s('mg10',true);
+})();
 hydrateIcons();
 checkOAuthCallback();
 renderAll();
