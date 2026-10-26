@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.39', APP_DATE='2026-10-25';
+var APP_VERSION='2.40', APP_DATE='2026-10-25';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1537,22 +1537,18 @@ function renderBudCats(){
     var pct=r.budg>0?(r.exp+r.pend)/r.budg*100:0,over=r.avail<0;
     var col=!r.budg?'var(--text3)':over?'var(--red)':pct>85?'var(--amber)':'var(--lime)';
     var row=el('div',{cls:'bud-cat',click:function(){curFilt=r.cat.name;showPage('tracking');renderTracking();}});
-    // Arriba: nombre y % · barra · gastado / presupuestado · el disponible como valor principal
-    var pctTxt=!r.budg?'':Math.round(pct)+'%';
+    // Arriba: nombre y el disponible (valor principal) · barra · gastado, presupuesto y % en pequeño
+    var avTxt=!r.budg?'':(over?'−'+fmtb(-r.avail).replace('-',''):fmtb(r.avail));
+    var avCol=over?'var(--red)':r.avail===0?'var(--text2)':'var(--green)';
     row.appendChild(el('div',{cls:'bud-cat-hd'},[
       el('span',{cls:'bud-cat-ic',html:icoHTML(r.cat.icon,17)}),
       el('span',{cls:'bud-cat-n',txt:r.cat.name}),
-      el('span',{cls:'bud-cat-pct',txt:pctTxt,style:'color:'+(over?'var(--red)':pct>85?'var(--amber)':'var(--limetx)')}),
+      el('span',{cls:'bud-cat-avv',txt:avTxt,style:'color:'+avCol}),
       el('span',{cls:'bud-cat-arr',html:uiI('chevright',15)})]));
     row.appendChild(splitBar(r.exp,r.pend,r.budg,col));
     row.appendChild(el('div',{cls:'bud-cat-ft'},[
-      el('span',{txt:'Gastado: '+fmtb(r.exp)+(r.pend?' · Pend.: '+fmtb(r.pend):'')}),
-      el('span',{txt:r.budg?'Presup.: '+fmtb(r.budg):'Sin presupuesto'})]));
-    var av=el('div',{cls:'bud-cat-av'});
-    av.appendChild(el('span',{cls:'bud-cat-avl',txt:over?'Excedido':'Disponible'}));
-    av.appendChild(el('span',{cls:'bud-cat-avv',txt:fmtb(Math.abs(r.avail)),style:'color:'+(over?'var(--red)':r.avail===0?'var(--text2)':'var(--green)')}));
-    if(r.pend)av.appendChild(el('span',{cls:'bud-cat-avn',txt:'contando pendientes'}));
-    row.appendChild(av);
+      el('span',{txt:'Gastado: '+fmtb(r.exp)+(r.pend?' · Pend.: '+fmtb(r.pend):'')+' · '+(r.budg?'Presup.: '+fmtb(r.budg):'Sin presupuesto')}),
+      el('span',{cls:'bud-cat-pct',txt:r.budg?Math.round(pct)+'%':'',style:'color:'+(over?'var(--red)':pct>85?'var(--amber)':'var(--text2)')})]));
     w.appendChild(row);
   });
 }
