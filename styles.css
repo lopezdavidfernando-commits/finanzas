@@ -629,3 +629,10 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .esrc-subs span::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .esrc-subs .pd::before{background:var(--c-d)}.esrc-subs .pl::before{background:var(--c-l)}.esrc-subs .po::before{background:var(--c-o)}
 .esrc-row .bpico{color:var(--text)}
+
+/* Presupuesto: el disponible como valor principal de cada categoría */
+.bud-cat-pct{font-size:15px;font-weight:600;white-space:nowrap}
+.bud-cat-av{display:flex;align-items:baseline;gap:8px;margin-top:6px;flex-wrap:wrap}
+.bud-cat-avl{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.bud-cat-avv{font-size:19px;font-weight:600;letter-spacing:-.3px;transition:filter .2s}
+.bud-cat-avn{font-size:12px;color:var(--text3)}
