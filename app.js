@@ -430,7 +430,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='2.40', APP_DATE='2026-10-25';
+var APP_VERSION='2.41', APP_DATE='2026-10-25';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1545,10 +1545,15 @@ function renderBudCats(){
       el('span',{cls:'bud-cat-n',txt:r.cat.name}),
       el('span',{cls:'bud-cat-avv',txt:avTxt,style:'color:'+avCol}),
       el('span',{cls:'bud-cat-arr',html:uiI('chevright',15)})]));
-    row.appendChild(splitBar(r.exp,r.pend,r.budg,col));
-    row.appendChild(el('div',{cls:'bud-cat-ft'},[
-      el('span',{txt:'Gastado: '+fmtb(r.exp)+(r.pend?' · Pend.: '+fmtb(r.pend):'')+' · '+(r.budg?'Presup.: '+fmtb(r.budg):'Sin presupuesto')}),
+    // Barra con el % al final
+    row.appendChild(el('div',{cls:'bud-cat-barrow'},[splitBar(r.exp,r.pend,r.budg,col),
       el('span',{cls:'bud-cat-pct',txt:r.budg?Math.round(pct)+'%':'',style:'color:'+(over?'var(--red)':pct>85?'var(--amber)':'var(--text2)')})]));
+    // Tres columnas alineadas: Gastado · Pendiente · Presupuesto
+    function stat(l,v,muted){return el('div',{},[el('span',{txt:l}),el('b',{txt:v,style:muted?'color:var(--text3)':''})]);}
+    row.appendChild(el('div',{cls:'bud-cat-st'},[
+      stat('Gastado',fmtb(r.exp)),
+      stat('Pendiente',r.pend?fmtb(r.pend):'—',!r.pend),
+      stat('Presupuesto',r.budg?fmtb(r.budg):'—',!r.budg)]));
     w.appendChild(row);
   });
 }
