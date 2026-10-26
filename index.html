@@ -68,6 +68,11 @@
     <div id="d-vbars-legend" style="display:none;gap:14px;justify-content:center;margin-top:10px;font-size:12px;color:var(--text3)"><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:var(--lime)"></span>Pagado</span><span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:8px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--lime) 0 3px,transparent 3px 5px);border:.5px solid var(--border2)"></span>Pendiente por pagar</span></div>
   </div>
 
+  <div id="d-goals-wrap" style="display:none">
+    <div class="shdr"><h2>Tus metas</h2><a onclick="showPage('budget')">Ver todas</a></div>
+    <div class="accrow" id="d-goals"></div>
+  </div>
+
   <!-- Cuentas: tarjetas que se deslizan hacia el lado -->
   <div class="shdr"><h2>Tus cuentas</h2><span class="shdr-tot" id="d-acct-tot">$0</span></div>
   <div class="accrow" id="d-accts"></div>
@@ -158,6 +163,9 @@
     <div id="b-chart"></div>
     <button class="bud-plan" id="b-plan" onclick="openBudEdit()"></button>
   </div>
+
+  <div class="shdr"><h2>Metas de ahorro</h2><a onclick="openGoalForm(null)">+ Nueva</a></div>
+  <div id="b-goals"></div>
 
   <div id="b-unassigned" style="display:none;margin:0 20px 10px;padding:13px 14px;border-radius:14px"></div>
 
@@ -485,6 +493,55 @@
 </div>
 
 <!-- MODAL: CONFIRM DELETE -->
+<!-- MODAL: crear / editar meta -->
+<div class="mback" id="m-goal">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="g-ttl">Nueva meta</h2><button class="xbtn" onclick="closeM('m-goal')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody">
+      <div class="fg"><label>¿Para qué ahorras?</label><input id="g-name" type="text" placeholder="Viaje a Cartagena" autocomplete="off"></div>
+      <div class="fg"><label>Ícono</label><div class="g-icons" id="g-icons"></div></div>
+      <div class="fgrow">
+        <div class="fg"><label>Meta</label><input id="g-target" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this);goalFormHint()"></div>
+        <div class="fg"><label>¿Para cuándo? (opcional)</label><input id="g-date" type="month" oninput="goalFormHint()"></div>
+      </div>
+      <div class="fg"><label>Bolsillo o cuenta donde la guardas</label><select id="g-acct" onchange="goalFormHint()"></select></div>
+      <div class="fg" id="g-init-row"><label>Ya tengo ahorrado (opcional)</label><input id="g-init" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this);goalFormHint()"></div>
+      <div class="g-hint" id="g-hint"></div>
+      <div class="tx-err" id="g-err"></div>
+      <button class="btnp" onclick="saveGoal()">Guardar meta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: detalle de la meta -->
+<div class="mback" id="m-goald">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="gd-ttl">Meta</h2><button class="xbtn" onclick="closeM('m-goald')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody" id="gd-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: aportar / usar la plata -->
+<div class="mback" id="m-gmove">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="gm-ttl">Aportar</h2><button class="xbtn" onclick="closeM('m-gmove')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody">
+      <div class="g-hint" id="gm-info" style="margin-bottom:12px"></div>
+      <div class="fg" id="gm-desc-row"><label>¿En qué la usaste?</label><input id="gm-desc" type="text" placeholder="Tiquetes" autocomplete="off"></div>
+      <div class="fgrow">
+        <div class="fg"><label>Monto</label><input id="gm-amt" type="text" inputmode="numeric" placeholder="0" oninput="formatMoneyInput(this)"></div>
+        <div class="fg"><label>Fecha</label><input id="gm-date" type="date"></div>
+      </div>
+      <div class="fg" id="gm-from-row"><label>Desde la cuenta</label><select id="gm-from"></select></div>
+      <div class="tx-err" id="gm-err"></div>
+      <button class="btnp" id="gm-btn" onclick="saveGoalMove()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: confirmación final para borrar todo -->
 <div class="mback" id="m-reset" style="align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--bg2);border-radius:14px;width:100%;max-width:340px;overflow:hidden;border:.5px solid var(--border2)">
