@@ -73,6 +73,11 @@
     <div class="accrow" id="d-goals"></div>
   </div>
 
+  <div id="d-cuo-wrap" style="display:none">
+    <div class="shdr"><h2>Compras a cuotas</h2><span class="shdr-tot" id="d-cuo-tot"></span></div>
+    <div class="accrow" id="d-cuo"></div>
+  </div>
+
   <!-- Cuentas: tarjetas que se deslizan hacia el lado -->
   <div class="shdr"><h2>Tus cuentas</h2><span class="shdr-tot" id="d-acct-tot">$0</span></div>
   <div class="accrow" id="d-accts"></div>
@@ -413,7 +418,7 @@
         <button type="button" class="mtab" id="mt-shared" onclick="setMTab('shared')">Compartido</button>
         <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferencia</button>
       </div>
-      <div class="tx-amt"><span>$</span><input id="f-m" type="text" placeholder="0" inputmode="numeric" autocomplete="off" aria-label="Monto" oninput="formatMoneyInput(this);txAmtW();txErr('')"></div>
+      <div class="tx-amt"><span>$</span><input id="f-m" type="text" placeholder="0" inputmode="numeric" autocomplete="off" aria-label="Monto" oninput="formatMoneyInput(this);txAmtW();txErr('');cuoHint()"></div>
       <div id="tx-err" class="tx-err"></div>
 
       <div class="tx-desc">
@@ -451,6 +456,7 @@
         <div class="fg" id="payacc-row" style="display:none"><label>¿De dónde salió el dinero?</label><select id="f-payacc"></select></div>
       </div>
 
+      <label id="cuo-row" class="tx-rec cuo-row"><span class="tx-rec-t"><i class="uii" data-ui="card" data-s="14"></i><span id="cuo-lbl">Pago en cuotas</span></span><select id="f-cuo" class="cuo-sel" onchange="cuoHint()" aria-label="Número de cuotas"></select></label>
       <label id="rec-row" class="tx-rec" title="Te pediré aprobarlo cada mes"><span class="tx-rec-t"><i class="uii" data-ui="repeat" data-s="14"></i>Repetir cada mes</span><input type="checkbox" id="f-rec" class="tx-switch"></label>
 
       <button class="btnp" onclick="saveTx()">Guardar</button>
