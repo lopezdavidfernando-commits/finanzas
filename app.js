@@ -437,7 +437,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='3.2', APP_DATE='2026-10-28';
+var APP_VERSION='3.3', APP_DATE='2026-10-28';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -602,7 +602,7 @@ function renderRecsCard(){
   ]));
   due.forEach(function(r){
     var acct=findAcct(r.accountId);
-    var sub=(r.kind==='shared'?'Compartido · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
+    var sub=(r.kind==='shared'?'Pendiente · '+(r.charge||''):(acct?acct.name:''))+' · día '+r.day;
     var inp=el('input',{id:'rq_'+r.id,type:'text',inputmode:'numeric',oninput:'formatMoneyInput(this)',style:'width:96px;text-align:right;padding:7px 8px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:15px;font-weight:500'});
     inp.value=Number(r.amount||0).toLocaleString('es-CO');
     var row=el('div',{style:'display:flex;align-items:center;gap:8px;padding:9px 0;border-top:.5px solid var(--border)'},[
@@ -632,7 +632,7 @@ function renderRecsSettings(){
   var w=document.getElementById('s-rec-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
   if(!recs.length){w.appendChild(el('div',{txt:'Activa «Repetir cada mes» al crear un movimiento para que aparezca aquí.',style:'padding:14px 16px;font-size:14px;color:var(--text3)'}));return;}
   recs.forEach(function(r){
-    var kindTxt=r.kind==='income'?'Ingreso':r.kind==='shared'?'Compartido':'Gasto';
+    var kindTxt=r.kind==='income'?'Ingreso':r.kind==='shared'?'Pendiente':'Gasto';
     var eb=el('button',{html:uiI('edit',17),'aria-label':'Editar',click:function(){openRecEdit(r.id);}});
     var db=el('button',{html:uiI('trash',17),'aria-label':'Eliminar',click:function(){delRec(r.id);}});
     w.appendChild(el('div',{cls:'srow'},[el('div',{cls:'srico',html:icoHTML(cIcon(r.category))}),
@@ -1998,7 +1998,7 @@ function setMTab(t){
   // Movimiento nuevo: al pasar a Pendiente, el estado arranca en «Pendiente» (no recuerda el último usado)
   if(t==='shared'&&!editId){var fst=document.getElementById('f-st');if(fst){fst.value='Unpaid';updateStatusOptions();}}
   if(t==='income')txType='Income';else if(t==='transfer')txType='Transfer';else txType='Expenses';
-  // Conservar la categoría si sigue existiendo en el nuevo tipo (ej. de Gasto a Compartido)
+  // Conservar la categoría si sigue existiendo en el nuevo tipo (ej. de Gasto a Pendiente)
   var fc=document.getElementById('f-c'),prevCat=fc?fc.value:'';
   populateCatSel();
   if(prevCat&&fc){fc.value=prevCat;if(fc.value!==prevCat)fc.value='';}
@@ -2179,7 +2179,7 @@ function txCatList(){return (mTab==='income'?cats.income:cats.expenses.concat(ca
 function isoAdd(iso,d){var x=new Date(iso+'T00:00:00');x.setDate(x.getDate()+d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
 
 function txFormRefresh(){
-  var ttl={gasto:'Nuevo gasto',income:'Nuevo ingreso',shared:'Gasto compartido',transfer:'Transferencia'};
+  var ttl={gasto:'Nuevo gasto',income:'Nuevo ingreso',shared:'Nuevo pendiente',transfer:'Transferencia'};
   var h=document.getElementById('tx-ttl');if(h)h.textContent=editId?'Editar movimiento':(ttl[mTab]||'Nuevo movimiento');
   txErr('');
   var v=document.getElementById('tx-voice');if(v)v.textContent='';
