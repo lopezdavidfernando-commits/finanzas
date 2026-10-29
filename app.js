@@ -431,7 +431,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='3.0', APP_DATE='2026-10-25';
+var APP_VERSION='3.1', APP_DATE='2026-10-28';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1070,7 +1070,7 @@ function renderDash(){
   var lent=0;txs.forEach(function(t){if(t.isAdelanto)lent+=t.amount;});
   var nc=noCatTxs(),ncTot=0;nc.forEach(function(t){ncTot+=t.amount;});
   var rv=clr('d-review'),items=[];
-  if(pend>0&&showPendiente)items.push({ic:'users',t:'Compartidos',v:fmtb(pend),go:function(){showPage('expenses');}});
+  if(pend>0&&showPendiente)items.push({ic:'users',t:'Pendientes',v:fmtb(pend),go:function(){showPage('expenses');}});
   if(lent>0&&showPendiente)items.push({ic:'cash',t:'Te deben (adelantos)',v:fmtb(lent),go:function(){showPage('expenses');}});
   if(nc.length)items.push({ic:'tag',t:nc.length+' sin categoría',v:fmtb(ncTot),go:goNoCat,warn:true});
   items.forEach(function(it){
@@ -1352,6 +1352,12 @@ function renderExpenses(){
       el('b',{txt:fmtb(td+tl+to)})]));
   });
 
+  // Filtro por medio de pago (en la lista; sincronizado con «Pendiente por origen»)
+  var esc=clr('e-src-chips');
+  if(esc)[['all','Todos',null],['Efectivo','Efectivo','@cash'],['Tarjeta crédito','Crédito','@card'],['Tarjeta débito','Débito','@bank']].forEach(function(d){
+    esc.appendChild(el('button',{type:'button',cls:'srcf'+(curFiltSrc===d[0]?' active':''),click:function(){curFiltSrc=d[0];renderExpenses();}},
+      [d[2]?el('span',{cls:'uii',html:icoHTML(d[2],15)}):null,el('span',{txt:d[1]})]));
+  });
   // Por persona
   var ec=clr('e-chips');
   [['Todos','all'],['Yo','David'],[partnerName,'Lina'],['Los dos','Los dos'],['Otro','Otro']].forEach(function(d){
@@ -1381,7 +1387,7 @@ function renderExpenses(){
   });
   var srt=filtered.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var el2=clr('e-list');
-  if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',html:uiI('receipt',34)}),el('p',{txt:'Sin gastos compartidos'})]));return;}
+  if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',html:uiI('receipt',34)}),el('p',{txt:curFiltSrc!=='all'||curFiltExp!=='all'?'Sin pendientes con este filtro':'Sin pendientes este mes'})]));return;}
   // Render paid items section
   
   // renderPaidExpenses called at end after srt render

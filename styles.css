@@ -689,3 +689,8 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .gd-sec{border:1px solid var(--bord2);background:var(--bg2);color:var(--text);border-radius:12px;padding:13px;font-family:inherit;font-size:14.5px;font-weight:500;cursor:pointer}
 .g-done-box{background:var(--greenbg);color:var(--green);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.45}
 .g-done-box b{display:block;font-size:16px;margin-bottom:2px}
+
+/* Pendientes: filtros por medio de pago sobre la lista */
+.esrcf{gap:8px;padding:0 20px 12px}
+.srcf{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border:none;border-radius:18px;background:var(--bg2);box-shadow:var(--shadowsm);color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.srcf.active{background:var(--text);color:var(--bg2)}

@@ -103,7 +103,7 @@
 
 <div class="page" id="page-expenses">
   <div class="topbar">
-    <h1>Compartidos</h1>
+    <h1>Pendientes</h1>
     <label class="tmonth">
       <span id="e-mlbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
       <select id="e-msel" onchange="pickMonth(this.value)" aria-label="Elegir mes"></select>
@@ -126,6 +126,7 @@
 
   <div class="shdr"><h2>Gastos de <span id="e-mname"></span></h2><button class="e-paybtn" onclick="toggleSelMode()" id="sel-toggle"><i class="uii" data-ui="checkcircle" data-s="16"></i><span>Marcar pagados</span></button></div>
   <div class="seg eseg" id="e-chips"></div>
+  <div class="chips esrcf" id="e-src-chips"></div>
   <div style="display:flex;justify-content:flex-end;gap:16px;padding:2px 22px 6px"><span id="sel-all" onclick="selectAllVisible()" style="display:none;font-size:15px;font-weight:500;color:var(--text2);cursor:pointer">Seleccionar todos</span><span id="sel-toggle-old" onclick="toggleSelMode()" hidden style="font-size:15px;font-weight:500;color:var(--limedk);cursor:pointer">Seleccionar</span></div>
   <div class="txwrap" id="e-list"></div>
   <div style="padding:8px 20px 24px">
@@ -249,7 +250,7 @@
 
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="users" data-s="17"></i></div>
-      <div class="srt"><div class="srn">Pestaña Compartidos</div><div class="srs">Gastos compartidos con otros</div></div>
+      <div class="srt"><div class="srn">Pestaña Pendientes</div><div class="srs">Gastos compartidos con otros</div></div>
       <button class="btnout" id="s-pend-btn" onclick="togglePendienteTab()">Activada</button>
     </div>
     <div class="srow">
@@ -395,7 +396,7 @@
 <nav>
   <button class="active" id="nav-dash" onclick="showPage('dash')"><i class="uii" data-ui="home" data-s="21"></i><span>Inicio</span></button>
   <button id="nav-tracking" onclick="showPage('tracking')"><i class="uii" data-ui="list" data-s="21"></i><span>Movimientos</span></button>
-  <button id="nav-expenses" onclick="showPage('expenses')"><i class="uii" data-ui="users" data-s="21"></i><span>Compartidos</span></button>
+  <button id="nav-expenses" onclick="showPage('expenses')"><i class="uii" data-ui="users" data-s="21"></i><span>Pendientes</span></button>
   <button id="nav-budget" onclick="showPage('budget')"><i class="uii" data-ui="target" data-s="21"></i><span>Presupuesto</span></button>
   <button id="nav-summary" onclick="showPage('summary')"><i class="uii" data-ui="chart" data-s="21"></i><span>Resumen</span></button>
 </nav>
