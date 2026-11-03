@@ -219,26 +219,16 @@
 </div>
 
 <div class="page" id="page-summary">
-  <div class="topbar"><h1>Resumen</h1><p>Vista anual y por categoría</p></div>
-  <div class="mbar">
-    <button class="mbtn" onclick="cmY(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-    <span class="mlbl" id="s-yr"></span>
-    <button class="mbtn" onclick="cmY(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+  <div class="topbar">
+    <h1>Resumen</h1>
+    <label class="tmonth">
+      <span id="s-plbl"></span><i class="uii" data-ui="chevdown" data-s="15"></i>
+      <select id="s-psel" onchange="pickSum(this.value)" aria-label="Elegir período"></select>
+    </label>
   </div>
-  <div class="seg" id="summode-seg" style="margin:0 20px 8px">
-    <button class="active" id="summode-year" onclick="setSumMode('year')">Año completo</button>
-    <button id="summode-month" onclick="setSumMode('month')">Por mes</button>
-  </div>
-  <div class="mbar" id="s-mbar-month" style="display:none">
-    <button class="mbtn" onclick="cmSM(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-    <span class="mlbl" id="s-mlbl"></span>
-    <button class="mbtn" onclick="cmSM(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
-  </div>
-  <div class="stabs">
-    <div class="stab active" id="stab-ov" onclick="setST('ov')">General</div>
-    <div class="stab" id="stab-in" onclick="setST('in')">Ingresos</div>
-    <div class="stab" id="stab-ex" onclick="setST('ex')">Gastos</div>
-    <div class="stab" id="stab-rk" onclick="setST('rk')">Ranking</div>
+  <div class="seg rp-seg">
+    <button class="active" id="summode-month" onclick="setSumMode('month')">Mes</button>
+    <button id="summode-year" onclick="setSumMode('year')">Año</button>
   </div>
   <div id="sum-body"></div>
 </div>

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "june-referencia",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /private/tmp/claude-501/-Users-davidl-Documents-GitHub-finanzas/489660a3-22a6-470c-aff1-72d6b742d55d/scratchpad/june-view && exec python3 -I -m http.server 8765 --bind 127.0.0.1"],
+      "port": 8765
+    },
+    {
+      "name": "font-test",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /private/tmp/claude-501/-Users-davidl-Documents-GitHub-finanzas/626cbd22-3866-4e88-a28b-9b1e8695d564/scratchpad/fonttest && exec python3 -I -m http.server 8766 --bind 127.0.0.1"],
+      "port": 8766
+    }
+  ]
+}

@@ -719,3 +719,54 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .ptr.arm{color:var(--text)}
 .ptr.spin svg{animation:ptrspin .8s linear infinite}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
+
+/* Resumen: informe del mes o del año */
+.rp-seg{margin:0 20px 14px}
+.rp-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.rp-hd h3{font-size:17.5px;font-weight:600;letter-spacing:-.3px}
+.rp-lbl{font-size:15px;color:var(--text2);font-weight:500}
+.rp-big{font-size:36px;font-weight:600;letter-spacing:-1.2px;margin-top:2px}.rp-big.neg{color:var(--red)}
+.rp-sub{font-size:14.5px;color:var(--text2);margin:2px 0 12px}
+.rp-line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:15.5px;padding:5px 0}
+.rp-line span{color:var(--text2)}.rp-line b{font-weight:600;white-space:nowrap}
+.rp-line.rp-small{font-size:14px;padding-top:2px}
+.rp-up{color:var(--red)!important}.rp-dn{color:var(--green)!important}
+.rp-ins{display:flex;gap:11px;align-items:flex-start;padding:8px 0;font-size:15.5px;line-height:1.4}
+.rp-ins .uii{flex-shrink:0;margin-top:1px;color:var(--text3)}
+.rp-ins.bad .uii{color:var(--red)}.rp-ins.good .uii{color:var(--green)}
+.rp-trk{position:relative;height:8px;border-radius:4px;background:var(--bg3);margin:8px 0 4px}
+.rp-trk i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--lime)}
+.rp-trk i.over{background:var(--red)}
+.rp-trk b{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-2px;background:var(--text);border-radius:1px}
+.rp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:12px}
+.rp-col{background:var(--bg3);border-radius:10px;padding:10px 11px;min-width:0}
+.rp-col h4{font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.rp-col>div{display:flex;flex-direction:column;font-size:14px;padding:3px 0;line-height:1.3}
+.rp-col>div span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-col>div span:last-child{font-weight:600;white-space:nowrap}
+.rp-none{font-size:14px;color:var(--text3)}
+.rp-note{font-size:13px;color:var(--text3);margin-top:10px;line-height:1.4}
+.rp-link{margin-top:10px;border:none;background:var(--bg3);color:var(--text);font:inherit;font-size:14.5px;font-weight:500;border-radius:8px;padding:8px 12px;cursor:pointer}
+.rp-mini{display:flex;background:var(--bg3);border-radius:8px;padding:3px;gap:2px}
+.rp-mini button{border:none;background:none;font:inherit;font-size:13px;font-weight:500;color:var(--text2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.rp-mini button.on{background:var(--bg2);color:var(--text);box-shadow:var(--shadowsm)}
+.rp-rk{display:grid;grid-template-columns:18px minmax(0,1fr) 44px;gap:0 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.rp-rk:last-of-type{border-bottom:none}
+.rp-n{font-size:13px;color:var(--text3);font-weight:500}
+.rp-rk-t{display:flex;justify-content:space-between;gap:8px;font-size:15.5px}
+.rp-rk-t b{font-weight:600;white-space:nowrap}
+.rp-rk-n{min-width:0;display:flex;align-items:baseline}
+.rp-rk-n>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-chg{flex-shrink:0}
+.rp-chg{font-size:12px;margin-left:6px;font-weight:600}
+.rp-pct{font-size:13px;color:var(--text2);text-align:right;font-weight:500}
+.rp-com{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.rp-com:last-of-type{border-bottom:none}
+.rp-com-n{flex:1;min-width:0;display:flex;flex-direction:column;font-size:15.5px}
+.rp-com-n span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-com-n small{font-size:13px;color:var(--text3)}
+.rp-com b{font-weight:600;white-space:nowrap;font-size:15.5px}
+.rp-chart{display:flex;align-items:flex-end;gap:5px;height:90px;margin:16px 0 6px}
+.rp-chart button{flex:1;border:none;padding:0;background:var(--lime);border-radius:4px 4px 0 0;cursor:pointer}
+.rp-chart button.neg{background:var(--red)}.rp-chart button.nod{background:var(--bg3);cursor:default}
+.rp-cm{display:flex;gap:5px;font-size:11.5px;color:var(--text3)}.rp-cm span{flex:1;text-align:center}
