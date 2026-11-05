@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>Finanzas David</title>
+<title>Finanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
       <input type="file" id="avatar-inp" accept="image/*" style="display:none" onchange="onAvatarFile(event)">
       <div>
         <div class="hg hg-row"><span id="d-greet">Hola,</span><button class="dsync" id="d-sync" onclick="handleDrive()" aria-label="Estado de Google Drive"><span class="dsync-dot" id="d-sync-dot"></span><span id="d-sync-txt">Sin Drive</span></button></div>
-        <div class="hn" id="hero-name">David</div>
+        <div class="hn" id="hero-name"></div>
       </div>
     </div>
     <div class="dtopbtns">
@@ -261,12 +261,12 @@
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="user" data-s="17"></i></div>
       <div class="srt"><div class="srn">Tu nombre</div><div class="srs">Como te saluda la app</div></div>
-      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="David" oninput="saveUserName()" onblur="saveUserName(true)">
+      <input id="s-username" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Tu nombre" oninput="saveUserName()" onblur="saveUserName(true)">
     </div>
     <div class="srow">
       <div class="srico"><i class="uii" data-ui="heart" data-s="17"></i></div>
       <div class="srt"><div class="srn">Nombre de tu pareja</div><div class="srs">Aparece en gastos compartidos</div></div>
-      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Lina" oninput="savePartnerName()" onblur="savePartnerName(true)">
+      <input id="s-partnername" type="text" style="width:120px;text-align:right;padding:8px 10px;border:.5px solid var(--bord2);border-radius:2px;background:var(--inp);color:var(--text);font-family:inherit;font-size:16px" placeholder="Nombre" oninput="savePartnerName()" onblur="savePartnerName(true)">
     </div>
   </div>
   <div class="sg2" id="s-install" style="display:none">
@@ -281,6 +281,14 @@
       <div class="srico"><i class="uii" data-ui="book" data-s="17"></i></div>
       <div class="srt"><div class="srn">Guía de la app</div><div class="srs">Qué hace cada pestaña y los atajos</div></div>
       <span style="color:var(--text3);display:flex"><i class="uii" data-ui="chevright" data-s="16"></i></span>
+    </div>
+  </div>
+  <div class="sgt" style="padding:12px 20px 6px">Tu mes</div>
+  <div class="sg2">
+    <div class="srow">
+      <div class="srico"><i class="uii" data-ui="calendar" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Tu mes empieza el</div><div class="srs" id="s-cuts">Cada mes va del 1 al último día</div></div>
+      <select id="s-cut" class="cut-sel" onchange="setCutDay(this.value)" aria-label="Día en que empieza tu mes"></select>
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Registro rápido</div>
@@ -525,7 +533,7 @@
       <p style="font-size:15px;color:var(--text2);line-height:1.65;margin-bottom:16px">Para guardar automáticamente en Drive necesitas un <strong style="color:var(--text)">Client ID de Google</strong> (gratis, 5 min).</p>
       <div style="background:var(--bg3);border-radius:4px;padding:14px;margin-bottom:16px;font-size:14px;color:var(--text2);line-height:1.8">
         <div style="font-size:12.5px;font-weight:500;color:var(--lime);margin-bottom:6px">Pasos:</div>
-        1. Ve a console.cloud.google.com<br>2. Crea proyecto Finanzas David<br>3. APIs &gt; Credenciales &gt; OAuth &gt; App web<br>4. Activa Google Drive API<br>5. Pega el Client ID abajo
+        1. Ve a console.cloud.google.com<br>2. Crea proyecto Finanzas<br>3. APIs &gt; Credenciales &gt; OAuth &gt; App web<br>4. Activa Google Drive API<br>5. Pega el Client ID abajo
       </div>
       <div class="fg"><label>Client ID</label><input id="drive-cid" type="text" placeholder="123456789-abc.apps.googleusercontent.com"></div>
       <button class="btnp" onclick="saveDriveCid()">Conectar Drive</button>
