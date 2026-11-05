@@ -429,7 +429,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='3.5', APP_DATE='2026-10-28';
+var APP_VERSION='3.6', APP_DATE='2026-10-28';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -2477,24 +2477,28 @@ function openCfg(type,id){
   document.getElementById('cfg-lbl').textContent=isA?'Nombre de la cuenta':'Nombre de la categoria';
   document.getElementById('cfg-br').style.display=isA?'block':'none';
   document.getElementById('cfg-n').value='';cfgIcon='';
-  if(isA)document.getElementById('cfg-b').value='';
+  if(isA){document.getElementById('cfg-b').value='';cfgSign(1);}
   if(id){
     var all2=isA?accts:cats.income.concat(cats.expenses,cats.savings);
-    for(var i=0;i<all2.length;i++){if(all2[i].id===id){document.getElementById('cfg-n').value=all2[i].name||'';cfgIcon=all2[i].icon||'';if(isA)document.getElementById('cfg-b').value=(all2[i].balance||0).toLocaleString('es-CO');break;}}
+    for(var i=0;i<all2.length;i++){if(all2[i].id===id){document.getElementById('cfg-n').value=all2[i].name||'';cfgIcon=all2[i].icon||'';if(isA){var cb=Math.round(all2[i].balance||0);document.getElementById('cfg-b').value=Math.abs(cb).toLocaleString('es-CO');cfgSign(cb<0?-1:1);}break;}}
   }
   buildIcoGrid();
   document.getElementById('m-cfg').classList.add('open');
 }
 
+var cfgSignV=1;
+function cfgSign(s){cfgSignV=s;var p=document.getElementById('cfg-pos'),n=document.getElementById('cfg-neg');if(p)p.classList.toggle('active',s>0);if(n)n.classList.toggle('active',s<0);}
 function saveCfg(){
   var name=document.getElementById('cfg-n').value.trim(),icon=cfgIcon||'@tag';
   if(!name){alert('Escribe un nombre');return;}
   pushHistory((cfgEditId?'Editar ':'Agregar ')+(cfgType==='account'?'cuenta':'categoria')+': '+name);
   if(cfgType==='account'){
-    var bal=rawNum(document.getElementById('cfg-b'));
-    if(cfgEditId){for(var i=0;i<accts.length;i++){if(accts[i].id===cfgEditId){accts[i].name=name;accts[i].icon=icon;accts[i].balance=bal;break;}}}
-    else accts.push({id:uid(),name:name,icon:icon,balance:bal});
+    // El saldo se calcula con los movimientos: si cambia, se registra un ajuste por la diferencia
+    var bal=cfgSignV*rawNum(document.getElementById('cfg-b')),acc=cfgEditId?findAcct(cfgEditId):null;
+    if(acc){acc.name=name;acc.icon=icon;}
+    else{acc={id:uid(),name:name,icon:icon,balance:0};accts.push(acc);}
     ls.s('ac7',accts);
+    setAcctBalance(acc,bal,cfgEditId?'Ajuste de saldo':'Saldo inicial');
   } else {
     var key=cfgType.replace('cat-','');
     if(cfgEditId){for(var i=0;i<cats[key].length;i++){if(cats[key][i].id===cfgEditId){cats[key][i].name=name;cats[key][i].icon=icon;break;}}}
@@ -3208,7 +3212,7 @@ function restoreBackup(f,d){
 
 // ══════ Saldo de una cuenta: se fija con un ajuste (el saldo siempre se calcula con los movimientos) ══════
 function setAcctBalance(a,target,desc){
-  recalcAllBalances();var diff=Math.round(target-(a.balance||0));if(!diff)return;
+  recalcAllBalances();var diff=target-(a.balance||0);if(Math.abs(diff)<1)return;diff=Math.round(diff);  // centavos de mitades no generan ajuste
   txs.unshift({id:uid(),mode:'tracking',type:diff>0?'Income':'Expenses',description:desc||'Ajuste de saldo',amount:Math.abs(diff),date:todayISO(),category:'Ajuste de saldo',account:a.name,accountId:a.id,isAdjust:true});
   recalcAllBalances();ls.s('tx7',txs);
 }

@@ -508,7 +508,10 @@
         <label>Ícono</label>
         <div id="cfg-grid" class="icogrid"></div>
       </div>
-      <div class="fg" id="cfg-br" style="display:none"><label>Saldo actual (COP)</label><input id="cfg-b" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)"></div>
+      <div class="fg" id="cfg-br" style="display:none"><label>Saldo actual (COP)</label>
+        <div class="seg cfg-sign"><button type="button" id="cfg-pos" class="active" onclick="cfgSign(1)">Tengo</button><button type="button" id="cfg-neg" onclick="cfgSign(-1)">Debo (tarjeta)</button></div>
+        <input id="cfg-b" type="text" placeholder="0" inputmode="numeric" oninput="formatMoneyInput(this)">
+        <div class="cfg-hint" id="cfg-bh">Escribe el saldo que muestra tu banco hoy. Si cambia, la app registra un ajuste por la diferencia.</div></div>
       <button class="btnp" onclick="saveCfg()">Guardar</button>
     </div>
   </div>
