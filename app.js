@@ -429,7 +429,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='3.4', APP_DATE='2026-10-28';
+var APP_VERSION='3.5', APP_DATE='2026-10-28';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1576,7 +1576,7 @@ function renderBudCats(){
     // En ahorro, pasarse de lo planeado es bueno: no se marca en rojo
     var over=r.avail<0&&!isSav,extra=r.avail<0&&isSav;
     var col=!r.budg?'var(--text3)':over?'var(--red)':(extra||pct<=85||isSav)?'var(--lime)':'var(--amber)';
-    var row=el('div',{cls:'bud-cat',click:function(){curFilt=r.cat.name;showPage('tracking');renderTracking();}});
+    var row=el('div',{cls:'bud-cat',click:function(){openCatTrend(r.cat.name,curY,curM);}});
     // Arriba: nombre y el disponible (valor principal) · barra · gastado, presupuesto y % en pequeño
     var avTxt=!r.budg?'':(over?'−'+fmtb(-r.avail).replace('-',''):extra?'+'+fmtb(-r.avail).replace('-',''):fmtb(r.avail));
     var avCol=over?'var(--red)':(r.avail===0&&!extra)?'var(--text2)':'var(--green)';
@@ -1821,7 +1821,7 @@ function renderSummary(){
       var pct=r.b>0?Math.round(r.v/r.b*100):null,chg=sumPct(r.v,r.p);
       var name=el('span',{cls:'rp-rk-n'},[el('span',{txt:r.n}),chg!==null&&Math.abs(chg)>=10?el('span',{cls:'rp-chg '+(chg>0?'rp-up':'rp-dn'),txt:(chg>0?'▲ ':'▼ ')+Math.min(999,Math.abs(chg))+'%'}):null]);
       var trk=el('div',{cls:'rp-trk'},[el('i',{cls:pct!==null&&pct>100?'over':'',style:'width:'+Math.round(r.v/mxv*100)+'%'}),r.b>0?el('b',{style:'left:'+Math.round(r.b/mxv*100)+'%'}):null]);
-      c4.appendChild(el('div',{cls:'rp-rk',click:function(){curFilt=r.n;if(!isY)pickMonth(y+'-'+sumM);showPage('tracking');renderTracking();}},[
+      c4.appendChild(el('div',{cls:'rp-rk',click:function(){openCatTrend(r.n,y,isY?(y===nowY?nowM:11):sumM);}},[
         el('span',{cls:'rp-n',txt:String(i+1)}),
         el('div',{style:'min-width:0'},[el('div',{cls:'rp-rk-t'},[name,el('b',{txt:fmtb(r.v)})]),trk]),
         el('span',{cls:'rp-pct'+(pct!==null&&pct>100?' rp-up':''),txt:pct!==null?pct+'%':'—'})]));
@@ -1852,7 +1852,7 @@ function renderSummary(){
 }
 
 function renderSettings(){
-  renderHistory();
+  renderHistory();renderBackupRow();
   renderRecsSettings();
   var av=document.getElementById('app-version');if(av)av.textContent='Versión '+APP_VERSION+' · '+fmtDateCO(APP_DATE);
   var ag=clr('s-ag');
@@ -2672,7 +2672,7 @@ function syncDrive(){
     var body=JSON.stringify({txs:sent.txs,accts:sent.accts,cats:sent.cats,budgets:sent.budgets,recs:sent.recs,goals:sent.goals||[],at:at,v:9});
     return (driveFileId?updateDF(body):createDF(body)).then(function(){ls.s('sb7',sent);ls.s('sbat',at);});
   }).then(function(){
-    driveSt='ok';ls.s('dts7',new Date().toISOString());
+    driveSt='ok';ls.s('dts7',new Date().toISOString());maybeBackup();
   }).catch(function(e){
     // 401: el token (~1h) venció → pedir reconectar; los cambios quedan guardados en el celular
     if(e&&e.status===401){driveToken='';ls.s('dt7','');}
@@ -3100,3 +3100,305 @@ function showToast(msg,undo){
       showToast(driveSt==='ok'?'Sincronizado con Google Drive':'No se pudo sincronizar: toca el indicador de Drive');},400);
   };
 })();
+
+// ══════ Tendencia de una categoría: últimos 6 meses ══════
+var trendCat=null,trendY=0,trendM=0,trendN=6;
+function openCatTrend(name,y,m){trendN=6;trendCat=name;trendY=y;trendM=m;renderCatTrend();document.getElementById('m-trend').classList.add('open');}
+function renderCatTrend(){
+  var name=trendCat,c=null;cats.expenses.concat(cats.savings).forEach(function(x){if(x.name===name)c=x;});
+  document.getElementById('tr-ttl').textContent=name;
+  var b=clr('tr-body');if(!b)return;
+  var N=trendN,rows=[];for(var k=N-1;k>=0;k--){var y=trendY,m=trendM-k;while(m<0){m+=12;y--;}var d=sumData(y,m);rows.push({y:y,m:m,v:d.cat[name]||0,b:d.budg[name]||0});}
+  // Promedio de los meses anteriores con gasto (sin el mes que se mira, para compararlo de verdad)
+  var cur=rows[N-1],withV=rows.slice(0,N-1).filter(function(r){return r.v>0;}),avg=0;withV.forEach(function(r){avg+=r.v/withV.length;});
+  var hi=rows.slice().sort(function(a,b){return b.v-a.v;})[0];
+  // Encabezado: este mes contra el promedio
+  b.appendChild(el('div',{cls:'tr-top'},[el('span',{cls:'tr-ic',html:icoHTML(c?c.icon:'@tag',20)}),
+    el('div',{},[el('div',{cls:'rp-lbl',txt:'En '+MONTHS[cur.m].toLowerCase()}),el('div',{cls:'tr-big'+(cur.b&&cur.v>cur.b?' neg':''),txt:fmtb(cur.v)})])]));
+  var chg=avg>0?Math.round((cur.v-avg)/avg*100):null;
+  b.appendChild(el('div',{cls:'rp-sub',txt:chg===null?'Sin gastos en los meses anteriores':chg===0?'Igual a tu promedio de los meses anteriores':Math.abs(chg)+'% '+(chg>0?'por encima':'por debajo')+' de tu promedio de los meses anteriores'}));
+  // Gráfica de línea: gastado por mes; la raya punteada es el presupuesto de cada mes
+  b.appendChild(el('div',{cls:'rp-mini tr-n'},[6,12].map(function(n){return el('button',{type:'button',cls:trendN===n?'on':'',txt:n+' meses',click:function(){trendN=n;renderCatTrend();}});})));
+  var W=340,H=170,L=8,R=8,T=26,B=24,mx=1;rows.forEach(function(r){mx=Math.max(mx,r.v,r.b);});
+  function X(i){return L+(W-L-R)*(N===1?0.5:i/(N-1));}function Y(v){return T+(H-T-B)*(1-v/mx);}
+  var pts=rows.map(function(r,i){return X(i).toFixed(1)+','+Y(r.v).toFixed(1);});
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" class="tr-svg" role="img" aria-label="Gasto de los últimos '+N+' meses">';
+  [0,0.5,1].forEach(function(f){var y=Y(mx*f).toFixed(1);svg+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" class="tr-grid"/>';});
+  if(rows.some(function(r){return r.b;})){var bp='';rows.forEach(function(r,i){if(!r.b)return;var x0=X(Math.max(0,i-0.5)),x1=X(Math.min(N-1,i+0.5)),y=Y(r.b).toFixed(1);bp+='M'+x0.toFixed(1)+' '+y+'H'+x1.toFixed(1);});svg+='<path d="'+bp+'" class="tr-budl"/>';}
+  svg+='<polygon points="'+X(0).toFixed(1)+','+Y(0).toFixed(1)+' '+pts.join(' ')+' '+X(N-1).toFixed(1)+','+Y(0).toFixed(1)+'" class="tr-fill"/>';
+  svg+='<polyline points="'+pts.join(' ')+'" class="tr-line"/>';
+  var hiI=0;rows.forEach(function(r,i){if(r.v>rows[hiI].v)hiI=i;});
+  rows.forEach(function(r,i){var x=X(i),y=Y(r.v),last=i===N-1,over=r.b&&r.v>r.b;
+    svg+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(last?5:3.5)+'" class="tr-dot'+(over?' over':'')+(last?' cur':'')+'"/>';
+    if(N<=6||last||i===hiI){var anc=i===0?'start':last?'end':'middle';svg+='<text x="'+x.toFixed(1)+'" y="'+(y-10).toFixed(1)+'" text-anchor="'+anc+'" class="tr-tv'+(last?' cur':'')+'">'+(r.v?fmtShort(r.v):'—')+'</text>';}
+    if(N<=6||(N-1-i)%2===0){svg+='<text x="'+x.toFixed(1)+'" y="'+(H-6)+'" text-anchor="'+(i===0?'start':last?'end':'middle')+'" class="tr-tm'+(last?' cur':'')+'">'+MO[r.m]+'</text>';}
+  });
+  b.appendChild(el('div',{cls:'tr-chart',html:svg+'</svg>'}));
+  b.appendChild(el('div',{cls:'tr-leg'},[el('span',{},[el('i',{cls:'tr-sw'}),el('span',{txt:'Gastado'})]),el('span',{},[el('i',{cls:'tr-sw bud'}),el('span',{txt:'Presupuesto'})])]));
+  var st=el('div',{cls:'tr-stats'});
+  [['Promedio',withV.length?fmtb(Math.round(avg)):'—'],['Mes más alto',hi&&hi.v?MO[hi.m]+' · '+fmtShort(hi.v):'—'],['Presupuesto',cur.b?fmtb(cur.b):'Sin definir']].forEach(function(s){
+    st.appendChild(el('div',{},[el('span',{txt:s[0]}),el('b',{txt:s[1]})]));});
+  b.appendChild(st);
+  b.appendChild(el('button',{type:'button',cls:'btnp',txt:'Ver movimientos de '+MONTHS[cur.m].toLowerCase(),click:function(){
+    closeM('m-trend');curFilt=name;pickMonth(cur.y+'-'+cur.m);showPage('tracking');renderTracking();}}));
+}
+
+// ══════ Respaldo semanal automático en Google Drive ══════
+// Se guarda una copia con fecha en la carpeta «Finanzas – respaldos». Se conservan las 8 más recientes.
+var BK_KEEP=8,BK_DAYS=7,bkRunning=false;
+function bkFolder(){
+  var fid=ls.g('bkf7','');if(fid)return Promise.resolve(fid);
+  var q='https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='Finanzas – respaldos' and mimeType='application/vnd.google-apps.folder' and trashed=false")+'&spaces=drive';
+  return driveFetch(q).then(function(r){return r.json();}).then(function(sd){
+    if(sd.files&&sd.files.length){ls.s('bkf7',sd.files[0].id);return sd.files[0].id;}
+    return driveFetch('https://www.googleapis.com/drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:'Finanzas – respaldos',mimeType:'application/vnd.google-apps.folder'})}).then(function(r){return r.json();}).then(function(f){ls.s('bkf7',f.id);return f.id;});
+  });
+}
+function bkList(){
+  return bkFolder().then(function(fid){
+    var q='https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("'"+fid+"' in parents and trashed=false")+'&orderBy=createdTime%20desc&fields=files(id,name,createdTime,size)&pageSize=50';
+    return driveFetch(q).then(function(r){return r.json();}).then(function(sd){return sd.files||[];});
+  });
+}
+function backupNow(manual){
+  if(!driveToken){if(manual)showToast('Conecta Google Drive para hacer respaldos');return Promise.resolve();}
+  if(bkRunning)return Promise.resolve();bkRunning=true;
+  var now=new Date(),day=todayISO();
+  var body=JSON.stringify({txs:baseTxs(),accts:accts,cats:cats,budgets:budgets,recs:recs,goals:goals,at:now.toISOString(),v:9});
+  return bkFolder().then(function(fid){
+    var meta=new Blob([JSON.stringify({name:'finanzas-respaldo-'+day+'.json',parents:[fid]})],{type:'application/json'});
+    var form=new FormData();form.append('metadata',meta);form.append('file',new Blob([body],{type:'application/json'}));
+    return driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',body:form});
+  }).then(function(){ls.s('bkat7',now.toISOString());return bkList();})
+  .then(function(list){  // los más viejos van a la papelera de Drive (se pueden recuperar 30 días)
+    return Promise.all(list.slice(BK_KEEP).map(function(f){return driveFetch('https://www.googleapis.com/drive/v3/files/'+f.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});}));
+  }).then(function(){if(manual)showToast('Respaldo guardado en Google Drive');renderBackupRow();})
+  .catch(function(e){if(e&&e.status===404){ls.s('bkf7','');}if(manual)showToast('No se pudo hacer el respaldo. Intenta de nuevo');})
+  .then(function(){bkRunning=false;});
+}
+function maybeBackup(){var at=ls.g('bkat7','');if(!at||Date.now()-new Date(at).getTime()>=BK_DAYS*864e5)backupNow(false);}
+function renderBackupRow(){
+  var s=document.getElementById('s-bks');if(!s)return;var at=ls.g('bkat7','');
+  s.textContent=!driveToken&&!at?'Se activa al conectar Google Drive':at?'Último: '+fmtDateCO(at.slice(0,10))+' · cada semana se guarda uno nuevo':'Pendiente: se hará en la próxima sincronización';
+}
+function openBackups(){
+  var b=clr('bk-list');document.getElementById('m-bk').classList.add('open');
+  if(!driveToken){b.appendChild(el('div',{cls:'rp-note',txt:'Conecta Google Drive para ver tus respaldos.'}));return;}
+  b.appendChild(el('div',{cls:'rp-note',txt:'Buscando respaldos…'}));
+  bkList().then(function(list){
+    clr('bk-list');
+    if(!list.length){b.appendChild(el('div',{cls:'rp-note',txt:'Aún no hay respaldos. Toca «Respaldar ahora» en Ajustes.'}));return;}
+    list.forEach(function(f){var d=new Date(f.createdTime);
+      b.appendChild(el('div',{cls:'bk-row'},[el('span',{cls:'srico',html:uiI('cloud',17)}),
+        el('div',{cls:'srt'},[el('div',{cls:'srn',txt:d.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}),
+          el('div',{cls:'srs',txt:d.toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'})+' · '+Math.max(1,Math.round((+f.size||0)/1024))+' KB'})]),
+        el('button',{type:'button',cls:'btnout',txt:'Restaurar',click:function(){restoreBackup(f,d);}})]));});
+  }).catch(function(){clr('bk-list');b.appendChild(el('div',{cls:'rp-note',txt:'No se pudieron cargar. Revisa la conexión con Google Drive.'}));});
+}
+function restoreBackup(f,d){
+  showConfirm('Restaurar respaldo','Tus datos volverán a como estaban el '+d.toLocaleDateString('es-CO',{day:'numeric',month:'long'})+'. Lo que registraste después se perderá en este celular y en Drive. Si te arrepientes, puedes revertirlo desde el historial de cambios.',function(){
+    driveFetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media').then(function(r){return r.json();}).then(function(raw){
+      if(!raw||!Array.isArray(raw.txs)||!raw.accts)throw new Error('formato');
+      pushHistory('Restaurar respaldo del '+d.toLocaleDateString('es-CO'));
+      applyDoc(normDoc(raw));closeM('m-bk');syncDrive();showToast('Respaldo restaurado');
+    }).catch(function(){showToast('No se pudo restaurar ese respaldo');});
+  });
+}
+
+// ══════ Saldo de una cuenta: se fija con un ajuste (el saldo siempre se calcula con los movimientos) ══════
+function setAcctBalance(a,target,desc){
+  recalcAllBalances();var diff=Math.round(target-(a.balance||0));if(!diff)return;
+  txs.unshift({id:uid(),mode:'tracking',type:diff>0?'Income':'Expenses',description:desc||'Ajuste de saldo',amount:Math.abs(diff),date:todayISO(),category:'Ajuste de saldo',account:a.name,accountId:a.id,isAdjust:true});
+  recalcAllBalances();ls.s('tx7',txs);
+}
+
+// ══════ Guía de inicio: explica la app y la deja lista (nombre, cuentas, Drive) ══════
+var OB_FLOWS={nuevo:['hola','nombre','cuentas','drive','uso','pendientes','gestos','listo'],recuperar:['hola','recuperar','nombre','uso','pendientes','gestos','listo'],repaso:['hola','uso','pendientes','gestos','listo']};
+var ob=null,obAcc=[],obTimer=null;
+function obStart(flow){ob={flow:flow,i:0};ls.s('obs7',ob);obRender();document.getElementById('ob').classList.add('open');document.body.classList.add('ob-on');}
+function obResume(){ob=ls.g('obs7',null);if(!ob||!OB_FLOWS[ob.flow]){obStart('nuevo');return;}obRender();document.getElementById('ob').classList.add('open');document.body.classList.add('ob-on');}
+function obStep(){return OB_FLOWS[ob.flow][ob.i];}
+function obGo(d){
+  if(d>0&&!obLeave())return;
+  ob.i=Math.max(0,Math.min(OB_FLOWS[ob.flow].length-1,ob.i+d));ls.s('obs7',ob);obRender();
+  var sc=document.querySelector('#ob .ob-body');if(sc)sc.scrollTop=0;
+}
+function obChoose(flow){ob={flow:flow,i:1};ls.s('obs7',ob);obRender();}
+function obFinish(thenTx){
+  clearInterval(obTimer);ls.s('ob7',true);ls.s('obs7',null);ob=null;
+  document.getElementById('ob').classList.remove('open');document.body.classList.remove('ob-on');
+  renderAll();showPage('dash');if(thenTx)openTx(null);
+}
+function obErr(m){var e=document.getElementById('ob-err');if(e)e.textContent=m||'';}
+// Guarda lo del paso actual antes de avanzar; false = falta algo
+function obLeave(){
+  var s=obStep();obErr('');
+  if(s==='nombre'){
+    var n=(document.getElementById('ob-name').value||'').trim(),p=(document.getElementById('ob-partner').value||'').trim();
+    if(!n){obErr('Escribe tu nombre para seguir');document.getElementById('ob-name').focus();return false;}
+    userName=n;ls.s('un7',n);partnerName=p||'Pareja';ls.s('pn7',partnerName);
+  }
+  if(s==='cuentas'){
+    obReadAcc();var keep=obAcc.filter(function(a){return a.name;});
+    if(!keep.length){obErr('Agrega al menos una cuenta');return false;}
+    var ids={};keep.forEach(function(a){ids[a.id]=1;});
+    txs=txs.filter(function(t){return !(t.isAdjust&&!ids[t.accountId]);});
+    accts=keep.map(function(a){var old=findAcct(a.id)||{};return {id:a.id,name:a.name,icon:a.credit?'@card':(normTxt(a.name).indexOf('efectivo')>=0?'@cash':(old.icon&&old.icon!=='@card'?old.icon:'@bank')),balance:old.balance||0};});
+    ls.s('ac7',accts);
+    keep.forEach(function(a){setAcctBalance(findAcct(a.id),a.credit?-a.bal:a.bal,'Saldo inicial');});
+    renderAll();
+  }
+  return true;
+}
+function obReadAcc(){
+  document.querySelectorAll('#ob .ob-acc').forEach(function(r){var a=obAcc[+r.getAttribute('data-i')];if(!a)return;
+    a.name=r.querySelector('.ob-an').value.trim();a.bal=rawNum(r.querySelector('.ob-ab'));a.credit=r.querySelector('.ob-ac').checked;});
+}
+function obAddAcc(name,credit){obReadAcc();obAcc.push({id:uid(),name:name||'',bal:0,credit:!!credit});obRender();
+  var ins=document.querySelectorAll('#ob .ob-an');if(ins.length&&!name)ins[ins.length-1].focus();}
+function obDelAcc(i){obReadAcc();obAcc.splice(i,1);obRender();}
+function obConnectDrive(){
+  if(ob&&ob.flow==='recuperar'){
+    // Celular sin datos propios: lo que hay en Drive manda (no se mezcla con las cuentas de ejemplo)
+    ls.s('sb7',JSON.parse(JSON.stringify(localDoc())));ls.s('sbat','');
+  }
+  handleDrive();obRender();
+}
+function obPara(t){return el('p',{cls:'ob-p',txt:t});}
+function obFeat(ico,t,d){return el('div',{cls:'ob-feat'},[el('span',{cls:'ob-fi',html:uiI(ico,20)}),el('div',{},[el('b',{txt:t}),el('span',{txt:d})])]);}
+function obRender(){
+  clearInterval(obTimer);
+  var s=obStep(),flow=OB_FLOWS[ob.flow],box=clr('ob-box');if(!box)return;
+  // Progreso
+  var dots=el('div',{cls:'ob-dots'});flow.forEach(function(_,i){dots.appendChild(el('i',{cls:i<=ob.i?'on':''}));});
+  box.appendChild(el('div',{cls:'ob-head'},[ob.i>0?el('button',{type:'button',cls:'ob-back','aria-label':'Atrás',html:uiI('chevleft',20),click:function(){obGo(-1);}}):el('span',{}),dots,
+    ob.flow==='repaso'?el('button',{type:'button',cls:'ob-skip',txt:'Cerrar',click:function(){obFinish();}}):el('span',{})]));
+  var body=el('div',{cls:'ob-body'}),next='Siguiente',nextFn=function(){obGo(1);},extra=null;
+  box.appendChild(body);
+  if(s==='hola'){
+    body.appendChild(el('div',{cls:'ob-logo'},[el('span',{cls:'dlogo-mark'})]));
+    body.appendChild(el('h1',{txt:ob.flow==='repaso'?'Guía de la app':'Bienvenido a tus finanzas'}));
+    body.appendChild(obPara('Esta app te ayuda a saber en qué se va tu plata y cuánto te queda, sin hojas de cálculo. Esto es lo que puedes hacer:'));
+    body.appendChild(obFeat('plus','Registrar en segundos','Cada gasto o ingreso con el monto, una categoría y la cuenta. También por voz.'));
+    body.appendChild(obFeat('target','Presupuesto','Decides cuánto gastar en cada categoría al mes y ves cuánto te queda disponible.'));
+    body.appendChild(obFeat('users','Pendientes','Lo que pagas por tu pareja u otra persona, y lo que te deben o les debes.'));
+    body.appendChild(obFeat('star','Metas de ahorro','Un bolsillo para cada meta, con cuánto llevas y cuánto ahorrar por mes.'));
+    body.appendChild(obFeat('chart','Resumen','Un informe corto del mes y del año: qué pasó y en qué se fue la plata.'));
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('eyeoff',17)}),el('span',{txt:'Tus datos son privados: se guardan en este celular y, si quieres, en tu propio Google Drive. No pasan por ningún servidor nuestro.'})]));
+    if(ob.flow!=='repaso'){
+      next='Empezar de cero';nextFn=function(){obChoose('nuevo');};
+      extra=el('button',{type:'button',cls:'ob-alt',txt:'Ya usaba la app: recuperar mis datos de Drive',click:function(){obChoose('recuperar');}});
+    }
+  }
+  if(s==='nombre'){
+    body.appendChild(el('h1',{txt:'¿Cómo te llamas?'}));
+    body.appendChild(obPara('La app te saluda por tu nombre y lo usa en la pestaña Pendientes para mostrar lo que debes tú.'));
+    var ni=el('input',{id:'ob-name',type:'text',cls:'ob-in',placeholder:'Tu nombre',autocomplete:'given-name'});ni.value=ls.g('un7','');
+    body.appendChild(el('label',{cls:'ob-lbl',txt:'Tu nombre'}));body.appendChild(ni);
+    body.appendChild(el('h2',{txt:'¿Compartes gastos con alguien?'}));
+    body.appendChild(obPara('Si pagas cosas con tu pareja (mercado, arriendo, salidas), escribe su nombre. En Pendientes anotas quién pagó y la app lleva la cuenta de quién le debe a quién. Si no compartes gastos, déjalo en blanco.'));
+    var pi=el('input',{id:'ob-partner',type:'text',cls:'ob-in',placeholder:'Nombre de tu pareja (opcional)'});pi.value=ls.g('pn7','');
+    body.appendChild(el('label',{cls:'ob-lbl',txt:'Nombre de tu pareja'}));body.appendChild(pi);
+  }
+  if(s==='cuentas'){
+    if(!obAcc.length)obAcc=accts.map(function(a){return {id:a.id,name:a.name,bal:Math.abs(a.balance||0),credit:a.icon==='@card'};});
+    body.appendChild(el('h1',{txt:'Tus cuentas'}));
+    body.appendChild(obPara('Una cuenta es cualquier lugar donde tienes plata: el banco, una billetera como Nequi o Daviplata, el efectivo o una tarjeta de crédito. Cada gasto sale de una cuenta, así la app sabe cuánto tienes en cada una.'));
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('wallet',17)}),el('span',{txt:'Escribe el saldo que tienes hoy: míralo en la app de tu banco. En una tarjeta de crédito marca «Es tarjeta» y escribe lo que debes; si no debes nada, deja 0. Lo puedes corregir después con «Cuadrar con el banco».'})]));
+    obAcc.forEach(function(a,i){
+      var nm=el('input',{type:'text',cls:'ob-in ob-an',placeholder:'Nombre (ej. Bancolombia)'});nm.value=a.name;
+      var bl=el('input',{type:'text',cls:'ob-in ob-ab',inputmode:'numeric',placeholder:'0'});bl.value=a.bal?a.bal.toLocaleString('es-CO'):'';bl.addEventListener('input',function(){formatMoneyInput(bl);});
+      var cr=el('input',{type:'checkbox',cls:'tx-switch ob-ac'});cr.checked=a.credit;
+      var lab=el('span',{cls:'ob-acl',txt:a.credit?'Lo que debes':'Saldo hoy'});cr.addEventListener('change',function(){lab.textContent=cr.checked?'Lo que debes':'Saldo hoy';});
+      body.appendChild(el('div',{cls:'ob-acc','data-i':String(i)},[
+        el('div',{cls:'ob-acr'},[nm,el('button',{type:'button',cls:'xbtn','aria-label':'Quitar cuenta',html:uiI('x',14),click:function(){obDelAcc(i);}})]),
+        el('div',{cls:'ob-acr'},[el('div',{cls:'ob-acb'},[lab,el('div',{cls:'ob-money'},[el('span',{txt:'$'}),bl])]),el('label',{cls:'ob-cr'},[el('span',{txt:'Es tarjeta'}),cr])])]));
+    });
+    var sug=el('div',{cls:'ob-sug'});
+    [['Nequi',0],['Davivienda',0],['Daviplata',0],['Tarjeta de crédito',1]].forEach(function(x){
+      if(obAcc.some(function(a){return normTxt(a.name)===normTxt(x[0]);}))return;
+      sug.appendChild(el('button',{type:'button',txt:'+ '+x[0],click:function(){obAddAcc(x[0],x[1]);}}));});
+    sug.appendChild(el('button',{type:'button',txt:'+ Otra cuenta',click:function(){obAddAcc('');}}));
+    body.appendChild(sug);
+  }
+  if(s==='drive'||s==='recuperar'){
+    var rec=s==='recuperar',on=!!driveToken,st=driveSt;
+    body.appendChild(el('h1',{txt:rec?'Recupera tus datos':'Guarda una copia en Google Drive'}));
+    if(rec){
+      body.appendChild(obPara('Conecta la misma cuenta de Google que usabas antes. La app trae tus movimientos, cuentas, presupuestos y metas.'));
+    } else {
+      body.appendChild(obPara('Si pierdes o cambias el celular, o borras la app, tus datos no se pierden: los recuperas conectando Google Drive de nuevo.'));
+      body.appendChild(obFeat('refresh','Se guarda solo','Cada vez que registras algo, la copia en Drive se actualiza.'));
+      body.appendChild(obFeat('cloud','Respaldo semanal','Además, cada semana se guarda una copia con fecha para volver atrás si algo sale mal.'));
+    }
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('shield',17)}),el('span',{txt:'La app solo puede ver los archivos que ella misma crea en tu Drive. No ve tus fotos, documentos ni nada más.'})]));
+    var stTxt=!on?(st==='er'?'No se pudo conectar. Intenta de nuevo.':''):st==='sy'?'Conectando y trayendo tus datos…':st==='er'?'Hubo un problema con Drive. Toca conectar de nuevo.':
+      (rec?(baseTxs().length?'Listo: recuperamos '+baseTxs().length+' movimientos y '+accts.length+' cuentas.':'Conectado, pero no encontramos datos en este Drive. Revisa que sea la misma cuenta de Google.'):'Conectado. Tus datos ya se guardan en Drive.');
+    body.appendChild(el('button',{type:'button',cls:'ob-drive'+(on&&st==='ok'?' ok':''),click:obConnectDrive},[el('span',{cls:'uii',html:uiI(on&&st==='ok'?'checkcircle':'cloud',20)}),el('span',{txt:on&&st==='ok'?'Google Drive conectado':'Conectar Google Drive'})]));
+    if(stTxt)body.appendChild(el('div',{cls:'ob-st'+(st==='er'?' er':''),txt:stTxt}));
+    if(!(on&&st==='ok'))next=rec?'Seguir sin recuperar':'Ahora no';
+    // Mientras se conecta, revisar el estado para actualizar el mensaje
+    var last=on+st;obTimer=setInterval(function(){if((!!driveToken)+driveSt!==last)obRender();},600);
+  }
+  if(s==='uso'){
+    body.appendChild(el('h1',{txt:'Cómo se usa'}));
+    body.appendChild(obPara('Abajo tienes cinco pestañas. Esto es lo que encuentras en cada una:'));
+    body.appendChild(obFeat('home','Inicio','Cuánto te queda este mes, tus cuentas, tus metas, las compras a cuotas y lo que debes revisar.'));
+    body.appendChild(obFeat('list','Movimientos','Todo lo que registraste, mes a mes. Puedes buscar en todos los meses y filtrar por categoría.'));
+    body.appendChild(obFeat('users','Pendientes','Gastos compartidos: quién pagó, quién debe y cuánto. Cuando alguien paga, lo marcas como pagado.'));
+    body.appendChild(obFeat('target','Presupuesto','Define un tope por categoría. Cada una muestra cuánto gastaste y cuánto te queda. Toca una para ver su historia de 6 meses.'));
+    body.appendChild(obFeat('chart','Resumen','El informe del mes o del año: lo que te quedó, presupuesto contra lo real y en qué se fue la plata.'));
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('plus',17)}),el('span',{txt:'El botón verde + registra un movimiento: escribe el monto, en qué fue, toca la categoría y guarda. Si fue a cuotas o se repite cada mes, lo marcas ahí mismo.'})]));
+  }
+  if(s==='pendientes'){
+    var yo=userName||'Tú',pa=partnerName&&partnerName!=='Pareja'?partnerName:'tu pareja';
+    body.appendChild(el('h1',{txt:'Pendientes: gastos compartidos'}));
+    body.appendChild(obPara('Sirve para llevar la cuenta de lo que pagan entre '+yo+' y '+pa+' (u otra persona), sin hacer cuentas a mano. Al final de la semana o del mes sabes exactamente quién le debe a quién.'));
+    body.appendChild(el('h2',{txt:'Cómo se registra'}));
+    body.appendChild(obPara('Toca +, elige «Pendiente» arriba y llena tres datos:'));
+    body.appendChild(obFeat('users','A cargo de','De quién es el gasto: tuyo, de '+pa+', de «Los dos» (se divide por mitad) o de «Otro» (alguien más).'));
+    body.appendChild(obFeat('card','Fuente','Con qué se pagó: tarjeta de crédito, débito o efectivo. Así sabes en qué tarjeta está cada deuda.'));
+    body.appendChild(obFeat('checkcircle','Estado','Quién ya pagó. «Pendiente» si nadie ha pagado todavía; o «'+yo+' pagó – '+pa+' pendiente» si tú pusiste la plata y falta su parte.'));
+    body.appendChild(el('h2',{txt:'Ejemplos'}));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Cena de $80.000 que pagaste con tu tarjeta, de los dos'}),
+      el('span',{txt:'A cargo de «Los dos» · Estado «'+yo+' pagó – '+pa+' pendiente». La app anota que '+pa+' te debe $40.000, y tus $40.000 cuentan en tu presupuesto.'})]));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Mercado de $200.000 que pagó '+pa+', de los dos'}),
+      el('span',{txt:'A cargo de «Los dos» · Estado «'+pa+' pagó – '+yo+' pendiente». La app anota que tú le debes $100.000.'})]));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Le prestas la tarjeta a '+pa+' para algo suyo'}),
+      el('span',{txt:'A cargo de «'+pa+'» · Estado «Pendiente». Queda que te debe todo, y no cuenta en tu presupuesto.'})]));
+    body.appendChild(el('h2',{txt:'Qué ves en la pestaña'}));
+    body.appendChild(obFeat('chart','Cuatro cifras arriba','Lo que tú debes, lo que te debe '+pa+', lo de otras personas y el total pendiente.'));
+    body.appendChild(obFeat('wallet','Pendiente por origen','Cuánto se debe en cada tarjeta y en efectivo. Toca una fila para ver solo esos gastos.'));
+    body.appendChild(obFeat('check','Marcar pagados','Cuando alguien te paga, desliza el gasto a la derecha o usa «Marcar pagados» para varios a la vez. Si algo de la tarjeta lo pagaste desde una cuenta, la app pregunta cuál para descontarlo.'));
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('heart',17)}),el('span',{txt:'Cada uno lleva su propia app con su propio Drive. Lo que tú anotas, '+pa+' no lo ve en su celular; por eso conviene que cada uno registre lo que paga.'})]));
+  }
+  if(s==='gestos'){
+    body.appendChild(el('h1',{txt:'Atajos que ahorran tiempo'}));
+    body.appendChild(obFeat('trash','Desliza a la izquierda','En Movimientos, borra un movimiento. Aparece «Deshacer» por si fue sin querer.'));
+    body.appendChild(obFeat('check','Desliza a la derecha','En Pendientes, marca un gasto como pagado.'));
+    body.appendChild(obFeat('refresh','Arrastra hacia abajo','En Inicio, desde arriba, sincroniza con Google Drive.'));
+    body.appendChild(obFeat('mic','Dicta por voz','En el formulario, toca el micrófono y di por ejemplo «almuerzo 25 mil».'));
+    body.appendChild(obFeat('card','Compras a cuotas','Al registrar un gasto con tarjeta, elige el número de cuotas y la app reparte el valor mes a mes.'));
+    body.appendChild(obFeat('repeat','Repetir cada mes','Para el arriendo o el salario: la app te pide aprobarlo cada mes, sin escribirlo de nuevo.'));
+  }
+  if(s==='listo'){
+    body.appendChild(el('div',{cls:'ob-logo ok',html:uiI('check',30)}));
+    body.appendChild(el('h1',{txt:ob.flow==='repaso'?'Eso es todo':'Todo listo, '+userName}));
+    body.appendChild(obPara(ob.flow==='repaso'?'Puedes volver a esta guía cuando quieras desde Ajustes.':'Lo más importante es registrar cada gasto el mismo día: con eso, el presupuesto y el resumen se arman solos. Esta guía queda en Ajustes por si quieres verla de nuevo.'));
+    if(ob.flow!=='repaso'){
+      body.appendChild(obPara('Siguiente paso recomendado: en Presupuesto, define cuánto quieres gastar este mes en cada categoría.'));
+      next='Registrar mi primer gasto';nextFn=function(){obFinish(true);};
+      extra=el('button',{type:'button',cls:'ob-alt',txt:'Ir al inicio',click:function(){obFinish(false);}});
+    } else {next='Cerrar guía';nextFn=function(){obFinish(false);};}
+  }
+  var foot=el('div',{cls:'ob-foot'},[el('div',{id:'ob-err',cls:'ob-err'}),el('button',{type:'button',cls:'btnp',txt:next,click:nextFn}),extra]);
+  box.appendChild(foot);
+}
+function obInit(){
+  if(ls.g('ob7',false))return;
+  if(baseTxs().length&&!ls.g('obs7',null)){ls.s('ob7',true);return;}  // ya usaba la app: no mostrar
+  if(ls.g('obs7',null))obResume();else obStart('nuevo');
+}
+// Al final del archivo: necesita que todo lo anterior ya esté definido
+obInit();

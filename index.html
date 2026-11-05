@@ -276,6 +276,13 @@
       <button class="btnout">Instalar</button>
     </div>
   </div>
+  <div class="sg2">
+    <div class="srow" onclick="obStart('repaso')" style="cursor:pointer">
+      <div class="srico"><i class="uii" data-ui="book" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Guía de la app</div><div class="srs">Qué hace cada pestaña y los atajos</div></div>
+      <span style="color:var(--text3);display:flex"><i class="uii" data-ui="chevright" data-s="16"></i></span>
+    </div>
+  </div>
   <div class="sgt" style="padding:12px 20px 6px">Registro rápido</div>
   <div class="sg2">
     <div class="srow">
@@ -290,6 +297,19 @@
       <div class="srico"><i class="uii" data-ui="cloud" data-s="17"></i></div>
       <div class="srt"><div class="srn" id="s-drn">Sin conexión</div><div class="srs" id="s-drs">Datos solo en este celular</div></div>
       <button class="btnout" id="s-drb" onclick="handleDrive()">Conectar</button>
+    </div>
+  </div>
+  <div class="sgt" style="padding:12px 20px 6px">Respaldos automáticos</div>
+  <div class="sg2">
+    <div class="srow">
+      <div class="srico"><i class="uii" data-ui="refresh" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Respaldo semanal en Drive</div><div class="srs" id="s-bks">Se activa al conectar Google Drive</div></div>
+      <button class="btnout" onclick="backupNow(true)">Respaldar ahora</button>
+    </div>
+    <div class="srow" onclick="openBackups()" style="cursor:pointer">
+      <div class="srico"><i class="uii" data-ui="cloud" data-s="17"></i></div>
+      <div class="srt"><div class="srn">Ver y restaurar respaldos</div><div class="srs">Vuelve tus datos a como estaban en una fecha</div></div>
+      <span style="color:var(--text3);display:flex"><i class="uii" data-ui="chevright" data-s="16"></i></span>
     </div>
   </div>
   <div class="sgt" style="padding:12px 20px 6px">Respaldo manual</div>
@@ -395,6 +415,27 @@
   <button id="nav-budget" onclick="showPage('budget')"><i class="uii" data-ui="target" data-s="21"></i><span>Presupuesto</span></button>
   <button id="nav-summary" onclick="showPage('summary')"><i class="uii" data-ui="chart" data-s="21"></i><span>Resumen</span></button>
 </nav>
+
+<div class="mback" id="m-trend" onclick="if(event.target===this)closeM('m-trend')">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="tr-ttl">Categoría</h2><button class="xbtn" onclick="closeM('m-trend')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody" id="tr-body"></div>
+  </div>
+</div>
+
+<div class="mback" id="m-bk" onclick="if(event.target===this)closeM('m-bk')">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2>Respaldos en Drive</h2><button class="xbtn" onclick="closeM('m-bk')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody">
+      <p class="rp-note" style="margin:0 0 10px">Cada semana se guarda una copia con fecha en la carpeta «Finanzas – respaldos» de tu Drive. Se conservan las 8 más recientes.</p>
+      <div id="bk-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="ob" class="ob" role="dialog" aria-modal="true" aria-label="Guía de inicio"><div class="ob-box" id="ob-box"></div></div>
 
 <div class="mback" id="m-tx">
   <div class="msh">
