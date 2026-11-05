@@ -849,3 +849,10 @@ body.ob-on{overflow:hidden}
 .ob-ex span{font-size:14.5px;line-height:1.45;color:var(--text2)}
 .cfg-sign{margin-bottom:8px}
 .cfg-hint{font-size:13px;color:var(--text3);margin-top:6px;line-height:1.4}
+.ob-opt{width:100%;display:flex;gap:12px;align-items:flex-start;text-align:left;border:none;background:var(--bg2);box-shadow:var(--shadowsm);border-radius:12px;padding:13px 14px;margin-bottom:8px;font:inherit;color:var(--text);cursor:pointer;outline:2px solid transparent}
+.ob-opt.on{outline-color:var(--lime)}
+.ob-opt b{display:block;font-size:16px;font-weight:600}
+.ob-opt span{font-size:14px;color:var(--text2);line-height:1.4}
+.ob-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bg4);flex-shrink:0;margin-top:1px;box-sizing:border-box}
+.ob-opt.on .ob-radio{border:6px solid #9cc31a}
+.ob-hint{font-size:13px;color:var(--text3);margin-top:6px;line-height:1.4}

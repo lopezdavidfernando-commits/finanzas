@@ -429,7 +429,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='3.6', APP_DATE='2026-10-28';
+var APP_VERSION='3.7', APP_DATE='2026-10-28';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -3219,8 +3219,9 @@ function setAcctBalance(a,target,desc){
 
 // ══════ Guía de inicio: explica la app y la deja lista (nombre, cuentas, Drive) ══════
 var OB_FLOWS={nuevo:['hola','nombre','cuentas','drive','uso','pendientes','gestos','listo'],recuperar:['hola','recuperar','nombre','uso','pendientes','gestos','listo'],repaso:['hola','uso','pendientes','gestos','listo']};
-var ob=null,obAcc=[],obTimer=null;
-function obStart(flow){ob={flow:flow,i:0};ls.s('obs7',ob);obRender();document.getElementById('ob').classList.add('open');document.body.classList.add('ob-on');}
+var ob=null,obAcc=[],obTimer=null,obPend=null,obPartner=null;
+function obReadPend(){var p=document.getElementById('ob-partner');if(p)obPartner=p.value.trim();}
+function obStart(flow){ob={flow:flow,i:0};obPend=null;obPartner=null;ls.s('obs7',ob);obRender();document.getElementById('ob').classList.add('open');document.body.classList.add('ob-on');}
 function obResume(){ob=ls.g('obs7',null);if(!ob||!OB_FLOWS[ob.flow]){obStart('nuevo');return;}obRender();document.getElementById('ob').classList.add('open');document.body.classList.add('ob-on');}
 function obStep(){return OB_FLOWS[ob.flow][ob.i];}
 function obGo(d){
@@ -3239,9 +3240,13 @@ function obErr(m){var e=document.getElementById('ob-err');if(e)e.textContent=m||
 function obLeave(){
   var s=obStep();obErr('');
   if(s==='nombre'){
-    var n=(document.getElementById('ob-name').value||'').trim(),p=(document.getElementById('ob-partner').value||'').trim();
+    var n=(document.getElementById('ob-name').value||'').trim();
     if(!n){obErr('Escribe tu nombre para seguir');document.getElementById('ob-name').focus();return false;}
-    userName=n;ls.s('un7',n);partnerName=p||'Pareja';ls.s('pn7',partnerName);
+    userName=n;ls.s('un7',n);
+  }
+  if(s==='pendientes'){
+    obReadPend();showPendiente=obPend!==false;ls.s('sp7',showPendiente);applyPendienteTab();
+    if(showPendiente&&obPartner!==null){partnerName=obPartner||'Pareja';ls.s('pn7',partnerName);}
   }
   if(s==='cuentas'){
     obReadAcc();var keep=obAcc.filter(function(a){return a.name;});
@@ -3297,13 +3302,9 @@ function obRender(){
   }
   if(s==='nombre'){
     body.appendChild(el('h1',{txt:'¿Cómo te llamas?'}));
-    body.appendChild(obPara('La app te saluda por tu nombre y lo usa en la pestaña Pendientes para mostrar lo que debes tú.'));
+    body.appendChild(obPara('La app te saluda por tu nombre y lo usa para mostrar lo que te toca a ti en los gastos compartidos.'));
     var ni=el('input',{id:'ob-name',type:'text',cls:'ob-in',placeholder:'Tu nombre',autocomplete:'given-name'});ni.value=ls.g('un7','');
     body.appendChild(el('label',{cls:'ob-lbl',txt:'Tu nombre'}));body.appendChild(ni);
-    body.appendChild(el('h2',{txt:'¿Compartes gastos con alguien?'}));
-    body.appendChild(obPara('Si pagas cosas con tu pareja (mercado, arriendo, salidas), escribe su nombre. En Pendientes anotas quién pagó y la app lleva la cuenta de quién le debe a quién. Si no compartes gastos, déjalo en blanco.'));
-    var pi=el('input',{id:'ob-partner',type:'text',cls:'ob-in',placeholder:'Nombre de tu pareja (opcional)'});pi.value=ls.g('pn7','');
-    body.appendChild(el('label',{cls:'ob-lbl',txt:'Nombre de tu pareja'}));body.appendChild(pi);
   }
   if(s==='cuentas'){
     if(!obAcc.length)obAcc=accts.map(function(a){return {id:a.id,name:a.name,bal:Math.abs(a.balance||0),credit:a.icon==='@card'};});
@@ -3356,26 +3357,39 @@ function obRender(){
     body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('plus',17)}),el('span',{txt:'El botón verde + registra un movimiento: escribe el monto, en qué fue, toca la categoría y guarda. Si fue a cuotas o se repite cada mes, lo marcas ahí mismo.'})]));
   }
   if(s==='pendientes'){
-    var yo=userName||'Tú',pa=partnerName&&partnerName!=='Pareja'?partnerName:'tu pareja';
+    if(obPend===null)obPend=showPendiente;
     body.appendChild(el('h1',{txt:'Pendientes: gastos compartidos'}));
-    body.appendChild(obPara('Sirve para llevar la cuenta de lo que pagan entre '+yo+' y '+pa+' (u otra persona), sin hacer cuentas a mano. Al final de la semana o del mes sabes exactamente quién le debe a quién.'));
+    body.appendChild(obPara('Sirve para llevar la cuenta de lo que pagan entre tú y tu pareja (u otra persona), sin hacer cuentas a mano. Al final de la semana o del mes sabes exactamente quién le debe a quién.'));
     body.appendChild(el('h2',{txt:'Cómo se registra'}));
     body.appendChild(obPara('Toca +, elige «Pendiente» arriba y llena tres datos:'));
-    body.appendChild(obFeat('users','A cargo de','De quién es el gasto: tuyo, de '+pa+', de «Los dos» (se divide por mitad) o de «Otro» (alguien más).'));
+    body.appendChild(obFeat('users','A cargo de','De quién es el gasto: tuyo, de tu pareja, de «Los dos» (se divide por mitad) o de «Otro» (alguien más).'));
     body.appendChild(obFeat('card','Fuente','Con qué se pagó: tarjeta de crédito, débito o efectivo. Así sabes en qué tarjeta está cada deuda.'));
-    body.appendChild(obFeat('checkcircle','Estado','Quién ya pagó. «Pendiente» si nadie ha pagado todavía; o «'+yo+' pagó – '+pa+' pendiente» si tú pusiste la plata y falta su parte.'));
+    body.appendChild(obFeat('checkcircle','Estado','Quién ya pagó: «Pendiente» si nadie ha pagado todavía, o la opción que dice que tú pagaste y tu pareja está pendiente (o al revés).'));
     body.appendChild(el('h2',{txt:'Ejemplos'}));
-    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Cena de $80.000 que pagaste con tu tarjeta, de los dos'}),
-      el('span',{txt:'A cargo de «Los dos» · Estado «'+yo+' pagó – '+pa+' pendiente». La app anota que '+pa+' te debe $40.000, y tus $40.000 cuentan en tu presupuesto.'})]));
-    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Mercado de $200.000 que pagó '+pa+', de los dos'}),
-      el('span',{txt:'A cargo de «Los dos» · Estado «'+pa+' pagó – '+yo+' pendiente». La app anota que tú le debes $100.000.'})]));
-    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Le prestas la tarjeta a '+pa+' para algo suyo'}),
-      el('span',{txt:'A cargo de «'+pa+'» · Estado «Pendiente». Queda que te debe todo, y no cuenta en tu presupuesto.'})]));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Una cena de $80.000 que pagaste tú, de los dos'}),
+      el('span',{txt:'A cargo de «Los dos» y estado «tú pagaste, tu pareja pendiente». La app anota que tu pareja te debe $40.000, y tus $40.000 cuentan en tu presupuesto.'})]));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Un mercado de $200.000 que pagó tu pareja, de los dos'}),
+      el('span',{txt:'A cargo de «Los dos» y estado «tu pareja pagó, tú pendiente». La app anota que le debes $100.000.'})]));
+    body.appendChild(el('div',{cls:'ob-ex'},[el('b',{txt:'Le prestas la tarjeta a tu pareja para algo suyo'}),
+      el('span',{txt:'A cargo de tu pareja y estado «Pendiente». Queda que te debe todo, y no cuenta en tu presupuesto.'})]));
     body.appendChild(el('h2',{txt:'Qué ves en la pestaña'}));
-    body.appendChild(obFeat('chart','Cuatro cifras arriba','Lo que tú debes, lo que te debe '+pa+', lo de otras personas y el total pendiente.'));
+    body.appendChild(obFeat('chart','Cuatro cifras arriba','Lo que tú debes, lo que te debe tu pareja, lo de otras personas y el total pendiente.'));
     body.appendChild(obFeat('wallet','Pendiente por origen','Cuánto se debe en cada tarjeta y en efectivo. Toca una fila para ver solo esos gastos.'));
-    body.appendChild(obFeat('check','Marcar pagados','Cuando alguien te paga, desliza el gasto a la derecha o usa «Marcar pagados» para varios a la vez. Si algo de la tarjeta lo pagaste desde una cuenta, la app pregunta cuál para descontarlo.'));
-    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('heart',17)}),el('span',{txt:'Cada uno lleva su propia app con su propio Drive. Lo que tú anotas, '+pa+' no lo ve en su celular; por eso conviene que cada uno registre lo que paga.'})]));
+    body.appendChild(obFeat('check','Marcar pagados','Cuando alguien te paga, desliza el gasto a la derecha o usa «Marcar pagados» para varios a la vez.'));
+    body.appendChild(el('div',{cls:'ob-note'},[el('span',{cls:'uii',html:uiI('heart',17)}),el('span',{txt:'Cada persona lleva su propia app con sus propios datos: lo que tú anotas no aparece en el celular de tu pareja. Por eso conviene que cada uno registre lo que paga.'})]));
+    // Decidir si se usa
+    body.appendChild(el('h2',{txt:'¿Vas a usar Pendientes?'}));
+    body.appendChild(obPara('Si no compartes gastos con nadie, puedes ocultar la pestaña. La activas cuando quieras en Ajustes.'));
+    function opt(v,t,d){return el('button',{type:'button',cls:'ob-opt'+(obPend===v?' on':''),click:function(){obReadPend();obPend=v;obRender();var sc=document.querySelector('#ob .ob-body');if(sc)sc.scrollTop=sc.scrollHeight;}},
+      [el('span',{cls:'ob-radio'}),el('div',{},[el('b',{txt:t}),el('span',{txt:d})])]);}
+    body.appendChild(opt(true,'Sí, la voy a usar','La pestaña aparece en el menú de abajo.'));
+    body.appendChild(opt(false,'No por ahora','Se oculta la pestaña y la opción «Pendiente» del formulario.'));
+    if(obPend){
+      var pi=el('input',{id:'ob-partner',type:'text',cls:'ob-in',placeholder:'Nombre (opcional)'});
+      pi.value=obPartner!==null?obPartner:(ls.g('pn7','')||'');
+      body.appendChild(el('label',{cls:'ob-lbl',style:'margin-top:14px',txt:'¿Con quién compartes gastos?'}));body.appendChild(pi);
+      body.appendChild(el('div',{cls:'ob-hint',txt:'Su nombre aparece en las opciones del formulario y en las cifras de la pestaña. Si lo dejas en blanco, dirá «Pareja».'}));
+    }
   }
   if(s==='gestos'){
     body.appendChild(el('h1',{txt:'Atajos que ahorran tiempo'}));
