@@ -458,7 +458,7 @@ b,strong{font-weight:600}
 .bm-badge{margin:0}
 
 /* Logo de la app en el saludo: la forma se pinta con el color del tema */
-.dlogo-mark{display:block;width:22px;height:23px;background:var(--accfg);-webkit-mask:url(icons/logo-mask.png) center/contain no-repeat;mask:url(icons/logo-mask.png) center/contain no-repeat}
+.dlogo-mark{display:block;width:22px;height:22px;background:var(--accfg);-webkit-mask:url(icons/logo-mask.png) center/contain no-repeat;mask:url(icons/logo-mask.png) center/contain no-repeat}
 
 /* Presupuesto: fila para definir el presupuesto del mes */
 .bud-plan{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:13px 14px;border:1px solid var(--bord2);border-radius:12px;background:var(--bg2);color:var(--text);font-family:inherit;text-align:left;cursor:pointer}
@@ -487,7 +487,7 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .dlogo.has-photo{background-color:var(--bg3);background-size:cover;background-position:center;border-radius:50%}
 .dlogo.has-photo .dlogo-mark{display:none}
 .s-avatar{width:34px;height:34px;border-radius:10px}
-.s-avatar .dlogo-mark{width:17px;height:18px}
+.s-avatar .dlogo-mark{width:17px;height:17px}
 .s-avatar.has-photo{border-radius:50%}
 
 /* Ventanas que se abren encima de otra: «Cuadrar con el banco» sobre la cuenta,
@@ -761,8 +761,8 @@ body.ob-on{overflow:hidden}
 .ob-body h1{font-size:28px;font-weight:600;letter-spacing:-.7px;line-height:1.15;margin:8px 0 10px}
 .ob-body h2{font-size:19px;font-weight:600;letter-spacing:-.3px;margin:26px 0 6px}
 .ob-p{font-size:16px;line-height:1.5;color:var(--text2);margin:0 0 14px}
-.ob-logo{width:64px;height:64px;border-radius:18px;background:#161310;display:flex;align-items:center;justify-content:center;margin:8px 0 18px}
-.ob-logo .dlogo-mark{width:38px;height:38px;background:#c8f135}
+.ob-logo{width:64px;height:64px;border-radius:18px;background:#000;display:flex;align-items:center;justify-content:center;margin:8px 0 18px}
+.ob-logo .dlogo-mark{width:38px;height:38px;background:#fff}
 .ob-logo.ok{background:var(--lime);color:#161310}
 .ob-feat{display:flex;gap:14px;align-items:flex-start;padding:11px 0}
 .ob-fi{width:40px;height:40px;border-radius:11px;background:var(--bg2);box-shadow:var(--shadowsm);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text)}
