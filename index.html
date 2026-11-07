@@ -81,6 +81,7 @@
   <!-- Cuentas: tarjetas que se deslizan hacia el lado -->
   <div class="shdr"><h2>Tus cuentas</h2><span class="shdr-tot" id="d-acct-tot">$0</span></div>
   <div class="accrow" id="d-accts"></div>
+  <button type="button" class="d-net" id="d-net" onclick="showPage('expenses')" style="display:none"></button>
 
   <!-- Drive solo aparece aquí si falla la sincronización -->
   <div class="dbar" id="d-drivebar" style="display:none"><div class="ddot" id="ddot"></div><span class="dtxt" id="dtxt">Sin sincronización</span><button class="dbtn" id="dbtn" onclick="handleDrive()">Conectar Drive</button><button class="dbtn" id="dbtn-cancel" onclick="cancelDrive()" style="display:none;color:var(--red)">Cancelar</button></div>
@@ -115,15 +116,18 @@
     </label>
   </div>
 
-  <!-- Resumen: las cuatro cifras con el mismo peso -->
-  <div class="egrid">
-    <div class="pd"><span class="eg-ic"><i class="uii" data-ui="user" data-s="15"></i></span><span class="hsum-l" id="kl-dav">Tú por pagar</span><b id="e-dav">$0</b></div>
-    <div class="pl"><span class="eg-ic"><i class="uii" data-ui="heart" data-s="15"></i></span><span class="hsum-l" id="kl-lin">Lina debe</span><b id="e-lin">$0</b></div>
-    <div class="po"><span class="eg-ic"><i class="uii" data-ui="users" data-s="15"></i></span><span class="hsum-l">Otro</span><b id="e-otr">$0</b></div>
-    <div class="pt"><span class="eg-ic"><i class="uii" data-ui="coins" data-s="15"></i></span><span class="hsum-l">Total</span><b id="e-tot">$0</b></div>
+  <!-- Personas: quién te debe y a quién le debes (pareja, préstamos y gastos de otros) -->
+  <div class="pp-tots">
+    <div><span>Te deben</span><b id="pp-owed">$0</b></div>
+    <div><span>Debes</span><b id="pp-owe">$0</b></div>
+  </div>
+  <div class="card pp-card">
+    <div class="chd"><h3>Personas</h3><button type="button" class="pp-new" onclick="openLoan()"><i class="uii" data-ui="plus" data-s="15"></i>Préstamo</button></div>
+    <div id="pp-list"></div>
   </div>
   <div class="e-note">Suma lo pendiente de todos los meses</div>
 
+  <div class="shdr pp-shdr"><h2>Gastos compartidos</h2></div>
   <div class="card esrc-card">
     <div class="chd"><h3>Pendiente por origen</h3><span class="mu-s" id="e-src-mes"></span></div>
     <div id="e-source-body"></div>
@@ -432,6 +436,14 @@
   </div>
 </div>
 
+<div class="mback" id="m-person" onclick="if(event.target===this)closeM('m-person')">
+  <div class="msh">
+    <div class="mhnd"></div>
+    <div class="mhdr"><h2 id="pp-ttl">Persona</h2><button class="xbtn" onclick="closeM('m-person')" aria-label="Cerrar"><i class="uii" data-ui="x" data-s="15"></i></button></div>
+    <div class="mbody" id="pp-body"></div>
+  </div>
+</div>
+
 <div class="mback" id="m-bk" onclick="if(event.target===this)closeM('m-bk')">
   <div class="msh">
     <div class="mhnd"></div>
@@ -455,7 +467,8 @@
         <button type="button" class="mtab active" id="mt-gasto" onclick="setMTab('gasto')">Gasto</button>
         <button type="button" class="mtab" id="mt-inc" onclick="setMTab('income')">Ingreso</button>
         <button type="button" class="mtab" id="mt-shared" onclick="setMTab('shared')">Pendiente</button>
-        <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferencia</button>
+        <button type="button" class="mtab" id="mt-loan" onclick="setMTab('loan')">Préstamo</button>
+        <button type="button" class="mtab" id="mt-transfer" onclick="setMTab('transfer')">Transferir</button>
       </div>
       <div class="tx-amt"><span>$</span><input id="f-m" type="text" placeholder="0" inputmode="numeric" autocomplete="off" aria-label="Monto" oninput="formatMoneyInput(this);txAmtW();txErr('');cuoHint()"></div>
       <div id="tx-err" class="tx-err"></div>
@@ -477,7 +490,22 @@
         <label class="tx-pill"><i class="uii" data-ui="calendar" data-s="16"></i><span id="tx-dlbl">Hoy</span><input id="f-dt" type="date" oninput="txDateLbl()" onchange="txDateLbl()" onclick="txOpenDate(event)" aria-label="Fecha"></label>
         <label id="tf-gasto" class="tx-pill"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac" aria-label="Cuenta de donde sale"></select></label>
         <label id="tf-income-ac" class="tx-pill" style="display:none"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac-inc" aria-label="Cuenta donde entra"></select></label>
+        <label id="tf-loan-ac" class="tx-pill" style="display:none"><i class="uii" data-ui="wallet" data-s="16"></i><select id="f-ac-ln" aria-label="Cuenta" onchange="lnHint()"></select></label>
       </div>
+
+      <div id="tf-loan" style="display:none">
+        <div class="ln-dirs" id="ln-dirs">
+          <button type="button" data-d="in:loan" onclick="lnSet('in','loan')">Me prestaron</button>
+          <button type="button" data-d="out:loan" onclick="lnSet('out','loan')">Presté</button>
+          <button type="button" data-d="in:pay" onclick="lnSet('in','pay')">Me pagó</button>
+          <button type="button" data-d="out:pay" onclick="lnSet('out','pay')">Le pagué</button>
+        </div>
+        <div class="fg"><label id="ln-who-l">¿Quién?</label><input id="f-who-ln" type="text" list="dl-people" placeholder="Nombre" autocomplete="off" oninput="lnHint()"></div>
+        <div id="ln-chips" class="ln-chips"></div>
+        <div class="fg" id="ln-due-row"><label>Pagar antes de (opcional)</label><input id="f-due" type="date"></div>
+        <div class="ln-hint" id="ln-hint"></div>
+      </div>
+      <datalist id="dl-people"></datalist>
 
       <div id="tf-transfer" style="display:none">
         <div class="fgrow">
@@ -491,6 +519,7 @@
           <div class="fg"><label>A cargo de</label><select id="f-ch" onchange="updateStatusOptions()"><option id="ch-david" value="David">David</option><option id="ch-lina" value="Lina">Lina</option><option value="Los dos">Los dos</option><option value="Otro">Otro</option></select></div>
           <div class="fg"><label>Fuente</label><select id="f-so" onchange="updateStatusOptions()"><option>Tarjeta crédito</option><option>Tarjeta débito</option><option>Efectivo</option></select></div>
         </div>
+        <div class="fg" id="who-row" style="display:none"><label>¿Quién?</label><input id="f-who" type="text" list="dl-people" placeholder="Nombre de la persona" autocomplete="off"></div>
         <div class="fg"><label>Estado</label><select id="f-st" onchange="this.dataset.touched='1';updatePayAccVis()"><option value="Paid">Pagado</option><option value="Unpaid">Pendiente</option><option value="DavidPaidLinaPending">David pagó - Lina pendiente</option><option value="LinaPaidDavidPending">Lina pagó - David pendiente</option></select></div>
         <div class="fg" id="payacc-row" style="display:none"><label>¿De dónde salió el dinero?</label><select id="f-payacc"></select></div>
       </div>
