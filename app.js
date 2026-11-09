@@ -130,14 +130,13 @@ function openAcctModal(acctId){
   // Get all txs affecting this account
   var related=txs.filter(function(t){
     if(t.mode==='transfer')return t.fromId===acctId||t.toId===acctId;
-    if(t.mode==='cuotas'||t.mode==='loan')return t.accountId===acctId;
+    if(t.mode==='cuotas')return t.accountId===acctId;
     return t.accountId===acctId&&t.mode==='tracking'&&!t.isReimb&&!t.isReimbursed&&!t.cuotaOf;
   }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 
   var totalInc=0,totalExp=0;
   related.forEach(function(t){
     if(t.mode==='transfer'){if(t.toId===acctId)totalInc+=t.amount;else totalExp+=t.amount;return;}
-    if(t.mode==='loan'){if(t.dir==='in')totalInc+=t.amount;else totalExp+=t.amount;return;}
     if(t.type==='Income')totalInc+=t.amount;
     else totalExp+=t.amount;
   });
@@ -195,13 +194,13 @@ function openAcctModal(acctId){
     Object.keys(grp).forEach(function(d){
       list.appendChild(el('div',{cls:'txdh',txt:d}));
       grp[d].forEach(function(t){
-        var isTr=t.mode==='transfer',isLn=t.mode==='loan';
-        var isInc=isTr?t.toId===acctId:isLn?t.dir==='in':t.type==='Income';
+        var isTr=t.mode==='transfer';
+        var isInc=isTr?t.toId===acctId:t.type==='Income';
         var row=el('div',{cls:'tx',click:function(){closeM('m-acct');openTx(t.id);}});
-        row.appendChild(el('div',{cls:'tico',html:isTr?TRANSFER_ICO:isLn?uiI('users',20):icoHTML(cIcon(t.category))}));
+        row.appendChild(el('div',{cls:'tico',html:isTr?TRANSFER_ICO:icoHTML(cIcon(t.category))}));
         var inf=el('div',{cls:'tinf'});
         inf.appendChild(el('div',{cls:'td',txt:t.description}));
-        var meta=el('div',{cls:'tm',txt:isTr?(isInc?'Transferencia desde '+acctNameById(t.fromId):'Transferencia hacia '+acctNameById(t.toId)):isLn?loanLbl(t):(t.category||'Sin categoria')});
+        var meta=el('div',{cls:'tm',txt:isTr?(isInc?'Transferencia desde '+acctNameById(t.fromId):'Transferencia hacia '+acctNameById(t.toId)):(t.category||'Sin categoria')});
         if(t.isShared)meta.appendChild(el('span',{cls:'badge sh',txt:'Compartido',style:'margin-left:4px'}));
         if(t.mode==='cuotas'){var cs=cuotaStatus(t);meta.appendChild(el('span',{cls:'badge cuo',txt:cs.left>0?'Cuota '+cs.done+' de '+cs.n:cs.n+' cuotas · pagada'}));}
         if(t.status==='Paid')meta.appendChild(el('span',{cls:'badge paid',txt:'Pagado',style:'margin-left:4px'}));
@@ -413,7 +412,6 @@ function recalcAllBalances(){
     txs.forEach(function(t){
       if(t.mode==='transfer'){if(t.fromId===acct.id)calc-=t.amount;if(t.toId===acct.id)calc+=t.amount;return;}
       if(t.mode==='cuotas'){if(t.accountId===acct.id)calc-=t.amount;return;}  // la compra a cuotas sale completa de la tarjeta
-      if(t.mode==='loan'){if(t.accountId===acct.id)calc+=t.dir==='in'?t.amount:-t.amount;return;}  // préstamos: mueven plata, no son ingreso ni gasto
       if(t.accountId===acct.id&&t.mode==='tracking'){
         if(t.cuotaOf) return; // las cuotas son solo para el presupuesto
         // Personal expenses (mode=tracking) always affect balance
@@ -434,7 +432,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='4.1', APP_DATE='2026-11-08';
+var APP_VERSION='4.2', APP_DATE='2026-11-08';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -451,7 +449,7 @@ function deriveFrom(p){
       linkedFrom:p.id,isShared:ch==='Los dos'});
   }
   if(isRealDebit&&acc){
-    var amt=0,who=ch==='Los dos'?partnerName:ch==='Lina'?partnerName:(p.person||'Otro');
+    var amt=0,who=ch==='Los dos'?partnerName:ch;
     if((ch==='Lina'||ch==='Otro')&&st!=='Paid')amt=p.amount;
     else if(ch==='Los dos'&&st==='DavidPaidLinaPending')amt=p.amount/2;
     if(amt>0)out.push({id:p.id+'~a',mode:'tracking',type:'Expenses',description:clean+' (adelanto '+who+')',
@@ -735,214 +733,15 @@ function makeTransferEl(t){
 function renderLent(){
   var w=document.getElementById('d-lent');if(!w)return;
   var by={},tot=0;
-  txs.forEach(function(t){if(!t.isAdelanto)return;var p=findTx(t.linkedFrom);var who=p&&p.charge==='Otro'?(p.person||'Otro'):partnerName;by[who]=(by[who]||0)+t.amount;tot+=t.amount;});
+  txs.forEach(function(t){if(!t.isAdelanto)return;var p=findTx(t.linkedFrom);var who=p&&p.charge==='Otro'?'Otro':partnerName;by[who]=(by[who]||0)+t.amount;tot+=t.amount;});
   if(!tot){w.style.display='none';return;}
   document.getElementById('d-lent-txt').textContent='Prestado · '+Object.keys(by).map(function(k){return k+' '+fmt(by[k]);}).join(' · ');
   w.style.display='flex';
 }
-// ══════ Préstamos con personas ══════
-// Un préstamo o un pago es plata que entra (dir 'in') o sale (dir 'out') de una cuenta con una persona.
-// No es ingreso ni gasto. Lo que te deben = lo que salió − lo que entró (+ gastos de «Otro» sin cobrar).
-var lnDir='in',lnKind='loan',ppShowAll=false,ppOpenKey='';
-function pKey(n){return normTxt(n).replace(/\s+/g,' ').trim();}
-function loanLbl(t){var p=t.person||'Alguien';
-  if(t.kind==='pay')return t.dir==='in'?p+' te pagó':'Le pagaste a '+p;
-  return t.dir==='in'?p+' te prestó':'Le prestaste a '+p;}
-function makeLoanEl(t){
-  var inc=t.dir==='in';
-  var div=el('div',{cls:'tx',click:function(){openTx(t.id);}});
-  div.appendChild(el('div',{cls:'tico',html:uiI('users',20)}));
-  var inf=el('div',{cls:'tinf'});
-  inf.appendChild(el('div',{cls:'td',txt:t.description||loanLbl(t)}));
-  var meta=el('div',{cls:'tm',txt:(acctNameById(t.accountId)||'Sin cuenta')});
-  meta.appendChild(el('span',{cls:'badge',txt:t.kind==='pay'?'Pago de préstamo':'Préstamo',style:'margin-left:4px;background:var(--bg3);color:var(--text2)'}));
-  inf.appendChild(meta);div.appendChild(inf);
-  div.appendChild(el('div',{cls:'ta',txt:(inc?'+':'−')+fmt(t.amount),style:'color:var(--text2)'}));
-  return div;
-}
-// Una fila por persona. La pareja siempre aparece primero y conserva sus gastos compartidos.
-function peopleData(){
-  var P={},order=[];
-  function get(name){var k=pKey(name)||'otro';
-    if(!P[k]){P[k]={key:k,name:name||'Otro',net:0,loanNet:0,loans:[],exps:[],lent:0,borrowed:0,gotBack:0,paidBack:0,due:'',last:''};order.push(k);}
-    return P[k];}
-  var partner=get(partnerName);partner.partner=true;partner.name=partnerName;partner.shared=0;partner.mine=0;
-  txs.forEach(function(t){
-    if(t.mode==='loan'){var p=get(t.person);var v=t.dir==='out'?t.amount:-t.amount;
-      p.loans.push(t);p.loanNet+=v;p.net+=v;if(t.date>p.last)p.last=t.date;
-      if(t.kind==='pay'){if(t.dir==='in')p.gotBack+=t.amount;else p.paidBack+=t.amount;}
-      else{if(t.dir==='out')p.lent+=t.amount;else p.borrowed+=t.amount;if(t.due&&(!p.due||t.due<p.due))p.due=t.due;}
-      return;}
-    if(t.mode!=='expenses'||t.status==='Paid')return;
-    var s=shareParts(t);partner.shared+=s.l;partner.net+=s.l;partner.mine+=s.d;
-    if(s.l||s.d){if(t.date>partner.last)partner.last=t.date;}
-    if(s.o){var q=get(t.person||'Otro');q.exps.push(t);q.net+=s.o;if(t.date>q.last)q.last=t.date;}
-  });
-  var list=order.map(function(k){return P[k];});
-  var owed=0,owe=partner.mine;
-  list.forEach(function(p){if(p.net>0)owed+=p.net;else owe+=-p.net;});
-  list.sort(function(a,b){if(a.partner)return -1;if(b.partner)return 1;return Math.abs(b.net)-Math.abs(a.net);});
-  return {list:list,owed:owed,owe:owe,partner:partner,byKey:P};
-}
-function knownPeople(){var seen={},out=[];
-  function add(n){var k=pKey(n);if(!k||seen[k])return;seen[k]=1;out.push(n);}
-  if(showPendiente)add(partnerName);
-  baseTxs().slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(t){if(t.mode==='loan'||(t.mode==='expenses'&&t.charge==='Otro'))add(t.person);});
-  return out;}
-function ppDate(iso){if(!iso)return '';var d=new Date(iso+'T00:00:00');return d.getDate()+' '+MO[d.getMonth()].toLowerCase()+(d.getFullYear()!==new Date().getFullYear()?' '+d.getFullYear():'');}
-function ppInitial(n){return (String(n||'?').trim()[0]||'?').toUpperCase();}
-function ppStateTxt(p){
-  if(Math.abs(p.net)<1)return {t:'Al día',c:''};
-  return p.net>0?{t:'te debe '+fmtb(p.net),c:'pos'}:{t:'le debes '+fmtb(-p.net),c:'neg'};
-}
-function ppSub(p){
-  if(p.partner)return p.mine>=1?'Tú por pagar '+fmtb(p.mine):'Gastos compartidos';
-  if(p.due&&p.loanNet<0)return 'Pagar antes del '+ppDate(p.due);
-  if(p.due&&p.loanNet>0)return 'Te paga antes del '+ppDate(p.due);
-  var n=p.loans.length+p.exps.length;return n===1?'1 movimiento':n+' movimientos';
-}
-function renderPeople(){
-  var w=clr('pp-list');if(!w)return;
-  var d=peopleData();
-  var a=document.getElementById('pp-owed'),b=document.getElementById('pp-owe');
-  if(a)a.textContent=fmtb(d.owed);if(b)b.textContent=fmtb(d.owe);
-  var active=[],calm=[];
-  d.list.forEach(function(p){(p.partner||Math.abs(p.net)>=1||p.exps.length?active:calm).push(p);});
-  var show=ppShowAll?active.concat(calm):active;
-  show.forEach(function(p){
-    var st=ppStateTxt(p);
-    if(p.partner&&Math.abs(p.net)<1&&p.mine>=1)st={t:'tú por pagar '+fmtb(p.mine),c:'neg'};
-    w.appendChild(el('button',{type:'button',cls:'pp-row',click:function(){openPerson(p.key);}},[
-      p.partner?el('span',{cls:'pp-av pt',html:uiI('heart',16)}):el('span',{cls:'pp-av',txt:ppInitial(p.name)}),
-      el('span',{cls:'pp-inf'},[el('span',{cls:'pp-n',txt:p.name}),el('span',{cls:'pp-s',txt:ppSub(p)})]),
-      el('span',{cls:'pp-v '+st.c,txt:st.t})]));
-  });
-  if(calm.length)w.appendChild(el('button',{type:'button',cls:'pp-more',txt:ppShowAll?'Ocultar personas al día':'Ver personas al día ('+calm.length+')',click:function(){ppShowAll=!ppShowAll;renderPeople();}}));
-  if(active.length===1&&!calm.length&&Math.abs(d.partner.net)<1&&d.partner.mine<1)
-    w.appendChild(el('div',{cls:'pp-empty',txt:'Cuando prestes plata o te presten, la persona aparece aquí con lo que falta por pagar.'}));
-}
-function openPerson(key){ppOpenKey=key;renderPerson();document.getElementById('m-person').classList.add('open');}
-function renderPerson(){
-  var d=peopleData(),p=d.byKey[ppOpenKey];var body=clr('pp-body');if(!body)return;
-  if(!p){closeM('m-person');return;}
-  document.getElementById('pp-ttl').textContent=p.name;
-  var st=Math.abs(p.net)<1?'Están a paz y salvo':p.net>0?p.name+' te debe':'Le debes a '+p.name;
-  body.appendChild(el('div',{cls:'ppd-l',txt:st}));
-  if(Math.abs(p.net)>=1)body.appendChild(el('div',{cls:'ppd-v '+(p.net>0?'pos':'neg'),txt:fmtb(Math.abs(p.net))}));
-  // Avance de los préstamos en la dirección que queda pendiente
-  var tot=p.loanNet>0?p.lent:p.borrowed,back=p.loanNet>0?p.gotBack:p.paidBack;
-  if(Math.abs(p.loanNet)>=1&&tot>0){
-    var pc=Math.max(0,Math.min(100,back/tot*100));
-    body.appendChild(el('div',{cls:'ppd-bar'},[el('i',{style:'width:'+pc+'%'})]));
-    body.appendChild(el('div',{cls:'ppd-note',txt:'Pagado '+fmtb(back)+' de '+fmtb(tot)+(p.due?' · antes del '+ppDate(p.due):'')}));
-  }
-  // Pareja: sus gastos compartidos siguen funcionando igual que antes
-  if(p.partner&&(p.shared>=1||p.mine>=1)){
-    var sc=el('div',{cls:'ppd-sec'},[el('div',{cls:'ppd-h',txt:'Gastos compartidos'})]);
-    if(p.shared>=1)sc.appendChild(el('div',{cls:'ppd-kv'},[el('span',{txt:p.name+' debe'}),el('b',{cls:'pos',txt:fmtb(p.shared)})]));
-    if(p.mine>=1)sc.appendChild(el('div',{cls:'ppd-kv'},[el('span',{txt:'Tú por pagar'}),el('b',{cls:'neg',txt:fmtb(p.mine)})]));
-    sc.appendChild(el('button',{type:'button',cls:'ppd-link',click:function(){closeM('m-person');curFiltExp='all';curFiltSrc='all';renderExpenses();var h=document.querySelector('.pp-shdr');if(h)h.scrollIntoView({behavior:'smooth',block:'start'});}},[el('span',{txt:'Ver los gastos compartidos'}),el('span',{cls:'uii',html:uiI('chevright',15)})]));
-    body.appendChild(sc);
-  }
-  // Gastos que pagaste por esta persona (Pendiente a cargo de «Otro»)
-  if(p.exps.length){
-    var se=el('div',{cls:'ppd-sec'},[el('div',{cls:'ppd-h',txt:'Gastos que pagaste por '+p.name})]);
-    p.exps.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(t){
-      se.appendChild(el('div',{cls:'ppd-row'},[
-        el('span',{cls:'ppd-ri',click:function(){closeM('m-person');openTx(t.id);}},[el('span',{cls:'ppd-rn',txt:t.description}),el('span',{cls:'ppd-rm',txt:ppDate(t.date)+' · '+(t.source||'')})]),
-        el('b',{txt:fmtb(t.amount)}),
-        el('button',{type:'button',cls:'ppd-paid',txt:'Ya pagó',click:function(){ppExpPaid(t);}})]));
-    });
-    body.appendChild(se);
-  }
-  // Historial de préstamos y pagos
-  if(p.loans.length){
-    var sl=el('div',{cls:'ppd-sec'},[el('div',{cls:'ppd-h',txt:'Préstamos y pagos'})]);
-    p.loans.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(t){
-      sl.appendChild(el('button',{type:'button',cls:'ppd-row ppd-tap',click:function(){closeM('m-person');openTx(t.id);}},[
-        el('span',{cls:'uii ppd-ic',html:uiI(t.dir==='in'?'arrowdr':'arrowur',16)}),
-        el('span',{cls:'ppd-ri'},[el('span',{cls:'ppd-rn',txt:loanLbl(t)}),el('span',{cls:'ppd-rm',txt:ppDate(t.date)+' · '+(t.dir==='in'?'a ':'desde ')+(acctNameById(t.accountId)||'sin cuenta')})]),
-        el('b',{txt:(t.dir==='in'?'+':'−')+fmtb(t.amount)})]));
-    });
-    body.appendChild(sl);
-  }
-  // Acciones
-  if(Math.abs(p.loanNet)>=1){
-    var owesMe=p.loanNet>0;
-    body.appendChild(el('button',{type:'button',cls:'btnp',txt:owesMe?'Registrar pago de '+p.name:'Registrar pago a '+p.name,click:function(){closeM('m-person');openLoan(p.name,owesMe?'in':'out','pay',Math.abs(p.loanNet));}}));
-  }
-  body.appendChild(el('button',{type:'button',cls:'ppd-sec-btn',txt:'Nuevo préstamo con '+p.name,click:function(){closeM('m-person');openLoan(p.name);}}));
-}
-function ppExpPaid(t){
-  pushHistory('Marcar pagado: '+t.description);
-  t.status='Paid';ls.s('tx7',txs);renderAll();syncDrive();renderPerson();
-  showToast(t.description+' quedó pagado',function(){t.status='Unpaid';ls.s('tx7',txs);renderAll();syncDrive();if(document.getElementById('m-person').classList.contains('open'))renderPerson();});
-}
-// Formulario: pestaña «Préstamo»
-function openLoan(person,dir,kind,amount){
-  openTx(null);
-  lnDir=dir||'in';lnKind=kind||'loan';setMTab('loan');
-  document.getElementById('f-who-ln').value=person||'';
-  document.getElementById('f-due').value='';
-  if(amount)document.getElementById('f-m').value=Math.round(amount).toLocaleString('es-CO');
-  lnRefresh();txFormRefresh();
-}
-function lnSet(d,k){lnDir=d;lnKind=k;lnRefresh();}
-function lnRefresh(){
-  document.querySelectorAll('#ln-dirs button').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-d')===lnDir+':'+lnKind);});
-  var dr=document.getElementById('ln-due-row');if(dr)dr.style.display=lnKind==='loan'?'':'none';
-  var wl=document.getElementById('ln-who-l');if(wl)wl.textContent=lnKind==='loan'?(lnDir==='in'?'¿Quién te prestó?':'¿A quién le prestaste?'):(lnDir==='in'?'¿Quién te pagó?':'¿A quién le pagaste?');
-  var dl=clr('dl-people'),ch=clr('ln-chips'),people=knownPeople(),cur=pKey(document.getElementById('f-who-ln').value);
-  people.forEach(function(n){if(dl)dl.appendChild(el('option',{value:n}));});
-  if(ch)people.slice(0,6).forEach(function(n){
-    ch.appendChild(el('button',{type:'button',cls:'ln-chip'+(pKey(n)===cur?' on':''),txt:n,click:function(){document.getElementById('f-who-ln').value=n;lnRefresh();}}));});
-  lnHint();
-}
-function lnHint(){
-  var h=document.getElementById('ln-hint');if(!h)return;
-  var a=findAcct(document.getElementById('f-ac-ln').value),an=a?a.name:'la cuenta';
-  var who=(document.getElementById('f-who-ln').value||'').trim()||'la persona';
-  var msg;
-  if(lnKind==='loan'&&lnDir==='in')msg='La plata entra a '+an+'. No cuenta como ingreso: quedará que le debes a '+who+'.';
-  else if(lnKind==='loan')msg='La plata sale de '+an+'. No cuenta como gasto: quedará que '+who+' te debe.';
-  else if(lnDir==='in')msg='La plata entra a '+an+' y baja lo que '+who+' te debe. No cuenta como ingreso.';
-  else msg='La plata sale de '+an+' y baja lo que le debes a '+who+'. No cuenta como gasto.';
-  h.innerHTML='';h.appendChild(el('span',{cls:'uii',html:uiI('alert',15)}));h.appendChild(el('span',{txt:msg}));
-}
-function saveLoan(){
-  var amount=rawNum(document.getElementById('f-m')),date=document.getElementById('f-dt').value;
-  var who=(document.getElementById('f-who-ln').value||'').trim();
-  if(!amount){txErr('Escribe el monto');document.getElementById('f-m').focus();return;}
-  if(!who){txErr(lnKind==='loan'?(lnDir==='in'?'Escribe quién te prestó':'Escribe a quién le prestaste'):'Escribe con quién es el pago');document.getElementById('f-who-ln').focus();return;}
-  if(!date){txErr('Elige la fecha');return;}
-  // Si el nombre coincide con alguien conocido, se usa como ya estaba escrito (evita «juan» y «Juan»)
-  knownPeople().forEach(function(n){if(pKey(n)===pKey(who))who=n;});
-  var aId=document.getElementById('f-ac-ln').value,acct=findAcct(aId);
-  var t={id:editId||uid(),mode:'loan',type:'Loan',dir:lnDir,kind:lnKind,person:who,amount:amount,date:date,
-    accountId:aId,account:acct?acct.name:'',category:'Préstamo'};
-  var desc=document.getElementById('f-d').value.trim();t.description=desc||loanLbl(t);
-  var due=document.getElementById('f-due').value;if(lnKind==='loan'&&due)t.due=due;
-  pushHistory((editId?'Editar préstamo: ':'Nuevo préstamo: ')+t.description);
-  if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
-  ls.s('tx7',txs);closeM('m-tx');renderAll();syncDrive();
-}
-// Inicio: lo que realmente es tuyo si todos pagaran hoy
-function renderDashNet(){
-  var b=document.getElementById('d-net');if(!b)return;
-  if(!showPendiente){b.style.display='none';return;}
-  var d=peopleData();if(d.owed<1&&d.owe<1){b.style.display='none';return;}
-  var tot=0;accts.forEach(function(a){tot+=a.balance||0;});
-  var net=tot+d.owed-d.owe;
-  clr('d-net');
-  b.appendChild(el('span',{cls:'d-net-l'},[el('span',{txt:'Neto con deudas'}),el('small',{txt:(d.owed>=1?'te deben '+fmtb(d.owed):'')+(d.owed>=1&&d.owe>=1?' · ':'')+(d.owe>=1?'debes '+fmtb(d.owe):'')})]));
-  b.appendChild(el('b',{txt:fmtb(net),style:net<0?'color:var(--red)':''}));
-  b.style.display='flex';
-}
-
 var trackQuery='';
 function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function matchQuery(t,q){
-  var hay=normTxt([t.description,t.category,t.account,t.person||'',t.fromId?acctNameById(t.fromId):'',t.toId?acctNameById(t.toId):''].join(' '));
+  var hay=normTxt([t.description,t.category,t.account,t.fromId?acctNameById(t.fromId):'',t.toId?acctNameById(t.toId):''].join(' '));
   return normTxt(q).split(/\s+/).filter(Boolean).every(function(w){
     if(/^\$?\d[\d.,]*$/.test(w)){var d=w.replace(/\D/g,'');return d.length>0&&String(Math.round(t.amount)).indexOf(d)>=0;}
     return hay.indexOf(w)>=0;
@@ -955,10 +754,9 @@ function clearSearch(){trackQuery='';var s=document.getElementById('t-search');i
 function concilData(y,m){
   var upTo=function(t){return upToPer(t,y,m);};
   var catNames=cats.expenses.concat(cats.savings).map(function(c){return c.name;});
-  var o={cuentas:0,I:0,B:0,Binc:0,Ecat:0,nocat:0,prest:0,adj:0,fut:0,loan:0};
+  var o={cuentas:0,I:0,B:0,Binc:0,Ecat:0,nocat:0,prest:0,adj:0,fut:0};
   accts.forEach(function(a){o.cuentas+=a.balance||0;});
   txs.forEach(function(t){
-    if(t.mode==='loan'){if(t.accountId&&findAcct(t.accountId))o.loan+=t.dir==='in'?t.amount:-t.amount;return;}
     if(t.mode!=='tracking')return;
     if(t.isAdjust){o.adj+=(t.type==='Income'?1:-1)*t.amount;return;}
     if(t.isAdelanto){o.prest+=t.amount;return;}
@@ -974,7 +772,7 @@ function concilData(y,m){
   o.porAsignar=o.I+o.adj-o.B;
   // Parte que es dinero real fuera del plan de ingresos (debe sumarse a ingresos al asignar)
   o.fueraPlan=o.I+o.adj-o.Binc;
-  o.sinExplicar=o.cuentas-(o.disp+o.porAsignar-o.prest-o.nocat+o.fut+o.loan);
+  o.sinExplicar=o.cuentas-(o.disp+o.porAsignar-o.prest-o.nocat+o.fut);
   return o;
 }
 var concilOpen=false;
@@ -996,7 +794,6 @@ function renderConcil(){
   line('Disponible acumulado',o.disp,{raw:true,go:function(){showPage('budget');}});
   line((o.porAsignar>=0?'Por asignar':'Te faltan por cubrir')+(o.adj?' (incl. ajustes)':''),o.porAsignar,{go:function(){showPage('budget');}});
   if(o.prest)line('Prestado (te lo deben)',-o.prest,{go:function(){showPage('expenses');}});
-  if(Math.abs(o.loan)>=1)line(o.loan>0?'Préstamos que debes devolver':'Préstamos que te deben',o.loan,{go:function(){showPage('expenses');}});
   if(o.nocat)line('Gastos sin categoría',-o.nocat,{go:goNoCat});
   if(Math.abs(o.fut)>=1)line('Movimientos con fecha futura',o.fut);
   line('= Total en tus cuentas',o.cuentas,{raw:true,strong:true,top:true});
@@ -1173,7 +970,6 @@ function renderDashAccts(){
       el('span',{cls:'acccard-n',txt:a.name}),
       el('span',{cls:'acccard-v',txt:fmtb(bal),style:bal<0?'color:var(--red)':''})]));
   });
-  renderDashNet();
 }
 // Lista de meses para el selector de Inicio: desde el primer movimiento (mínimo 6 meses atrás) hasta 2 adelante
 function dashMonths(){
@@ -1301,7 +1097,6 @@ function renderDash(){
 
 function makeTxEl(t){
   if(t.mode==='transfer')return makeTransferEl(t);
-  if(t.mode==='loan')return makeLoanEl(t);
   var isInc=t.type==='Income';
   var div=el('div',{cls:'tx',click:function(){openTx(t.id);}});
   div.appendChild(el('div',{cls:'tico',html:icoHTML(cIcon(t.category))}));
@@ -1332,11 +1127,11 @@ function renderTracking(){
   var tml=document.getElementById('t-mlbl');if(tml)tml.textContent=mLbl();
   var tms=clr('t-msel');
   if(tms){dashMonths().forEach(function(o){var op=document.createElement('option');op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y;tms.appendChild(op);});tms.value=curY+'-'+curM;}
-  var monthAll=mTxs(txs).filter(function(t){return (t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer'||t.mode==='loan';});
+  var monthAll=mTxs(txs).filter(function(t){return (t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer';});
   var nc=noCatTxs();if(curFilt==='__nocat'&&!nc.length)curFilt='all';
   var q=(trackQuery||'').trim();
   var sx=document.getElementById('t-search-x');if(sx)sx.style.display=q?'inline':'none';
-  var all=q?txs.filter(function(t){return ((t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer'||t.mode==='loan')&&matchQuery(t,q);}):(curFilt==='__nocat'?nc:monthAll);
+  var all=q?txs.filter(function(t){return ((t.mode==='tracking'&&!t.isReimbursed&&!t.isReimb)||t.mode==='transfer')&&matchQuery(t,q);}):(curFilt==='__nocat'?nc:monthAll);
   var uc=[];monthAll.forEach(function(t){if(t.category&&uc.indexOf(t.category)<0)uc.push(t.category);});
   var tc=clr('t-chips');
   // Filtros como círculos con ícono; el activo se expande y muestra su nombre
@@ -1350,12 +1145,12 @@ function renderTracking(){
   addChip('Todos','all',uiI('grid',18));
   if(nc.length)addChip('Sin categoría ('+nc.length+')','__nocat',uiI('tag',18),true);
   if(curFilt!=='all'&&curFilt!=='__nocat'&&uc.indexOf(curFilt)<0)uc.unshift(curFilt);
-  uc.forEach(function(c){addChip(c,c,c==='Transferencia'?uiI('transfer',19):c==='Préstamo'?uiI('users',19):icoHTML(cIcon(c),19));});
+  uc.forEach(function(c){addChip(c,c,c==='Transferencia'?uiI('transfer',19):icoHTML(cIcon(c),19));});
   var filt=(curFilt==='all'||curFilt==='__nocat')?all:all.filter(function(t){return t.category===curFilt;});
   var srt=filt.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var tl=clr('t-list');
   if(!srt.length){tl.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',html:uiI('inbox',34)}),el('p',{txt:q?'Sin resultados para «'+q+'»':'Sin movimientos este mes'})]));return;}
-  if(q){var sTot=0;srt.forEach(function(t){if(t.mode!=='transfer'&&t.mode!=='loan')sTot+=(t.type==='Income'?1:-1)*t.amount;});tl.appendChild(el('div',{txt:srt.length+' resultado'+(srt.length===1?'':'s')+' en todos los meses',style:'font-size:14px;font-weight:500;color:var(--text2);padding:2px 4px 8px'}));}
+  if(q){var sTot=0;srt.forEach(function(t){if(t.mode!=='transfer')sTot+=(t.type==='Income'?1:-1)*t.amount;});tl.appendChild(el('div',{txt:srt.length+' resultado'+(srt.length===1?'':'s')+' en todos los meses',style:'font-size:14px;font-weight:500;color:var(--text2);padding:2px 4px 8px'}));}
   var grp={};
   srt.forEach(function(t){
     var d=new Date(t.date+'T00:00:00');
@@ -1481,17 +1276,18 @@ function renderExpenses(){
     dashMonths().forEach(function(o){var op=document.createElement('option'),n=pc[mkK(o.y,o.m)]||0;op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y+(n?' · '+n+' pendiente'+(n===1?'':'s'):'');ems.appendChild(op);});ems.value=curY+'-'+curM;}
 
   // Resumen: todo lo pendiente de cualquier mes
-  // Personas: pareja, préstamos y gastos de otros (todo lo pendiente de cualquier mes)
-  renderPeople();
+  // Las cuatro cifras: solo lo pendiente del mes elegido
+  var dav=0,lin=0,otr=0;
+  mTxs(txs).forEach(function(t){if(t.mode!=='expenses'||t.status==='Paid')return;var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
+  var tot=dav+lin+otr;
+  document.getElementById('e-dav').textContent=fmtb(dav);
+  document.getElementById('e-lin').textContent=fmtb(lin);
+  document.getElementById('e-otr').textContent=fmtb(otr);
+  document.getElementById('e-tot').textContent=fmtb(tot);
+  var gn=document.getElementById('e-grid-note');if(gn)gn.textContent='Solo lo pendiente de '+MONTHS[curM].toLowerCase()+' '+curY;
 
   // Gastos pendientes del mes elegido
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
-
-  // Las cuatro cifras: solo lo pendiente del mes elegido
-  var dav=0,lin=0,otr=0;
-  all.forEach(function(t){var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
-  [['e-dav',dav],['e-lin',lin],['e-otr',otr],['e-tot',dav+lin+otr]].forEach(function(x){var e=document.getElementById(x[0]);if(e)e.textContent=fmtb(x[1]);});
-  var gn=document.getElementById('e-grid-note');if(gn)gn.textContent='Solo lo pendiente de '+MONTHS[curM].toLowerCase()+' '+curY;
 
   // Pendiente por origen (como antes): total y reparto por persona; tocar una fila filtra la lista
   var sm=document.getElementById('e-src-mes');if(sm)sm.textContent=MONTHS[curM];
@@ -1518,7 +1314,7 @@ function renderExpenses(){
   });
   // Por persona
   var ec=clr('e-chips');
-  [['Todos','all'],['Yo','David'],[partnerName,'Lina'],['Los dos','Los dos'],['Otros','Otro']].forEach(function(d){
+  [['Todos','all'],['Yo','David'],[partnerName,'Lina'],['Los dos','Los dos'],['Otro','Otro']].forEach(function(d){
     ec.appendChild(el('button',{type:'button',cls:curFiltExp===d[1]?'active':'',txt:d[0],click:function(){curFiltExp=d[1];renderExpenses();setTimeout(function(){renderPaidExpenses();},250);}}));
   });
   // Apply source filter on top of person filter
@@ -2117,7 +1913,7 @@ function populateDescList(){
 }
 
 function populateAcSel(){
-  ['f-ac','f-ac-inc','f-payacc','f-ac-ln'].forEach(function(id){
+  ['f-ac','f-ac-inc','f-payacc'].forEach(function(id){
     var sel=document.getElementById(id);if(!sel)return;
     while(sel.firstChild)sel.removeChild(sel.firstChild);
     accts.forEach(function(a){
@@ -2144,19 +1940,14 @@ function setMTab(t){
   document.getElementById('tf-income-ac').style.display=(t==='income')?'':'none';
   document.getElementById('tf-gasto').style.display=(t==='gasto')?'':'none';
   document.getElementById('tf-shared').style.display=(t==='shared')?'':'none';
-  var mtl=document.getElementById('mt-loan');if(mtl)mtl.classList.toggle('active',t==='loan');
-  var tfl=document.getElementById('tf-loan');if(tfl)tfl.style.display=(t==='loan')?'':'none';
-  var tla=document.getElementById('tf-loan-ac');if(tla)tla.style.display=(t==='loan')?'':'none';
   var mtt=document.getElementById('mt-transfer');if(mtt)mtt.classList.toggle('active',t==='transfer');
   var tft=document.getElementById('tf-transfer');if(tft)tft.style.display=(t==='transfer')?'':'none';
-  var fgc=document.getElementById('fg-cat');if(fgc)fgc.style.display=(t==='transfer'||t==='loan')?'none':'';
-  var rrw=document.getElementById('rec-row');if(rrw)rrw.style.display=(t==='transfer'||t==='loan')?'none':'flex';
-  var fd=document.getElementById('f-d');if(fd)fd.placeholder=t==='loan'?'Nota (opcional)':t==='transfer'?'Descripción (opcional)':t==='income'?'¿De qué? Ej: salario, venta…':'¿En qué? Ej: Uber, mercado…';
-  if(t==='loan')lnRefresh();
+  var fgc=document.getElementById('fg-cat');if(fgc)fgc.style.display=(t==='transfer')?'none':'';
+  var rrw=document.getElementById('rec-row');if(rrw)rrw.style.display=(t==='transfer')?'none':'flex';
   if(t==='transfer')populateTransferSel();
   // Movimiento nuevo: al pasar a Pendiente, el estado arranca en «Pendiente» (no recuerda el último usado)
   if(t==='shared'&&!editId){var fst=document.getElementById('f-st');if(fst){fst.value='Unpaid';updateStatusOptions();}}
-  if(t==='income')txType='Income';else if(t==='transfer')txType='Transfer';else if(t==='loan')txType='Loan';else txType='Expenses';
+  if(t==='income')txType='Income';else if(t==='transfer')txType='Transfer';else txType='Expenses';
   // Conservar la categoría si sigue existiendo en el nuevo tipo (ej. de Gasto a Pendiente)
   var fc=document.getElementById('f-c'),prevCat=fc?fc.value:'';
   populateCatSel();
@@ -2172,7 +1963,6 @@ function updateStatusOptions(){
   var src=soEl?soEl.value:'';
   var isRealDebit=(src==='Tarjeta débito'||src==='Efectivo');
   var currentVal=stSel.value;
-  var wr=document.getElementById('who-row');if(wr)wr.style.display=charge==='Otro'?'':'none';
   while(stSel.firstChild)stSel.removeChild(stSel.firstChild);
   function addOpt(val,label){var o=document.createElement('option');o.value=val;o.textContent=label;stSel.appendChild(o);}
   if(charge==='Los dos'){
@@ -2188,7 +1978,7 @@ function updateStatusOptions(){
     // Tu gasto en efectivo o débito: la plata ya salió de tu cuenta, no queda pendiente
     addOpt('Paid','Pagado (sale de tu cuenta)');
   } else {
-    addOpt('Unpaid',isRealDebit?((charge==='Otro'?'La persona':partnerName)+' te debe'):'Pendiente');
+    addOpt('Unpaid',isRealDebit?((charge==='Otro'?'Otro':partnerName)+' te debe'):'Pendiente');
     addOpt('Paid',isRealDebit?'Ya te pagó':'Pagado');
   }
   // Efectivo: la cuenta de donde sale es la de efectivo
@@ -2253,14 +2043,13 @@ function applyPendienteTab(){
   var modalTab=document.getElementById('mt-shared');
   if(navBtn)navBtn.style.display=showPendiente?'':'none';
   if(modalTab)modalTab.style.display=showPendiente?'':'none';
-  var loanTab=document.getElementById('mt-loan');if(loanTab)loanTab.style.display=showPendiente?'':'none';
   if(settBtn)settBtn.textContent=showPendiente?'Activada':'Desactivada';
   // If on expenses page and hiding, go to dash
   if(!showPendiente&&page&&page.classList.contains('active')){
     showPage('dash');
   }
   // If modal is open on shared tab and hiding, switch to gasto
-  if(!showPendiente&&(mTab==='shared'||mTab==='loan')){
+  if(!showPendiente&&mTab==='shared'){
     setMTab('gasto');
   }
 }
@@ -2285,15 +2074,6 @@ function openTx(id){
       var parent=findTx(t.linkedFrom||t.cuotaOf);
       if(parent){closeM('m-tx');openTx(parent.id);return;}
     }
-    if(t.mode==='loan'){
-      lnDir=t.dir;lnKind=t.kind||'loan';setMTab('loan');
-      document.getElementById('f-d').value=t.description||'';
-      document.getElementById('f-m').value=t.amount.toLocaleString('es-CO');
-      document.getElementById('f-dt').value=t.date;
-      document.getElementById('f-who-ln').value=t.person||'';document.getElementById('f-due').value=t.due||'';
-      if(t.accountId&&findAcct(t.accountId))document.getElementById('f-ac-ln').value=t.accountId;
-      lnRefresh();txFormRefresh();document.getElementById('m-tx').classList.add('open');return;
-    }
     if(t.mode==='transfer'){
       setMTab('transfer');
       document.getElementById('f-d').value=t.description||'';
@@ -2315,7 +2095,7 @@ function openTx(id){
       if(t.type==='Income')document.getElementById('f-ac-inc').value=t.accountId||accts[0].id;
       else document.getElementById('f-ac').value=t.accountId||accts[0].id;
     }
-    else{document.getElementById('f-ch').value=t.charge||'Los dos';updateStatusOptions();document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;document.getElementById('f-who').value=t.person||'';updateStatusOptions();document.getElementById('f-st').value=t.status||'Paid';updatePayAccVis();}
+    else{document.getElementById('f-ch').value=t.charge||'Los dos';updateStatusOptions();document.getElementById('f-so').value=t.source||'Tarjeta crédito';document.getElementById('f-st').value=t.status||'Paid';document.getElementById('f-payacc').value=t.payAccountId||accts[0].id;updatePayAccVis();}
   } else {
     document.getElementById('delbtn-wrap').style.display='none';
     document.getElementById('f-d').value='';document.getElementById('f-m').value='';document.getElementById('f-c').value='';
@@ -2323,7 +2103,7 @@ function openTx(id){
     var ap=document.querySelector('.page.active');
     var defaultTab=ap&&ap.id==='page-expenses'?'shared':'gasto';
     setMTab(defaultTab);
-    document.getElementById('f-ch').value='David';document.getElementById('f-who').value='';
+    document.getElementById('f-ch').value='David';
     updateStatusOptions();
     document.getElementById('f-st').value='Unpaid';updateStatusOptions();
     if(accts[0]){document.getElementById('f-payacc').value=accts[0].id;document.getElementById('f-ac-inc').value=accts[0].id;}
@@ -2347,7 +2127,7 @@ function txCatList(){return (mTab==='income'?cats.income:cats.expenses.concat(ca
 function isoAdd(iso,d){var x=new Date(iso+'T00:00:00');x.setDate(x.getDate()+d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
 
 function txFormRefresh(){
-  var ttl={gasto:'Nuevo gasto',income:'Nuevo ingreso',shared:'Nuevo pendiente',transfer:'Transferencia',loan:'Préstamo'};
+  var ttl={gasto:'Nuevo gasto',income:'Nuevo ingreso',shared:'Nuevo pendiente',transfer:'Transferencia'};
   var h=document.getElementById('tx-ttl');if(h)h.textContent=editId?'Editar movimiento':(ttl[mTab]||'Nuevo movimiento');
   txErr('');
   var v=document.getElementById('tx-voice');if(v)v.textContent='';
@@ -2361,7 +2141,7 @@ function cuoHint(){
   var n=+s.value||1,amt=rawNum(document.getElementById('f-m'));
   row.style.display=mTab==='gasto'?'flex':'none';row.classList.toggle('on',n>1&&mTab==='gasto');
   if(lb)lb.textContent=n>1?(amt?n+' cuotas de '+fmt(Math.round(amt/n)):'Pago en '+n+' cuotas'):'Pago en cuotas';
-  var rr=document.getElementById('rec-row');if(rr&&mTab!=='transfer'&&mTab!=='loan')rr.style.display=(n>1&&mTab==='gasto')?'none':'flex';
+  var rr=document.getElementById('rec-row');if(rr&&mTab!=='transfer')rr.style.display=(n>1&&mTab==='gasto')?'none':'flex';
 }
 // Abre el calendario al tocar la fecha (algunos navegadores no lo abren solos con el campo invisible)
 function txOpenDate(e){var d=document.getElementById('f-dt');if(d&&d.showPicker){try{d.showPicker();if(e)e.preventDefault();}catch(err){}}}
@@ -2377,7 +2157,7 @@ function txDateLbl(){
 function txLearn(){
   var by={},isInc=mTab==='income';
   baseTxs().forEach(function(t){
-    if(t.mode==='transfer'||t.mode==='loan'||t.isAdjust||!t.description)return;
+    if(t.mode==='transfer'||t.isAdjust||!t.description)return;
     if(isInc!==(t.type==='Income'))return;
     var k=txNorm(t.description);if(!k)return;
     var e=by[k]||(by[k]={k:k,n:0,date:'',amounts:[]});
@@ -2425,7 +2205,7 @@ function txSetCat(n){document.getElementById('f-c').value=n;renderTxCats();txErr
 
 function renderTxFavs(){
   var w=clr('tx-favs');if(!w)return;
-  if(editId||mTab==='transfer'||mTab==='loan'){w.style.display='none';return;}
+  if(editId||mTab==='transfer'){w.style.display='none';return;}
   var L=txLearn(),now=Date.parse(todayISO());
   var arr=Object.keys(L).map(function(k){return L[k];}).filter(function(e){return e.n>=2;});
   arr.forEach(function(e){var days=(now-Date.parse(e.date))/864e5;e.score=e.n+(days<30?3:0)-(days>120?e.n/2:0);});
@@ -2439,7 +2219,7 @@ function renderTxFavs(){
   });
 }
 function txSuggest(){
-  var w=clr('tx-sug');if(!w||mTab==='loan')return;
+  var w=clr('tx-sug');if(!w)return;
   var q=txNorm(document.getElementById('f-d').value);if(q.length<2)return;
   var L=txLearn(),res=[];
   Object.keys(L).forEach(function(k){if(k!==q&&(k.indexOf(q)===0||k.indexOf(' '+q)>=0))res.push(L[k]);});
@@ -2560,7 +2340,6 @@ function txVoice(){
 
 function saveTx(){
   if(mTab==='transfer'){saveTransfer();return;}
-  if(mTab==='loan'){saveLoan();return;}
   var desc=document.getElementById('f-d').value.trim();
   var amount=rawNum(document.getElementById('f-m'));
   var date=document.getElementById('f-dt').value;
@@ -2593,7 +2372,6 @@ function saveTx(){
     var needsAcc=(payerIsDavid&&(chargeVal==='David'||chargeVal==='Los dos'))||(isRealDebit&&(chargeVal==='Lina'||chargeVal==='Otro'||chargeVal==='Los dos'));
     t.payAccountId=needsAcc?((payEl&&payEl.value)||(accts[0]&&accts[0].id)):((old&&old.payAccountId)||null);
     delete t.linkedTxId;delete t.adelantoTxId;delete t.adelantoAmt;delete t.reimbTxId;
-    var who=(document.getElementById('f-who').value||'').trim();if(chargeVal==='Otro'&&who)t.person=who;
   }
   if(editId){for(var i=0;i<txs.length;i++){if(txs[i].id===editId){txs[i]=t;break;}}}else txs.unshift(t);
   var recEl=document.getElementById('f-rec'),recOn=recEl&&recEl.checked&&!t.isAdjust&&txMode!=='cuotas';
