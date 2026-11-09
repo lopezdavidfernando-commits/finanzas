@@ -551,7 +551,7 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 .egrid>div:nth-child(odd){border-right:1px solid var(--border)}
 .egrid>div:nth-child(-n+2){border-bottom:1px solid var(--border)}
 .egrid .hsum-l{margin-bottom:4px}
-.egrid b{display:block;font-size:20px;font-weight:600;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:filter .2s}
+.egrid b{grid-column:1/-1;display:block;font-size:19px;font-weight:600;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:filter .2s}
 #page-expenses .e-note{margin:8px 22px 0}
 .esrc-card{margin-top:22px}
 .mu-s{font-size:13px;color:var(--text2)}
@@ -564,8 +564,8 @@ button.dlogo{border:none;padding:0;cursor:pointer;font-family:inherit}
 
 /* Compartidos: un color por persona (Tú lima, Lina coral, Otro amarillo, Total gris) */
 :root{--c-d:#9cc31a;--c-l:#ff8a65;--c-o:#f6c453;--c-t:#aeaeb2}
-.egrid>div{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center}
-.egrid .eg-ic{grid-row:span 2;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.egrid>div{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:6px;align-items:center;padding:14px 14px}
+.egrid .eg-ic{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .egrid .hsum-l{margin:0}
 .egrid .pd .eg-ic{background:color-mix(in srgb,var(--c-d) 16%,transparent);color:var(--c-d)}
 .egrid .pl .eg-ic{background:color-mix(in srgb,var(--c-l) 16%,transparent);color:var(--c-l)}

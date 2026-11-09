@@ -434,7 +434,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='4.0', APP_DATE='2026-11-07';
+var APP_VERSION='4.1', APP_DATE='2026-11-08';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1486,6 +1486,12 @@ function renderExpenses(){
 
   // Gastos pendientes del mes elegido
   var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
+
+  // Las cuatro cifras: solo lo pendiente del mes elegido
+  var dav=0,lin=0,otr=0;
+  all.forEach(function(t){var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
+  [['e-dav',dav],['e-lin',lin],['e-otr',otr],['e-tot',dav+lin+otr]].forEach(function(x){var e=document.getElementById(x[0]);if(e)e.textContent=fmtb(x[1]);});
+  var gn=document.getElementById('e-grid-note');if(gn)gn.textContent='Solo lo pendiente de '+MONTHS[curM].toLowerCase()+' '+curY;
 
   // Pendiente por origen (como antes): total y reparto por persona; tocar una fila filtra la lista
   var sm=document.getElementById('e-src-mes');if(sm)sm.textContent=MONTHS[curM];

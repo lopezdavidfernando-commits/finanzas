@@ -125,9 +125,18 @@
     <div class="chd"><h3>Personas</h3><button type="button" class="pp-new" onclick="openLoan()"><i class="uii" data-ui="plus" data-s="15"></i>Préstamo</button></div>
     <div id="pp-list"></div>
   </div>
-  <div class="e-note">Suma lo pendiente de todos los meses</div>
+  <div class="e-note">Personas suma lo pendiente de todos los meses</div>
 
   <div class="shdr pp-shdr"><h2>Gastos compartidos</h2></div>
+  <!-- Las cuatro cifras: solo lo pendiente del mes elegido -->
+  <div class="egrid">
+    <div class="pd"><span class="eg-ic"><i class="uii" data-ui="user" data-s="15"></i></span><span class="hsum-l" id="kl-dav">Tú por pagar</span><b id="e-dav">$0</b></div>
+    <div class="pl"><span class="eg-ic"><i class="uii" data-ui="heart" data-s="15"></i></span><span class="hsum-l" id="kl-lin">Pareja debe</span><b id="e-lin">$0</b></div>
+    <div class="po"><span class="eg-ic"><i class="uii" data-ui="users" data-s="15"></i></span><span class="hsum-l">Otros</span><b id="e-otr">$0</b></div>
+    <div class="pt"><span class="eg-ic"><i class="uii" data-ui="coins" data-s="15"></i></span><span class="hsum-l">Total</span><b id="e-tot">$0</b></div>
+  </div>
+  <div class="e-note" id="e-grid-note">Solo lo pendiente de este mes</div>
+  <div style="height:14px"></div>
   <div class="card esrc-card">
     <div class="chd"><h3>Pendiente por origen</h3><span class="mu-s" id="e-src-mes"></span></div>
     <div id="e-source-body"></div>
