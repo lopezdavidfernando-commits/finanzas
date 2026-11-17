@@ -826,3 +826,6 @@ nav button{position:relative}
 nav button.has-dot::after{content:'';position:absolute;top:7px;right:calc(50% - 16px);width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px var(--navbg)}
 nav button.has-dot.active::after{right:8px}
 .dlist-ic.ok{background:var(--greenbg);color:var(--green)}
+
+/* Eliminar meta */
+.gd-del{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:14px;padding:12px;border:none;border-radius:9px;background:var(--redbg);color:var(--red);font:inherit;font-size:15px;font-weight:500;cursor:pointer}

@@ -81,10 +81,14 @@ var sumMode='month', sumM=curM;
 var changeHistory=ls.g('hist7',[]);
 var recs=ls.g('rc7',[]);
 var goals=ls.g('gl7',[]);  // metas de ahorro
+// Metas sueltas (sin su categoría ni su bolsillo, p. ej. tras revertir en una versión anterior): se quitan
+(function(){var ci={},ai={};(cats.savings||[]).forEach(function(c){ci[c.id]=1;});accts.forEach(function(a){ai[a.id]=1;});
+  var ok=goals.filter(function(g){return ci[g.catId]||ai[g.accountId];});if(ok.length!==goals.length){goals=ok;ls.s('gl7',goals);}})();
 if(changeHistory.length>10){changeHistory=changeHistory.slice(0,10);try{localStorage.setItem('hist7',JSON.stringify(changeHistory));}catch(e){localStorage.removeItem('hist7');changeHistory=[];}}
 
 function pushHistory(label){
-  var snap={txs:JSON.parse(JSON.stringify(baseTxs())),accts:JSON.parse(JSON.stringify(accts)),cats:JSON.parse(JSON.stringify(cats)),budgets:JSON.parse(JSON.stringify(budgets))};
+  // La copia incluye metas y recurrentes, para que revertir deje todo como estaba
+  var snap={txs:JSON.parse(JSON.stringify(baseTxs())),accts:JSON.parse(JSON.stringify(accts)),cats:JSON.parse(JSON.stringify(cats)),budgets:JSON.parse(JSON.stringify(budgets)),goals:JSON.parse(JSON.stringify(goals)),recs:JSON.parse(JSON.stringify(recs))};
   changeHistory.unshift({id:uid(),label:label,at:new Date().toISOString(),snap:snap});
   if(changeHistory.length>10)changeHistory=changeHistory.slice(0,10);
   ls.s('hist7',changeHistory);
@@ -99,7 +103,12 @@ function revertHistory(hid){
   accts=JSON.parse(JSON.stringify(snap.accts));
   cats=JSON.parse(JSON.stringify(snap.cats));
   budgets=JSON.parse(JSON.stringify(snap.budgets));
-  ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);
+  if(snap.goals)goals=JSON.parse(JSON.stringify(snap.goals));
+  else{ // copias viejas sin metas: se quitan las metas cuya categoría o bolsillo ya no existen
+    var catIds={};cats.savings.forEach(function(c){catIds[c.id]=1;});
+    goals=goals.filter(function(g){return catIds[g.catId]&&findAcct(g.accountId);});}
+  if(snap.recs)recs=JSON.parse(JSON.stringify(snap.recs));
+  ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);ls.s('gl7',goals);ls.s('rc7',recs);
   changeHistory=changeHistory.slice(idx+1);
   ls.s('hist7',changeHistory);
   renderAll();syncDrive();
@@ -448,7 +457,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='4.6', APP_DATE='2026-11-17';
+var APP_VERSION='4.7', APP_DATE='2026-11-17';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -600,7 +609,7 @@ function recApprove(id){var r=findRec(id);if(!r)return;pushHistory('Aprobar recu
   recApproveOne(r,recAmountFromRow(id));saveRecs();ls.s('tx7',txs);renderAll();syncDrive();}
 function recApproveAll(){var due=recsDue();if(!due.length)return;pushHistory('Aprobar '+due.length+' recurrentes');
   due.forEach(function(r){recApproveOne(r,recAmountFromRow(r.id));});saveRecs();ls.s('tx7',txs);renderAll();syncDrive();}
-function recSkip(id){var r=findRec(id);if(!r)return;r.done=r.done||{};r.done[todayMk()]='s';saveRecs();renderAll();syncDrive();}
+function recSkip(id){var r=findRec(id);if(!r)return;pushHistory('Omitir recurrente: '+r.description);r.done=r.done||{};r.done[todayMk()]='s';saveRecs();renderAll();syncDrive();}
 function renderRecsCard(){
   var w=document.getElementById('d-recs');if(!w)return;
   while(w.firstChild)w.removeChild(w.firstChild);
@@ -635,10 +644,10 @@ function openRecEdit(id){var r=findRec(id);if(!r)return;recEditId=id;
 function saveRecEdit(){var r=findRec(recEditId);if(!r)return;
   var d=document.getElementById('rec-d').value.trim();var m=rawNum(document.getElementById('rec-m'));var day=parseInt(document.getElementById('rec-day').value,10);
   if(!d||!m||!day){alert('Completa descripción, monto y día');return;}
-  r.description=d;r.amount=m;r.day=Math.min(Math.max(day,1),28);saveRecs();closeM('m-rec');renderAll();syncDrive();}
+  pushHistory('Editar recurrente: '+r.description);r.description=d;r.amount=m;r.day=Math.min(Math.max(day,1),28);saveRecs();closeM('m-rec');renderAll();syncDrive();}
 function delRec(id){var r=findRec(id);if(!r)return;
   showConfirm('Eliminar recurrente','"'+r.description+'" dejará de aparecer cada mes. Los movimientos ya registrados no se borran.',function(){
-    recs=recs.filter(function(x){return x.id!==id;});saveRecs();renderAll();syncDrive();});}
+    pushHistory('Eliminar recurrente: '+r.description);recs=recs.filter(function(x){return x.id!==id;});saveRecs();renderAll();syncDrive();});}
 function renderRecsSettings(){
   var w=document.getElementById('s-rec-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
   if(!recs.length){w.appendChild(el('div',{txt:'Activa «Repetir cada mes» al crear un movimiento para que aparezca aquí.',style:'padding:14px 16px;font-size:14px;color:var(--text3)'}));return;}
@@ -2531,7 +2540,7 @@ function importData(e){
   var file=e.target.files[0];if(!file)return;
   var r=new FileReader();
   r.onload=function(ev){
-    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);goals=d.goals||[];ls.s('gl7',goals);if(d.recs){recs=d.recs;ls.s('rc7',recs);}if(!(d.v>=9)){fixCharges(txs,recs);ls.s('rc7',recs);}accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
+    try{var d=JSON.parse(ev.target.result);if(!d.txs||!d.accts)throw new Error('Formato invalido');showConfirm('Restaurar datos','Se reemplazaran todos los datos actuales.',function(){pushHistory('Restaurar datos desde archivo');txs=(d.v>=8)?d.txs:migrateLegacy(d.txs);goals=d.goals||[];ls.s('gl7',goals);if(d.recs){recs=d.recs;ls.s('rc7',recs);}if(!(d.v>=9)){fixCharges(txs,recs);ls.s('rc7',recs);}accts=d.accts;cats=d.cats||DC;budgets=d.budgets||{};ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);renderAll();});}catch(err){alert('Error: '+err.message);}
   };r.readAsText(file);
 }
 
@@ -2930,7 +2939,36 @@ function openGoalDetail(id){
       el('button',{cls:'gd-sec',html:uiI('checkcircle',16)+'<span>Finalizar</span>',click:function(){
         showConfirm('Finalizar meta','«'+g.name+'» saldrá del presupuesto, del formulario y de Inicio. Su historial y el bolsillo se conservan.',function(){setGoalStatus(g,'done');});}})]));
   }
+  b.appendChild(el('button',{cls:'gd-del',html:uiI('trash',16)+'<span>Eliminar meta</span>',click:function(){deleteGoal(g.id);}}));
   document.getElementById('m-goald').classList.add('open');
+}
+// Eliminar una meta. Si su bolsillo solo tiene movimientos de la meta, se borra todo como si no
+// se hubiera creado (la plata de los aportes vuelve a la cuenta de donde salió).
+function goalOwnTx(g,t){return t.goalId===g.id||t.fromGoal===g.id||(t.isAdjust&&t.accountId===g.accountId&&t.description==='Saldo inicial: '+g.name);}
+function goalDeletePlan(g){
+  var touches=function(t){return t.accountId===g.accountId||t.fromId===g.accountId||t.toId===g.accountId;};
+  var own=baseTxs().filter(function(t){return goalOwnTx(g,t);});
+  var others=baseTxs().filter(function(t){return touches(t)&&!goalOwnTx(g,t);});
+  var shared=others.length>0||goals.some(function(x){return x.id!==g.id&&x.accountId===g.accountId;});
+  return {own:own,shared:shared};
+}
+function deleteGoal(id){
+  var g=goals.filter(function(x){return x.id===id;})[0];if(!g)return;
+  var plan=goalDeletePlan(g),acc=goalAcct(g),n=plan.own.length;
+  var msg=!acc?'Se borran la meta, su categoría y su presupuesto.':plan.shared
+    ?'Se borran la meta, su categoría y su presupuesto. La cuenta «'+(acc?acc.name:'')+'» se conserva porque tiene otros movimientos'+(n?'. También se borran los '+n+' movimientos de la meta (aportes y usos)':'')+'.'
+    :'Se borra todo como si no la hubieras creado: la categoría, su presupuesto y el bolsillo «'+(acc?acc.name:'')+'»'+(n?' con sus '+n+' movimientos. La plata de los aportes vuelve a la cuenta de donde salió':'')+'.';
+  showConfirm('Eliminar meta «'+g.name+'»',msg+' Puedes deshacerlo desde el historial de cambios.',function(){
+    pushHistory('Eliminar meta: '+g.name);
+    var ownIds={};plan.own.forEach(function(t){ownIds[t.id]=1;});
+    txs=txs.filter(function(t){return !ownIds[t.id];});
+    if(!plan.shared)accts=accts.filter(function(a){return a.id!==g.accountId;});
+    cats.savings=cats.savings.filter(function(c){return c.id!==g.catId;});
+    Object.keys(budgets).forEach(function(mk){if(budgets[mk])delete budgets[mk]['s:'+g.catId];});
+    goals=goals.filter(function(x){return x.id!==g.id;});
+    ls.s('tx7',txs);ls.s('ac7',accts);ls.s('ca7',cats);ls.s('bu7',budgets);ls.s('gl7',goals);
+    closeM('m-goald');renderAll();syncDrive();showToast('Meta eliminada');
+  });
 }
 function setGoalStatus(g,st){
   pushHistory((st==='done'?'Finalizar meta: ':'Reactivar meta: ')+g.name);
