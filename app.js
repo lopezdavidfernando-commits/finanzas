@@ -432,7 +432,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='4.2', APP_DATE='2026-11-08';
+var APP_VERSION='4.3', APP_DATE='2026-11-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -1267,30 +1267,35 @@ function shareParts(t){
   if(t.status==='Paid'){d=0;l=0;o=0;}else if(t.status==='DavidPaidLinaPending')d=0;else if(t.status==='LinaPaidDavidPending')l=0;
   return {d:d,l:l,o:o};
 }
+// Pendientes: «Todos los meses» suma lo que se debe sin importar el mes
+var ePendAll=false;
+function pickPendMonth(v){if(v==='all'){ePendAll=true;renderExpenses();return;}ePendAll=false;pickMonth(v);}
 function renderExpenses(){
   // Mes en lista (con cuántos pendientes tiene cada mes)
-  var eml=document.getElementById('e-mlbl');if(eml)eml.textContent=mLbl();
-  var emn=document.getElementById('e-mname');if(emn)emn.textContent=MONTHS[curM].toLowerCase();
+  var eml=document.getElementById('e-mlbl');if(eml)eml.textContent=ePendAll?'Todos los meses':mLbl();
+  var emn=document.getElementById('e-mname');if(emn)emn.textContent=ePendAll?'todos los meses':MONTHS[curM].toLowerCase();
   var ems=clr('e-msel');
   if(ems){var pc={};txs.forEach(function(t){if(t.mode==='expenses'&&t.status!=='Paid'){var pp=perOf(t.date),k=mkK(pp.y,pp.m);pc[k]=(pc[k]||0)+1;}});
-    dashMonths().forEach(function(o){var op=document.createElement('option'),n=pc[mkK(o.y,o.m)]||0;op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y+(n?' · '+n+' pendiente'+(n===1?'':'s'):'');ems.appendChild(op);});ems.value=curY+'-'+curM;}
+    var nAll=0;Object.keys(pc).forEach(function(k){nAll+=pc[k];});
+    var oa=document.createElement('option');oa.value='all';oa.textContent='Todos los meses'+(nAll?' · '+nAll+' pendiente'+(nAll===1?'':'s'):'');ems.appendChild(oa);
+    dashMonths().forEach(function(o){var op=document.createElement('option'),n=pc[mkK(o.y,o.m)]||0;op.value=o.y+'-'+o.m;op.textContent=MONTHS[o.m]+' '+o.y+(n?' · '+n+' pendiente'+(n===1?'':'s'):'');ems.appendChild(op);});ems.value=ePendAll?'all':curY+'-'+curM;}
 
-  // Resumen: todo lo pendiente de cualquier mes
-  // Las cuatro cifras: solo lo pendiente del mes elegido
+  // Las cuatro cifras: lo pendiente del mes elegido, o de todos los meses
   var dav=0,lin=0,otr=0;
-  mTxs(txs).forEach(function(t){if(t.mode!=='expenses'||t.status==='Paid')return;var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
+  (ePendAll?txs:mTxs(txs)).forEach(function(t){if(t.mode!=='expenses'||t.status==='Paid')return;var p=shareParts(t);dav+=p.d;lin+=p.l;otr+=p.o;});
   var tot=dav+lin+otr;
   document.getElementById('e-dav').textContent=fmtb(dav);
   document.getElementById('e-lin').textContent=fmtb(lin);
   document.getElementById('e-otr').textContent=fmtb(otr);
   document.getElementById('e-tot').textContent=fmtb(tot);
-  var gn=document.getElementById('e-grid-note');if(gn)gn.textContent='Solo lo pendiente de '+MONTHS[curM].toLowerCase()+' '+curY;
+  var gn=document.getElementById('e-grid-note');if(gn)gn.textContent=ePendAll?'Todo lo pendiente, sin importar el mes':'Solo lo pendiente de '+MONTHS[curM].toLowerCase()+' '+curY;
 
   // Gastos pendientes del mes elegido
-  var all=mTxs(txs).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
+  var all=(ePendAll?txs:mTxs(txs)).filter(function(t){return t.mode==='expenses'&&t.status!=='Paid';});
+  var ept=document.getElementById('e-paid-toggle');if(ept&&ept.parentNode)ept.parentNode.style.display=ePendAll?'none':'';
 
   // Pendiente por origen (como antes): total y reparto por persona; tocar una fila filtra la lista
-  var sm=document.getElementById('e-src-mes');if(sm)sm.textContent=MONTHS[curM];
+  var sm=document.getElementById('e-src-mes');if(sm)sm.textContent=ePendAll?'Todos los meses':MONTHS[curM];
   var sw=clr('e-source-body');
   [['Efectivo','@cash'],['Tarjeta crédito','@card'],['Tarjeta débito','@bank']].forEach(function(d){
     var td=0,tl=0,to=0;all.forEach(function(t){if(t.source!==d[0])return;var p=shareParts(t);td+=p.d;tl+=p.l;to+=p.o;});
@@ -1341,7 +1346,7 @@ function renderExpenses(){
   });
   var srt=filtered.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var el2=clr('e-list');
-  if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',html:uiI('receipt',34)}),el('p',{txt:curFiltSrc!=='all'||curFiltExp!=='all'?'Sin pendientes con este filtro':'Sin pendientes este mes'})]));return;}
+  if(!srt.length){el2.appendChild(el('div',{cls:'empty'},[el('div',{cls:'ei',html:uiI('receipt',34)}),el('p',{txt:curFiltSrc!=='all'||curFiltExp!=='all'?'Sin pendientes con este filtro':(ePendAll?'No hay nada pendiente':'Sin pendientes este mes')})]));return;}
   // Render paid items section
   
   // renderPaidExpenses called at end after srt render
