@@ -820,3 +820,9 @@ body.ob-on{overflow:hidden}
 .una-r b{font-size:14.5px;font-weight:600;color:var(--green);white-space:nowrap}
 .una-more{font-size:13px;color:var(--text2);padding:6px 0;border-top:.5px solid var(--border)}
 .una-note{font-size:12px;color:var(--text3);line-height:1.4;padding:6px 0 10px;border-top:.5px solid var(--border)}
+
+/* Aviso: hay dinero por asignar */
+nav button{position:relative}
+nav button.has-dot::after{content:'';position:absolute;top:7px;right:calc(50% - 16px);width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px var(--navbg)}
+nav button.has-dot.active::after{right:8px}
+.dlist-ic.ok{background:var(--greenbg);color:var(--green)}

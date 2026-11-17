@@ -432,7 +432,7 @@ function recalcAllBalances(){
 // ── Gastos compartidos: una sola fuente de verdad ──
 // Solo se guarda el gasto compartido. Tu parte y los adelantos se calculan al vuelo.
 // Versión: 2.x para cambios normales (2.1, 2.2…); el primer número sube solo con cambios grandes (3.0)
-var APP_VERSION='4.4', APP_DATE='2026-11-16';
+var APP_VERSION='4.5', APP_DATE='2026-11-16';
 function isDerived(t){return !!(t&&t.mode==='tracking'&&(t.linkedFrom||t.isAdelanto||t.isReimb||t.cuotaOf));}
 function baseTxs(){return txs.filter(function(t){return !isDerived(t);});}
 function acctNameById(id){for(var i=0;i<accts.length;i++)if(accts[i].id===id)return accts[i].name;return '';}
@@ -986,6 +986,8 @@ function renderAll(){
   var nb=document.getElementById('nav-brand-name');if(nb)nb.textContent=userName;
   var pn=document.getElementById('s-partnername');if(pn&&document.activeElement!==pn)pn.value=partnerName;
   applyPendienteTab();
+  // Punto en Presupuesto cuando hay dinero por asignar en el mes actual
+  var nbB=document.getElementById('nav-budget');if(nbB){var pnB=perNow();nbB.classList.toggle('has-dot',concilData(pnB.y,pnB.m).porAsignar>=1);}
   // Update charge select options with current names
   var chDavid=document.getElementById('ch-david');if(chDavid)chDavid.textContent=userName;
   var chLina=document.getElementById('ch-lina');if(chLina)chLina.textContent=partnerName;
@@ -1061,9 +1063,12 @@ function renderDash(){
   if(pend>0&&showPendiente)items.push({ic:'users',t:'Pendientes',v:fmtb(pend),go:function(){showPage('expenses');}});
   if(lent>0&&showPendiente)items.push({ic:'cash',t:'Te deben (adelantos)',v:fmtb(lent),go:function(){showPage('expenses');}});
   if(nc.length)items.push({ic:'tag',t:nc.length+' sin categoría',v:fmtb(ncTot),go:goNoCat,warn:true});
+  // Dinero que llegó y aún no está en ningún rubro del presupuesto (mes actual)
+  var pnA=perNow(),pa=Math.round(concilData(pnA.y,pnA.m).porAsignar);
+  if(pa>=1)items.unshift({ic:'coins',t:'Por asignar en el presupuesto',v:fmtb(pa),go:function(){curY=pnA.y;curM=pnA.m;showPage('budget');},ok:true});
   items.forEach(function(it){
     rv.appendChild(el('div',{cls:'dlist-row',click:it.go},[
-      el('span',{cls:'dlist-ic'+(it.warn?' warn':''),html:uiI(it.ic,17)}),el('span',{cls:'dlist-t',txt:it.t}),
+      el('span',{cls:'dlist-ic'+(it.warn?' warn':'')+(it.ok?' ok':''),html:uiI(it.ic,17)}),el('span',{cls:'dlist-t',txt:it.t}),
       el('b',{txt:it.v}),el('span',{cls:'dlist-arr',html:uiI('chevright',15)})]));
   });
   var rw=document.getElementById('d-review-wrap');if(rw)rw.style.display=items.length?'':'none';
